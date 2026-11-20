@@ -24,11 +24,11 @@ with passing checks. Nothing in this plan writes to mainnet.
 - [~] 2.5 Live check against mainnet; SDEX figures match the research snapshot (AMM pending 2.4)
 
 ## Phase 3: On-chain oracle (`contracts/depth-oracle`)
-- [ ] 3.1 Storage layout, admin and publisher roles, TTL extension
-- [ ] 3.2 `publish` (publisher-authorised, monotonic timestamps, bounds checks)
-- [ ] 3.3 SEP-40-style reads: `depth(asset)`, `depths(asset, n)`, `last_timestamp`
-- [ ] 3.4 Contract tests: auth, stale data, replay, bounds
-- [ ] 3.5 Local-network deployment script (never public testnet or mainnet in this phase)
+- [x] 3.1 Storage layout, admin and publisher roles, TTL extension
+- [x] 3.2 `publish` (publisher-authorised, monotonic timestamps, bounds checks)
+- [x] 3.3 SEP-40-style reads: `depth(asset)`, `depths(asset, n)`, `last_timestamp`
+- [x] 3.4 Contract tests: auth, stale data, replay, bounds
+- [ ] 3.5 Local-network deployment script (never public testnet or mainnet in this phase). Needs stellar-cli v25.2+ for `stellar contract build`
 
 ## Phase 4: Service and dashboard
 - [ ] 4.1 `pocky-api`: scheduled measurement loop, snapshot store, JSON endpoints

@@ -36,7 +36,7 @@ Snapshot from the research phase (19 Nov 2026, 10% band):
 | `crates/pocky-ingest` | Horizon and SEP-1 clients (Soroban RPC next) | Rust |
 | `crates/pocky-cli` | `pocky measure` | Rust |
 | `crates/pocky-api` | HTTP service and history | Rust (phase 4) |
-| `contracts/depth-oracle` | On-chain depth oracle with SEP-40-style reads | Rust / Soroban (phase 3) |
+| `contracts/depth-oracle` | On-chain depth oracle with SEP-40-style reads | Rust / Soroban |
 | `web/` | Dashboard | TypeScript / Next.js (phase 4) |
 | `docs/` | Idea, architecture, plan, security model | |
 
@@ -45,6 +45,10 @@ Snapshot from the research phase (19 Nov 2026, 10% band):
 ```bash
 cargo test --workspace
 cargo clippy --workspace --all-targets -- -D warnings
+
+# contract (own workspace)
+cd contracts/depth-oracle && cargo test
+stellar contract build   # needs stellar-cli v25.2+
 ```
 
 ## Status
