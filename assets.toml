@@ -67,3 +67,64 @@ name = "Ondo US Dollar Yield"
 code = "USDC"
 issuer = "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
 home_domain = "centre.io"
+
+# Soroban AMM pools (constant-product only). Each address is checked on-chain before use:
+# its tokens must equal the locally derived SAC addresses of the asset and the counter, and
+# Aquarius pools must report pool_type "constant_product". Found from Aquarius's pool list
+# and the Soroswap factory's get_pair; a pool left out here only understates depth.
+# Not yet measured: Aquarius stable and concentrated pools, and pools against other
+# counters (sUSD, XLD, AQUA, KPOP).
+
+[[pool]]
+asset = "USTRY"
+counter = "USDC"
+protocol = "aquarius"
+contract = "CCX2TYR4AQTPPMTZOIMP3YIBHAYLLSTXVP47PAGTL753PCQFSKV32MIA"
+
+[[pool]]
+asset = "USTRY"
+counter = "XLM"
+protocol = "aquarius"
+contract = "CACX5646BHTJ3CMNDPDTQURAP5REOCUIICJWWQ26DVO3YYYG2UCKKWVY"
+
+[[pool]]
+asset = "USTRY"
+counter = "USDC"
+protocol = "soroswap"
+contract = "CDIXSYDR7S5OLT56JM7G5Y5LHH6NEFINZOE2YG2TJEXHHYWKLV3FDCCU"
+
+[[pool]]
+asset = "CETES"
+counter = "USDC"
+protocol = "aquarius"
+contract = "CCKGQSQG5JLZBMYMB4HT6M4H7FUC3NK5C75MIHN6627LRAY5B2SYL2AD"
+
+[[pool]]
+asset = "CETES"
+counter = "USDC"
+protocol = "aquarius"
+contract = "CBLPZUFE6WJ7FNOTZINEWFDFKHGDSQZOLVCYLGTAX4JC6OABNRWAFTI5"
+
+[[pool]]
+asset = "CETES"
+counter = "USDC"
+protocol = "soroswap"
+contract = "CAQJUHO6KIBTEDT53DKDPHFMQ32KDWU5MDCAZE2MXT4ECBMTDQQF5FGB"
+
+[[pool]]
+asset = "TESOURO"
+counter = "USDC"
+protocol = "aquarius"
+contract = "CDPF7GMA3OLVUBLEVKNKXKEFSS3EQAXN75RHT7DR4SYIHFS5LH5JOTD7"
+
+[[pool]]
+asset = "USDY"
+counter = "USDC"
+protocol = "aquarius"
+contract = "CAFHLHGZXOVNCGFJ7DOXL7JDNMBCEZKDI3LS5NRQH3GXC7CSIMQZHUSM"
+
+[[pool]]
+asset = "USDY"
+counter = "XLM"
+protocol = "soroswap"
+contract = "CA53URIS7E2LIWASEH7IACBU6FB3EBUYPNW5IRKZBHALRNXLZ3DE7XTP"

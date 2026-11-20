@@ -13,6 +13,7 @@
 pub mod error;
 pub mod horizon;
 pub mod measure;
+pub mod pools;
 pub mod registry;
 pub mod sep1;
 pub mod soroban;

@@ -3,6 +3,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::error::IngestError;
+use crate::pools::PoolSpec;
 
 /// A Stellar classic asset. Identity is the pair (code, issuer), never the code alone.
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -55,6 +56,9 @@ pub struct Registry {
     #[serde(rename = "asset")]
     pub assets: Vec<Asset>,
     pub usdc: Asset,
+    /// Soroban AMM pools, pinned and verified on-chain before use.
+    #[serde(default, rename = "pool")]
+    pub pools: Vec<PoolSpec>,
 }
 
 impl Registry {
@@ -63,6 +67,15 @@ impl Registry {
         r.usdc.validate()?;
         for a in &r.assets {
             a.validate()?;
+        }
+        for p in &r.pools {
+            p.validate()?;
+            if !r.assets.iter().any(|a| a.code == p.asset) {
+                return Err(IngestError::Registry(format!(
+                    "pool {} sells unregistered asset {}",
+                    p.contract, p.asset
+                )));
+            }
         }
         Ok(r)
     }
