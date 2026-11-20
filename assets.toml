@@ -1,0 +1,69 @@
+# Assets Pocky measures. An asset is only measured if its issuer is confirmed by the
+# issuer's own stellar.toml (SEP-1) at `home_domain`. Never add an issuer taken from
+# Horizon's asset list alone: it contains impostor tokens with the same codes.
+
+[[asset]]
+code = "USTRY"
+issuer = "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC"
+home_domain = "etherfuse.com"
+name = "Etherfuse US Treasury bond"
+
+[[asset]]
+code = "CETES"
+issuer = "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC"
+home_domain = "etherfuse.com"
+name = "Etherfuse Mexican government bill"
+
+[[asset]]
+code = "TESOURO"
+issuer = "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC"
+home_domain = "etherfuse.com"
+name = "Etherfuse Brazilian government bond"
+
+[[asset]]
+code = "MEX"
+issuer = "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC"
+home_domain = "etherfuse.com"
+name = "Etherfuse bond token"
+
+[[asset]]
+code = "CETESZ"
+issuer = "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC"
+home_domain = "etherfuse.com"
+name = "Etherfuse bond token"
+
+[[asset]]
+code = "EUROB"
+issuer = "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC"
+home_domain = "etherfuse.com"
+name = "Etherfuse euro government bond"
+
+[[asset]]
+code = "GILTS"
+issuer = "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC"
+home_domain = "etherfuse.com"
+name = "Etherfuse UK government bond"
+
+[[asset]]
+code = "KTB"
+issuer = "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC"
+home_domain = "etherfuse.com"
+name = "Etherfuse Korean government bond"
+
+[[asset]]
+code = "MEXe"
+issuer = "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC"
+home_domain = "etherfuse.com"
+name = "Etherfuse bond token"
+
+[[asset]]
+code = "USDY"
+issuer = "GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6"
+home_domain = "ondo.finance"
+name = "Ondo US Dollar Yield"
+
+# Counter assets used for USD conversion.
+[usdc]
+code = "USDC"
+issuer = "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+home_domain = "centre.io"
