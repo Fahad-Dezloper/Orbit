@@ -1,13 +1,26 @@
-//! One measurement pass for one asset across its SDEX venues.
+//! One measurement pass for one asset across every venue: its SDEX books and its pinned
+//! Soroban AMM pools.
+//!
+//! 1. Read every venue. A pool that fails on-chain verification is left out and noted.
+//! 2. Take each venue's own price and its depth at that price.
+//! 3. Choose one reference price for the asset from venues with real depth
+//!    ([`consensus_reference`]). No venue is its own reference.
+//! 4. Measure every venue's exit from that reference, at every band, and sum them.
 
 use pocky_core::{
-    AssetDepth, Band, CoreError, ExitQuote, Fx, OrderBook, Thresholds, Venue, VenueExit,
+    consensus_reference, deviation_bps, AssetDepth, Band, CpPool, ExitQuote, Fx, OrderBook,
+    Reference, Thresholds, Venue, VenueExit, VenueMid,
 };
 use serde::Serialize;
 
 use crate::error::IngestError;
 use crate::horizon::{Horizon, Side};
+use crate::pools::{read_pool, Counter, PoolSpec};
 use crate::registry::Asset;
+use crate::soroban::SorobanRpc;
+
+/// A venue whose mid sits further than this from the reference is called out in the notes.
+pub const DEVIATION_NOTE_BPS: i64 = 200;
 
 #[derive(Clone, Debug)]
 pub struct MeasureConfig {
@@ -28,6 +41,11 @@ impl Default for MeasureConfig {
 pub struct AssetReport {
     pub code: String,
     pub issuer: String,
+    /// The price every band was measured from, or `None` if no venue had enough depth to
+    /// set one (then every figure is zero).
+    pub reference: Option<Reference>,
+    /// Each venue's own price and depth, before the reference was applied.
+    pub venue_mids: Vec<VenueMid>,
     pub depths: Vec<AssetDepth>,
     /// Facts a reader needs to interpret the figure, e.g. a one-sided book.
     pub notes: Vec<String>,
@@ -41,82 +59,171 @@ pub fn xlm_usd(h: &Horizon, usdc: &Asset) -> Result<Fx, IngestError> {
     Ok(Fx::ONE.div_down(xlm_per_usdc)?)
 }
 
-fn venue_exits(
-    book: &OrderBook,
-    venue: Venue,
-    usd_per_counter: Fx,
-    bands: &[Band],
-    notes: &mut Vec<String>,
-) -> Result<Vec<VenueExit>, IngestError> {
-    let label = match &venue {
-        Venue::Sdex { counter } => format!("SDEX/{counter}"),
-        Venue::Amm {
-            protocol, counter, ..
-        } => format!("{protocol}/{counter}"),
-    };
-    let mut out = Vec::with_capacity(bands.len());
-    match book.mid() {
-        Ok(mid) => {
-            for &b in bands {
-                out.push(VenueExit::new(
-                    venue.clone(),
-                    b,
-                    book.exit(mid, b)?,
-                    usd_per_counter,
-                )?);
-            }
-        }
-        Err(CoreError::NoMid) => {
-            // No two-sided market means no trustworthy reference price. Count nothing.
-            if !book.bids.is_empty() {
-                notes.push(format!(
-                    "{label}: bids but no asks; counted as zero (no reference price)"
-                ));
-            }
-            for &b in bands {
-                out.push(VenueExit::new(
-                    venue.clone(),
-                    b,
-                    ExitQuote::default(),
-                    usd_per_counter,
-                )?);
-            }
-        }
-        Err(e) => return Err(e.into()),
-    }
-    Ok(out)
+enum Source {
+    Book(OrderBook),
+    Pool(CpPool),
 }
 
-/// Measures one asset on its USDC and XLM SDEX books at every configured band.
+struct Leg {
+    venue: Venue,
+    label: String,
+    usd_per_counter: Fx,
+    source: Source,
+}
+
+impl Leg {
+    /// The venue's own price in COUNTER units, if it has one.
+    fn own_mid(&self) -> Option<Fx> {
+        match &self.source {
+            Source::Book(b) => b.mid().ok(),
+            Source::Pool(p) if p.reserve_asset.is_zero() || p.reserve_counter.is_zero() => None,
+            Source::Pool(p) => p.mid().ok(),
+        }
+    }
+
+    fn exit_against(&self, reference: Fx, band: Band) -> Result<ExitQuote, IngestError> {
+        Ok(match &self.source {
+            Source::Book(b) => b.exit(reference, band)?,
+            Source::Pool(p) => p.exit_against(reference, band)?,
+        })
+    }
+}
+
+/// Measures one asset across its SDEX books and, when `rpc` is given, its pinned pools.
 pub fn measure_asset(
     h: &Horizon,
+    rpc: Option<&SorobanRpc>,
     asset: &Asset,
     usdc: &Asset,
+    pools: &[PoolSpec],
     xlm_usd: Fx,
     cfg: &MeasureConfig,
 ) -> Result<AssetReport, IngestError> {
     let mut notes = Vec::new();
-    let usdc_book = h.order_book(asset, &Side::Credit(usdc))?;
-    let xlm_book = h.order_book(asset, &Side::Native)?;
+    let mut legs = vec![
+        Leg {
+            venue: Venue::Sdex {
+                counter: "USDC".into(),
+            },
+            label: "SDEX/USDC".into(),
+            usd_per_counter: Fx::ONE,
+            source: Source::Book(h.order_book(asset, &Side::Credit(usdc))?),
+        },
+        Leg {
+            venue: Venue::Sdex {
+                counter: "XLM".into(),
+            },
+            label: "SDEX/XLM".into(),
+            usd_per_counter: xlm_usd,
+            source: Source::Book(h.order_book(asset, &Side::Native)?),
+        },
+    ];
+    if let Some(rpc) = rpc {
+        for spec in pools.iter().filter(|p| p.asset == asset.code) {
+            let short = spec.contract.get(..8).unwrap_or(&spec.contract);
+            let label = format!("{} {short}", spec.label());
+            match read_pool(rpc, spec, asset, usdc) {
+                Ok(pool) => legs.push(Leg {
+                    venue: Venue::Amm {
+                        protocol: spec.protocol.name().into(),
+                        pool: spec.contract.clone(),
+                        counter: spec.counter.code().into(),
+                    },
+                    label,
+                    usd_per_counter: match spec.counter {
+                        Counter::Usdc => Fx::ONE,
+                        Counter::Xlm => xlm_usd,
+                    },
+                    source: Source::Pool(pool),
+                }),
+                Err(e) => notes.push(format!("{label}: left out ({e})")),
+            }
+        }
+    }
 
-    let mut by_venue = venue_exits(
-        &usdc_book,
-        Venue::Sdex {
-            counter: "USDC".into(),
-        },
-        Fx::ONE,
-        &cfg.bands,
-        &mut notes,
-    )?;
-    by_venue.extend(venue_exits(
-        &xlm_book,
-        Venue::Sdex {
-            counter: "XLM".into(),
-        },
-        xlm_usd,
-        &cfg.bands,
-        &mut notes,
-    )?);
+    // Each venue's own price and its depth at that price, in USD.
+    let widest = cfg
+        .bands
+        .iter()
+        .copied()
+        .max()
+        .unwrap_or(Band::TWENTY_FIVE_PCT);
+    let mut mids = Vec::new();
+    for leg in &legs {
+        match leg.own_mid() {
+            Some(mid) => {
+                let depth = leg.exit_against(mid, widest)?.counter_raised;
+                mids.push(VenueMid {
+                    label: leg.label.clone(),
+                    mid_usd: mid.mul_down(leg.usd_per_counter)?,
+                    depth_usd: depth.mul_down(leg.usd_per_counter)?,
+                });
+            }
+            None => {
+                if let Source::Book(b) = &leg.source {
+                    if !b.bids.is_empty() {
+                        notes.push(format!(
+                            "{}: bids but no asks, so no price of its own",
+                            leg.label
+                        ));
+                    }
+                }
+            }
+        }
+    }
+
+    let reference = consensus_reference(&mids, cfg.thresholds.dead_below);
+    let mut by_venue = Vec::new();
+    match &reference {
+        None => {
+            notes.push(format!(
+                "no venue has ${} of depth at its own price; no reference, counted as zero",
+                cfg.thresholds.dead_below.raw() / 10_000_000
+            ));
+            for leg in &legs {
+                for &b in &cfg.bands {
+                    by_venue.push(VenueExit::new(
+                        leg.venue.clone(),
+                        b,
+                        ExitQuote::default(),
+                        leg.usd_per_counter,
+                    )?);
+                }
+            }
+        }
+        Some(r) => {
+            for m in &mids {
+                let d = deviation_bps(m.mid_usd, r.price_usd)?;
+                if d.abs() > DEVIATION_NOTE_BPS {
+                    let side = if d < 0 { "below" } else { "above" };
+                    let thin = if r.qualifying.contains(&m.label) {
+                        ""
+                    } else {
+                        " (too thin to set the reference)"
+                    };
+                    notes.push(format!(
+                        "{}: own price {}.{:02}% {side} the reference{thin}",
+                        m.label,
+                        d.abs() / 100,
+                        d.abs() % 100
+                    ));
+                }
+            }
+            for leg in &legs {
+                // Reference in this venue's counter units, rounded up: a higher reference
+                // can only lower measured depth.
+                let reference_counter = r.price_usd.div_up(leg.usd_per_counter)?;
+                for &b in &cfg.bands {
+                    by_venue.push(VenueExit::new(
+                        leg.venue.clone(),
+                        b,
+                        leg.exit_against(reference_counter, b)?,
+                        leg.usd_per_counter,
+                    )?);
+                }
+            }
+        }
+    }
 
     let mut depths = Vec::with_capacity(cfg.bands.len());
     for &b in &cfg.bands {
@@ -131,6 +238,8 @@ pub fn measure_asset(
     Ok(AssetReport {
         code: asset.code.clone(),
         issuer: asset.issuer.clone(),
+        reference,
+        venue_mids: mids,
         depths,
         notes,
     })
