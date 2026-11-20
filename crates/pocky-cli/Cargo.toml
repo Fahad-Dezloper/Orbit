@@ -1,0 +1,18 @@
+[package]
+name = "pocky-cli"
+description = "Measure exit liquidity for Stellar real-world assets from the command line"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+name = "pocky"
+path = "src/main.rs"
+
+[dependencies]
+pocky-core = { workspace = true }
+pocky-ingest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+clap = { version = "4", features = ["derive"] }
