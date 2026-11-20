@@ -28,7 +28,7 @@ with passing checks. Nothing in this plan writes to mainnet.
 - [x] 3.2 `publish` (publisher-authorised, monotonic timestamps, bounds checks)
 - [x] 3.3 SEP-40-style reads: `depth(asset)`, `depths(asset, n)`, `last_timestamp`
 - [x] 3.4 Contract tests: auth, stale data, replay, bounds
-- [ ] 3.5 Local-network deployment script (never public testnet or mainnet in this phase). Needs stellar-cli v25.2+ for `stellar contract build`
+- [x] 3.5 Local-network deployment script (`scripts/local-oracle-demo.sh`); never public testnet or mainnet in this phase
 
 ## Phase 4: Service and dashboard
 - [ ] 4.1 `pocky-api`: scheduled measurement loop, snapshot store, JSON endpoints

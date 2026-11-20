@@ -51,6 +51,17 @@ cd contracts/depth-oracle && cargo test
 stellar contract build   # needs stellar-cli v25.2+
 ```
 
+### Run the oracle on a local network
+
+```bash
+stellar container start local      # Docker quickstart, localhost only
+./scripts/local-oracle-demo.sh
+```
+
+Deploys the contract, publishes live figures, reads them back, and checks that a stranger,
+the admin, a replayed timestamp, a future-dated figure and a self-rotating publisher are all
+rejected.
+
 ## Status
 
 Phase 1 (depth math) is complete. Phase 2 reads live SDEX order books with SEP-1 issuer
