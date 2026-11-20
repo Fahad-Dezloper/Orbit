@@ -15,6 +15,7 @@ pub mod horizon;
 pub mod measure;
 pub mod registry;
 pub mod sep1;
+pub mod soroban;
 
 pub use error::IngestError;
 pub use horizon::{Horizon, Side};
