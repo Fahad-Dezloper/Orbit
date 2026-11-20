@@ -17,23 +17,27 @@ every Stellar venue (SDEX order books and Soroban AMM pools) before the **averag
 falls more than the band below the reference price. The published figure is the **minimum
 over a 24-hour window**, so liquidity that is parked and pulled cannot inflate it.
 
-Snapshot from the research phase (19 Nov 2026, 10% band):
+Every venue is measured from **one reference price** per asset, the median of the venues
+that hold real depth, so no venue can vouch for its own price.
 
-| Asset | Exit on Stellar | Verdict |
-| --- | ---: | --- |
-| USTRY | ~$380K | healthy |
-| CETES | ~$379K | healthy |
-| USDY | ~$102K | shallow |
-| TESOURO | ~$58K | shallow |
-| six Etherfuse bond tokens | $1 to $4 | dead |
-| deJAAA | $0 (with $3.56M borrowed against it) | dead |
+Live run, 21 Nov 2026, 10% band, SDEX order books plus nine Soroban AMM pools
+([full output](docs/measurements/2026-11-21-all-venues.md)):
+
+| Asset | Exit on Stellar | Where it is | Verdict |
+| --- | ---: | --- | --- |
+| USTRY | $381,836 | SDEX $271K, Aquarius $107K, Soroswap $4.5K | healthy |
+| CETES | $352,896 | SDEX $267K, Aquarius $85K | healthy |
+| USDY | $109,377 | Aquarius $107K, SDEX $2.2K | healthy |
+| TESOURO | $60,335 | SDEX $55K, Aquarius $5.3K | shallow |
+| six Etherfuse bond tokens | $0 | bids only, no price anywhere | dead |
+| deJAAA | $0, with $3.56M borrowed against it (research, 19 Nov) | no Stellar venue | dead |
 
 ## Layout
 
 | Path | What | Language |
 | --- | --- | --- |
 | `crates/pocky-core` | Pure depth math: fixed-point, order-book and AMM exit, verdicts, windowed minimum | Rust, no I/O |
-| `crates/pocky-ingest` | Horizon and SEP-1 clients (Soroban RPC next) | Rust |
+| `crates/pocky-ingest` | Horizon, Soroban RPC and SEP-1 clients; pool verification | Rust |
 | `crates/pocky-cli` | `pocky measure` | Rust |
 | `crates/pocky-api` | HTTP service and history | Rust (phase 4) |
 | `contracts/depth-oracle` | On-chain depth oracle with SEP-40-style reads | Rust / Soroban |
@@ -64,15 +68,16 @@ rejected.
 
 ## Status
 
-Phase 1 (depth math) is complete. Phase 2 reads live SDEX order books with SEP-1 issuer
-checks:
+Depth math, live ingestion (SDEX books and Soroban AMM pools, with SEP-1 issuer checks and
+on-chain pool verification) and the on-chain oracle are complete:
 
 ```bash
 cargo run --release -p pocky-cli -- measure          # table
 cargo run --release -p pocky-cli -- measure --json   # JSON
+cargo run --release -p pocky-cli -- measure --no-amm # SDEX order books only
 ```
 
-Soroban AMM pools (needed for USDY and deJAAA) are next. See [`docs/PLAN.md`](docs/PLAN.md) for every phase and
+Pools are read from Soroban RPC by simulation only. Next: the API service and dashboard. See [`docs/PLAN.md`](docs/PLAN.md) for every phase and
 subphase, and [`docs/SECURITY.md`](docs/SECURITY.md) for the threat model.
 
 ## Principles

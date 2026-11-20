@@ -45,6 +45,14 @@
 - **Constant-product AMM exit** with fee `f` at band `s`: the admissible effective input is
   `dx' = x * ((1 - f)/(1 - s) - 1)`, raising `y * dx' / (x + dx')`. With no fee this is
   exactly `s * y`.
+- **Reference price**: every venue is measured from one reference per asset, the upper median
+  of the own-prices of venues holding at least $100 of depth. A venue is never its own
+  reference, a thin venue cannot move it, and pushing one venue can only shrink the others.
+- **AMM exit against a reference** `r`: the average sale price `(1 - f) y / (x + dx')` must stay
+  at or above `r (1 - s)`, so `x + dx' <= (1 - f) y / (r (1 - s))`. A pool already below the
+  floor contributes nothing.
+- **Pool identity**: a pinned pool counts only if its two tokens equal the SAC ids derived
+  locally from `sha256(network id, asset)`, and (Aquarius) its type is constant-product.
 - **Rounding** always understates depth: amounts round down, base absorbed rounds up, the
   price floor rounds up. No floating point anywhere in `pocky-core`.
 - **Published depth** = minimum of per-snapshot exit over the window (default 24h), so depth

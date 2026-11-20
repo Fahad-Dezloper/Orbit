@@ -1,0 +1,1676 @@
+{
+  "measured_at": 1795203405,
+  "xlm_usd": "0.1258076",
+  "venues": "SDEX order books + 9 pinned Soroban AMM pools",
+  "reports": [
+    {
+      "code": "USTRY",
+      "issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+      "reference": {
+        "price_usd": "1.0791578",
+        "qualifying": [
+          "aquarius/USDC CCX2TYR4",
+          "soroswap/USDC CDIXSYDR",
+          "SDEX/USDC"
+        ]
+      },
+      "venue_mids": [
+        {
+          "label": "SDEX/USDC",
+          "mid_usd": "1.0810209",
+          "depth_usd": "270807.1585097"
+        },
+        {
+          "label": "SDEX/XLM",
+          "mid_usd": "2.0177041",
+          "depth_usd": "0.0000000"
+        },
+        {
+          "label": "aquarius/USDC CCX2TYR4",
+          "mid_usd": "1.0788735",
+          "depth_usd": "271869.9455213"
+        },
+        {
+          "label": "aquarius/XLM CACX5646",
+          "mid_usd": "1.0812721",
+          "depth_usd": "12.1522422"
+        },
+        {
+          "label": "soroswap/USDC CDIXSYDR",
+          "mid_usd": "1.0791578",
+          "depth_usd": "11506.2180257"
+        }
+      ],
+      "depths": [
+        {
+          "asset": "USTRY",
+          "band": 200,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "256060.3202113",
+                "counter_raised": "270802.9163294"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "270802.9163294"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "amm",
+                "protocol": "aquarius",
+                "pool": "CCX2TYR4AQTPPMTZOIMP3YIBHAYLLSTXVP47PAGTL753PCQFSKV32MIA",
+                "counter": "USDC"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "17424.2325680",
+                "counter_raised": "18427.4275307"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "18427.4275307"
+            },
+            {
+              "venue": {
+                "kind": "amm",
+                "protocol": "aquarius",
+                "pool": "CACX5646BHTJ3CMNDPDTQURAP5REOCUIICJWWQ26DVO3YYYG2UCKKWVY",
+                "counter": "XLM"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.9652325",
+                "counter_raised": "8.1140197"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "1.0208053"
+            },
+            {
+              "venue": {
+                "kind": "amm",
+                "protocol": "soroswap",
+                "pool": "CDIXSYDR7S5OLT56JM7G5Y5LHH6NEFINZOE2YG2TJEXHHYWKLV3FDCCU",
+                "counter": "USDC"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "748.8116803",
+                "counter_raised": "791.9242880"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "791.9242880"
+            }
+          ],
+          "total_usd": "290023.2889534",
+          "verdict": "healthy"
+        },
+        {
+          "asset": "USTRY",
+          "band": 1000,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "278825.4129941",
+                "counter_raised": "270806.9796497"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "270806.9796497"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "amm",
+                "protocol": "aquarius",
+                "pool": "CCX2TYR4AQTPPMTZOIMP3YIBHAYLLSTXVP47PAGTL753PCQFSKV32MIA",
+                "counter": "USDC"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "109659.2335300",
+                "counter_raised": "106505.6642580"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "106505.6642580"
+            },
+            {
+              "venue": {
+                "kind": "amm",
+                "protocol": "aquarius",
+                "pool": "CACX5646BHTJ3CMNDPDTQURAP5REOCUIICJWWQ26DVO3YYYG2UCKKWVY",
+                "counter": "XLM"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "5.0631101",
+                "counter_raised": "39.0875055"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "4.9175052"
+            },
+            {
+              "venue": {
+                "kind": "amm",
+                "protocol": "soroswap",
+                "pool": "CDIXSYDR7S5OLT56JM7G5Y5LHH6NEFINZOE2YG2TJEXHHYWKLV3FDCCU",
+                "counter": "USDC"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "4652.4280890",
+                "counter_raised": "4518.6340272"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "4518.6340272"
+            }
+          ],
+          "total_usd": "381836.1954401",
+          "verdict": "healthy"
+        },
+        {
+          "asset": "USTRY",
+          "band": 2500,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "334590.7241825",
+                "counter_raised": "270807.1590863"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "270807.1590863"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "amm",
+                "protocol": "aquarius",
+                "pool": "CCX2TYR4AQTPPMTZOIMP3YIBHAYLLSTXVP47PAGTL753PCQFSKV32MIA",
+                "counter": "USDC"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "335635.0885929",
+                "counter_raised": "271652.4346382"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "271652.4346382"
+            },
+            {
+              "venue": {
+                "kind": "amm",
+                "protocol": "aquarius",
+                "pool": "CACX5646BHTJ3CMNDPDTQURAP5REOCUIICJWWQ26DVO3YYYG2UCKKWVY",
+                "counter": "XLM"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "15.1029104",
+                "counter_raised": "97.1627929"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "12.2238177"
+            },
+            {
+              "venue": {
+                "kind": "amm",
+                "protocol": "soroswap",
+                "pool": "CDIXSYDR7S5OLT56JM7G5Y5LHH6NEFINZOE2YG2TJEXHHYWKLV3FDCCU",
+                "counter": "USDC"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "14216.2926373",
+                "counter_raised": "11506.2180257"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "11506.2180257"
+            }
+          ],
+          "total_usd": "553978.0355679",
+          "verdict": "healthy"
+        }
+      ],
+      "notes": [
+        "SDEX/XLM: own price 86.97% above the reference"
+      ]
+    },
+    {
+      "code": "CETES",
+      "issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+      "reference": {
+        "price_usd": "0.0642251",
+        "qualifying": [
+          "aquarius/USDC CCKGQSQG",
+          "SDEX/USDC"
+        ]
+      },
+      "venue_mids": [
+        {
+          "label": "SDEX/USDC",
+          "mid_usd": "0.0642251",
+          "depth_usd": "267475.3620332"
+        },
+        {
+          "label": "SDEX/XLM",
+          "mid_usd": "0.0526831",
+          "depth_usd": "9.0073631"
+        },
+        {
+          "label": "aquarius/USDC CCKGQSQG",
+          "mid_usd": "0.0625725",
+          "depth_usd": "282798.6034712"
+        },
+        {
+          "label": "aquarius/USDC CBLPZUFE",
+          "mid_usd": "0.0629457",
+          "depth_usd": "2.6966260"
+        },
+        {
+          "label": "soroswap/USDC CAQJUHO6",
+          "mid_usd": "0.0637770",
+          "depth_usd": "0.5561649"
+        }
+      ],
+      "depths": [
+        {
+          "asset": "CETES",
+          "band": 200,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "amm",
+                "protocol": "aquarius",
+                "pool": "CCKGQSQG5JLZBMYMB4HT6M4H7FUC3NK5C75MIHN6627LRAY5B2SYL2AD",
+                "counter": "USDC"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "amm",
+                "protocol": "aquarius",
+                "pool": "CBLPZUFE6WJ7FNOTZINEWFDFKHGDSQZOLVCYLGTAX4JC6OABNRWAFTI5",
+                "counter": "USDC"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "amm",
+                "protocol": "soroswap",
+                "pool": "CAQJUHO6KIBTEDT53DKDPHFMQ32KDWU5MDCAZE2MXT4ECBMTDQQF5FGB",
+                "counter": "USDC"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.3618733",
+                "counter_raised": "0.0227765"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0227765"
+            }
+          ],
+          "total_usd": "0.0227765",
+          "verdict": "dead"
+        },
+        {
+          "asset": "CETES",
+          "band": 1000,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "4627013.6529240",
+                "counter_raised": "267453.4193744"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "267453.4193744"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "amm",
+                "protocol": "aquarius",
+                "pool": "CCKGQSQG5JLZBMYMB4HT6M4H7FUC3NK5C75MIHN6627LRAY5B2SYL2AD",
+                "counter": "USDC"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "1478165.4978631",
+                "counter_raised": "85441.8090067"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "85441.8090067"
+            },
+            {
+              "venue": {
+                "kind": "amm",
+                "protocol": "aquarius",
+                "pool": "CBLPZUFE6WJ7FNOTZINEWFDFKHGDSQZOLVCYLGTAX4JC6OABNRWAFTI5",
+                "counter": "USDC"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "14.8658896",
+                "counter_raised": "0.8592870"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.8592870"
+            },
+            {
+              "venue": {
+                "kind": "amm",
+                "protocol": "soroswap",
+                "pool": "CAQJUHO6KIBTEDT53DKDPHFMQ32KDWU5MDCAZE2MXT4ECBMTDQQF5FGB",
+                "counter": "USDC"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "3.5323007",
+                "counter_raised": "0.2041761"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.2041761"
+            }
+          ],
+          "total_usd": "352896.2918442",
+          "verdict": "healthy"
+        },
+        {
+          "asset": "CETES",
+          "band": 2500,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "5552864.2346683",
+                "counter_raised": "267475.3620332"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "267475.3620332"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "amm",
+                "protocol": "aquarius",
+                "pool": "CCKGQSQG5JLZBMYMB4HT6M4H7FUC3NK5C75MIHN6627LRAY5B2SYL2AD",
+                "counter": "USDC"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "5403917.0928978",
+                "counter_raised": "260300.7420561"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "260300.7420561"
+            },
+            {
+              "venue": {
+                "kind": "amm",
+                "protocol": "aquarius",
+                "pool": "CBLPZUFE6WJ7FNOTZINEWFDFKHGDSQZOLVCYLGTAX4JC6OABNRWAFTI5",
+                "counter": "USDC"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "52.5274527",
+                "counter_raised": "2.5301896"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "2.5301896"
+            },
+            {
+              "venue": {
+                "kind": "amm",
+                "protocol": "soroswap",
+                "pool": "CAQJUHO6KIBTEDT53DKDPHFMQ32KDWU5MDCAZE2MXT4ECBMTDQQF5FGB",
+                "counter": "USDC"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "11.2997956",
+                "counter_raised": "0.5442987"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.5442987"
+            }
+          ],
+          "total_usd": "527779.1785776",
+          "verdict": "healthy"
+        }
+      ],
+      "notes": [
+        "SDEX/XLM: own price 17.97% below the reference",
+        "aquarius/USDC CCKGQSQG: own price 2.57% below the reference"
+      ]
+    },
+    {
+      "code": "TESOURO",
+      "issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+      "reference": {
+        "price_usd": "0.2158922",
+        "qualifying": [
+          "SDEX/USDC",
+          "aquarius/USDC CDPF7GMA"
+        ]
+      },
+      "venue_mids": [
+        {
+          "label": "SDEX/USDC",
+          "mid_usd": "0.2154510",
+          "depth_usd": "55048.8012867"
+        },
+        {
+          "label": "SDEX/XLM",
+          "mid_usd": "0.6978740",
+          "depth_usd": "0.0000000"
+        },
+        {
+          "label": "aquarius/USDC CDPF7GMA",
+          "mid_usd": "0.2158922",
+          "depth_usd": "13608.4965732"
+        }
+      ],
+      "depths": [
+        {
+          "asset": "TESOURO",
+          "band": 200,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "259640.6540524",
+                "counter_raised": "54933.3155966"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "54933.3155966"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "amm",
+                "protocol": "aquarius",
+                "pool": "CDPF7GMA3OLVUBLEVKNKXKEFSS3EQAXN75RHT7DR4SYIHFS5LH5JOTD7",
+                "counter": "USDC"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "4426.9481034",
+                "counter_raised": "936.6288887"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "936.6288887"
+            }
+          ],
+          "total_usd": "55869.9444853",
+          "verdict": "shallow"
+        },
+        {
+          "asset": "TESOURO",
+          "band": 1000,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "283016.7847782",
+                "counter_raised": "54991.0103327"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "54991.0103327"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "amm",
+                "protocol": "aquarius",
+                "pool": "CDPF7GMA3OLVUBLEVKNKXKEFSS3EQAXN75RHT7DR4SYIHFS5LH5JOTD7",
+                "counter": "USDC"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "27504.6792753",
+                "counter_raised": "5344.2416972"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "5344.2416972"
+            }
+          ],
+          "total_usd": "60335.2520299",
+          "verdict": "shallow"
+        },
+        {
+          "asset": "TESOURO",
+          "band": 2500,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "339972.6576998",
+                "counter_raised": "55048.1007566"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "55048.1007566"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "amm",
+                "protocol": "aquarius",
+                "pool": "CDPF7GMA3OLVUBLEVKNKXKEFSS3EQAXN75RHT7DR4SYIHFS5LH5JOTD7",
+                "counter": "USDC"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "84044.9839998",
+                "counter_raised": "13608.4965732"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "13608.4965732"
+            }
+          ],
+          "total_usd": "68656.5973298",
+          "verdict": "shallow"
+        }
+      ],
+      "notes": [
+        "SDEX/XLM: own price 223.25% above the reference"
+      ]
+    },
+    {
+      "code": "MEX",
+      "issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+      "reference": null,
+      "venue_mids": [
+        {
+          "label": "SDEX/XLM",
+          "mid_usd": "0.6290575",
+          "depth_usd": "0.0000000"
+        }
+      ],
+      "depths": [
+        {
+          "asset": "MEX",
+          "band": 200,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        },
+        {
+          "asset": "MEX",
+          "band": 1000,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        },
+        {
+          "asset": "MEX",
+          "band": 2500,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        }
+      ],
+      "notes": [
+        "SDEX/USDC: bids but no asks, so no price of its own",
+        "no venue has $100 of depth at its own price; no reference, counted as zero"
+      ]
+    },
+    {
+      "code": "CETESZ",
+      "issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+      "reference": null,
+      "venue_mids": [],
+      "depths": [
+        {
+          "asset": "CETESZ",
+          "band": 200,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        },
+        {
+          "asset": "CETESZ",
+          "band": 1000,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        },
+        {
+          "asset": "CETESZ",
+          "band": 2500,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        }
+      ],
+      "notes": [
+        "SDEX/USDC: bids but no asks, so no price of its own",
+        "SDEX/XLM: bids but no asks, so no price of its own",
+        "no venue has $100 of depth at its own price; no reference, counted as zero"
+      ]
+    },
+    {
+      "code": "EUROB",
+      "issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+      "reference": null,
+      "venue_mids": [],
+      "depths": [
+        {
+          "asset": "EUROB",
+          "band": 200,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        },
+        {
+          "asset": "EUROB",
+          "band": 1000,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        },
+        {
+          "asset": "EUROB",
+          "band": 2500,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        }
+      ],
+      "notes": [
+        "SDEX/USDC: bids but no asks, so no price of its own",
+        "SDEX/XLM: bids but no asks, so no price of its own",
+        "no venue has $100 of depth at its own price; no reference, counted as zero"
+      ]
+    },
+    {
+      "code": "GILTS",
+      "issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+      "reference": null,
+      "venue_mids": [],
+      "depths": [
+        {
+          "asset": "GILTS",
+          "band": 200,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        },
+        {
+          "asset": "GILTS",
+          "band": 1000,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        },
+        {
+          "asset": "GILTS",
+          "band": 2500,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        }
+      ],
+      "notes": [
+        "SDEX/USDC: bids but no asks, so no price of its own",
+        "SDEX/XLM: bids but no asks, so no price of its own",
+        "no venue has $100 of depth at its own price; no reference, counted as zero"
+      ]
+    },
+    {
+      "code": "KTB",
+      "issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+      "reference": null,
+      "venue_mids": [],
+      "depths": [
+        {
+          "asset": "KTB",
+          "band": 200,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        },
+        {
+          "asset": "KTB",
+          "band": 1000,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        },
+        {
+          "asset": "KTB",
+          "band": 2500,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        }
+      ],
+      "notes": [
+        "SDEX/USDC: bids but no asks, so no price of its own",
+        "SDEX/XLM: bids but no asks, so no price of its own",
+        "no venue has $100 of depth at its own price; no reference, counted as zero"
+      ]
+    },
+    {
+      "code": "MEXe",
+      "issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+      "reference": null,
+      "venue_mids": [],
+      "depths": [
+        {
+          "asset": "MEXe",
+          "band": 200,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        },
+        {
+          "asset": "MEXe",
+          "band": 1000,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        },
+        {
+          "asset": "MEXe",
+          "band": 2500,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        }
+      ],
+      "notes": [
+        "SDEX/USDC: bids but no asks, so no price of its own",
+        "SDEX/XLM: bids but no asks, so no price of its own",
+        "no venue has $100 of depth at its own price; no reference, counted as zero"
+      ]
+    },
+    {
+      "code": "USDY",
+      "issuer": "GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6",
+      "reference": {
+        "price_usd": "1.1380826",
+        "qualifying": [
+          "SDEX/XLM",
+          "SDEX/USDC",
+          "aquarius/USDC CAFHLHGZ"
+        ]
+      },
+      "venue_mids": [
+        {
+          "label": "SDEX/USDC",
+          "mid_usd": "1.1380826",
+          "depth_usd": "2220.6091031"
+        },
+        {
+          "label": "SDEX/XLM",
+          "mid_usd": "0.9520639",
+          "depth_usd": "132.5220875"
+        },
+        {
+          "label": "aquarius/USDC CAFHLHGZ",
+          "mid_usd": "1.1458657",
+          "depth_usd": "253943.1501309"
+        },
+        {
+          "label": "soroswap/XLM CA53URIS",
+          "mid_usd": "1.1229961",
+          "depth_usd": "0.5994259"
+        }
+      ],
+      "depths": [
+        {
+          "asset": "USDY",
+          "band": 200,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "1933.5739972",
+                "counter_raised": "2156.5556841"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "2156.5556841"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "amm",
+                "protocol": "aquarius",
+                "pool": "CAFHLHGZXOVNCGFJ7DOXL7JDNMBCEZKDI3LS5NRQH3GXC7CSIMQZHUSM",
+                "counter": "USDC"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "23460.3743285",
+                "counter_raised": "26165.8481563"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "26165.8481563"
+            },
+            {
+              "venue": {
+                "kind": "amm",
+                "protocol": "soroswap",
+                "pool": "CA53URIS7E2LIWASEH7IACBU6FB3EBUYPNW5IRKZBHALRNXLZ3DE7XTP",
+                "counter": "XLM"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0083436",
+                "counter_raised": "0.0739678"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "0.0093057"
+            }
+          ],
+          "total_usd": "28322.4131461",
+          "verdict": "shallow"
+        },
+        {
+          "asset": "USDY",
+          "band": 1000,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "2126.2136473",
+                "counter_raised": "2177.8262078"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "2177.8262078"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "amm",
+                "protocol": "aquarius",
+                "pool": "CAFHLHGZXOVNCGFJ7DOXL7JDNMBCEZKDI3LS5NRQH3GXC7CSIMQZHUSM",
+                "counter": "USDC"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "104659.2676251",
+                "counter_raised": "107199.8085510"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "107199.8085510"
+            },
+            {
+              "venue": {
+                "kind": "amm",
+                "protocol": "soroswap",
+                "pool": "CA53URIS7E2LIWASEH7IACBU6FB3EBUYPNW5IRKZBHALRNXLZ3DE7XTP",
+                "counter": "XLM"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "0.2011766",
+                "counter_raised": "1.6378976"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "0.2060599"
+            }
+          ],
+          "total_usd": "109377.8408187",
+          "verdict": "healthy"
+        },
+        {
+          "asset": "USDY",
+          "band": 2500,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "2601.5791508",
+                "counter_raised": "2220.6091031"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "2220.6091031"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "27.3039022",
+                "counter_raised": "185.2477313"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "23.3055724"
+            },
+            {
+              "venue": {
+                "kind": "amm",
+                "protocol": "aquarius",
+                "pool": "CAFHLHGZXOVNCGFJ7DOXL7JDNMBCEZKDI3LS5NRQH3GXC7CSIMQZHUSM",
+                "counter": "USDC"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "303596.5829570",
+                "counter_raised": "259138.5065419"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "259138.5065419"
+            },
+            {
+              "venue": {
+                "kind": "amm",
+                "protocol": "soroswap",
+                "pool": "CA53URIS7E2LIWASEH7IACBU6FB3EBUYPNW5IRKZBHALRNXLZ3DE7XTP",
+                "counter": "XLM"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "0.6736175",
+                "counter_raised": "4.5702664"
+              },
+              "usd_per_counter": "0.1258076",
+              "usd": "0.5749742"
+            }
+          ],
+          "total_usd": "261382.9961916",
+          "verdict": "healthy"
+        }
+      ],
+      "notes": [
+        "SDEX/XLM: own price 16.34% below the reference"
+      ]
+    }
+  ],
+  "skipped": []
+}

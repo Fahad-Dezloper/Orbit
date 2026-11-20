@@ -23,6 +23,10 @@ number can cost someone real money, so correctness is a security property here.
 | Depth spoofing (orders placed then pulled) | Windowed minimum; persistence filter counts only liquidity seen in consecutive snapshots |
 | Wash liquidity (self-trading pools) | AMM exit uses reserves, not volume; volume is never an input |
 | Impostor assets with the same code | Issuer pinned by SEP-1; asset id = code + issuer |
+| Impostor or swapped AMM pools | Pool tokens must equal SAC ids derived locally from the network id and asset; non-constant-product pools rejected |
+| A venue pushing its own price to look deep | One cross-venue reference (upper median of venues with real depth); a thin venue cannot set it; pushing one venue only lowers the others |
+| RPC pointed at the wrong network | `getNetwork` passphrase checked before any read |
+| Reading pools moves funds | Pools are read by simulation only; the simulated source account is all zeros and nothing is signed or submitted |
 | Unit errors (Horizon bid/ask units) | Single conversion function, unit-tested against a known `/offers` reconciliation |
 | Numeric overflow or precision loss | Checked arithmetic in core; contract stores scaled `i128`; bounds checks on publish |
 | Stale on-chain data | Every record carries a timestamp; readers get it; contract rejects non-increasing timestamps |
