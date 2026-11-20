@@ -17,11 +17,11 @@ with passing checks. Nothing in this plan writes to mainnet.
 - [x] 1.6 Unit tests, including the February USTRY book shape
 
 ## Phase 2: Ingest (`pocky-ingest`, `pocky-cli`)
-- [ ] 2.1 Horizon order-book client with timeouts and bounded retries
-- [ ] 2.2 Asset registry (issuers verified via SEP-1) and USD conversion for XLM pairs
-- [ ] 2.3 `pocky measure` CLI: table and JSON output
+- [x] 2.1 Horizon order-book client with timeouts and bounded retries
+- [x] 2.2 Asset registry (issuers verified via SEP-1) and USD conversion for XLM pairs
+- [x] 2.3 `pocky measure` CLI: table and JSON output
 - [ ] 2.4 Soroban RPC: read Aquarius / Soroswap / Phoenix pool reserves
-- [ ] 2.5 Live check against mainnet; results match the research snapshot
+- [~] 2.5 Live check against mainnet; SDEX figures match the research snapshot (AMM pending 2.4)
 
 ## Phase 3: On-chain oracle (`contracts/depth-oracle`)
 - [ ] 3.1 Storage layout, admin and publisher roles, TTL extension

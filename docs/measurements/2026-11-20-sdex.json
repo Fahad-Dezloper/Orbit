@@ -1,0 +1,1114 @@
+{
+  "measured_at": 1795185239,
+  "xlm_usd": "0.1319632",
+  "reports": [
+    {
+      "code": "USTRY",
+      "issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+      "depths": [
+        {
+          "asset": "USTRY",
+          "band": 200,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "255888.0279852",
+                "counter_raised": "271082.6590869"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "271082.6590869"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1319632",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "271082.6590869",
+          "verdict": "healthy"
+        },
+        {
+          "asset": "USTRY",
+          "band": 1000,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "278637.9797031",
+                "counter_raised": "271086.8904531"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "271086.8904531"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1319632",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "271086.8904531",
+          "verdict": "healthy"
+        },
+        {
+          "asset": "USTRY",
+          "band": 2500,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "334365.8018749",
+                "counter_raised": "271087.0738700"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "271087.0738700"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1319632",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "271087.0738700",
+          "verdict": "healthy"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "code": "CETES",
+      "issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+      "depths": [
+        {
+          "asset": "CETES",
+          "band": 200,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1319632",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        },
+        {
+          "asset": "CETES",
+          "band": 1000,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "4659531.1071711",
+                "counter_raised": "270147.0328597"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "270147.0328597"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1319632",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "270147.0328597",
+          "verdict": "healthy"
+        },
+        {
+          "asset": "CETES",
+          "band": 2500,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "5591896.6172068",
+                "counter_raised": "270169.1299223"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "270169.1299223"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "201.3832908",
+                "counter_raised": "63.2484098"
+              },
+              "usd_per_counter": "0.1319632",
+              "usd": "8.3464625"
+            }
+          ],
+          "total_usd": "270177.4763848",
+          "verdict": "healthy"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "code": "TESOURO",
+      "issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+      "depths": [
+        {
+          "asset": "TESOURO",
+          "band": 200,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "249383.8525438",
+                "counter_raised": "52675.2064716"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "52675.2064716"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1319632",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "52675.2064716",
+          "verdict": "shallow"
+        },
+        {
+          "asset": "TESOURO",
+          "band": 1000,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "271837.6046916",
+                "counter_raised": "52730.7323529"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "52730.7323529"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1319632",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "52730.7323529",
+          "verdict": "shallow"
+        },
+        {
+          "asset": "TESOURO",
+          "band": 2500,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "326544.8096446",
+                "counter_raised": "52785.6419341"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "52785.6419341"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1319632",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "52785.6419341",
+          "verdict": "shallow"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "code": "MEX",
+      "issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+      "depths": [
+        {
+          "asset": "MEX",
+          "band": 200,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1319632",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        },
+        {
+          "asset": "MEX",
+          "band": 1000,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1319632",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        },
+        {
+          "asset": "MEX",
+          "band": 2500,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1319632",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        }
+      ],
+      "notes": [
+        "SDEX/USDC: bids but no asks; counted as zero (no reference price)"
+      ]
+    },
+    {
+      "code": "CETESZ",
+      "issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+      "depths": [
+        {
+          "asset": "CETESZ",
+          "band": 200,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1319632",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        },
+        {
+          "asset": "CETESZ",
+          "band": 1000,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1319632",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        },
+        {
+          "asset": "CETESZ",
+          "band": 2500,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1319632",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        }
+      ],
+      "notes": [
+        "SDEX/USDC: bids but no asks; counted as zero (no reference price)",
+        "SDEX/XLM: bids but no asks; counted as zero (no reference price)"
+      ]
+    },
+    {
+      "code": "EUROB",
+      "issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+      "depths": [
+        {
+          "asset": "EUROB",
+          "band": 200,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1319632",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        },
+        {
+          "asset": "EUROB",
+          "band": 1000,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1319632",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        },
+        {
+          "asset": "EUROB",
+          "band": 2500,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1319632",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        }
+      ],
+      "notes": [
+        "SDEX/USDC: bids but no asks; counted as zero (no reference price)",
+        "SDEX/XLM: bids but no asks; counted as zero (no reference price)"
+      ]
+    },
+    {
+      "code": "GILTS",
+      "issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+      "depths": [
+        {
+          "asset": "GILTS",
+          "band": 200,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1319632",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        },
+        {
+          "asset": "GILTS",
+          "band": 1000,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1319632",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        },
+        {
+          "asset": "GILTS",
+          "band": 2500,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1319632",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        }
+      ],
+      "notes": [
+        "SDEX/USDC: bids but no asks; counted as zero (no reference price)",
+        "SDEX/XLM: bids but no asks; counted as zero (no reference price)"
+      ]
+    },
+    {
+      "code": "KTB",
+      "issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+      "depths": [
+        {
+          "asset": "KTB",
+          "band": 200,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1319632",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        },
+        {
+          "asset": "KTB",
+          "band": 1000,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1319632",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        },
+        {
+          "asset": "KTB",
+          "band": 2500,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1319632",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        }
+      ],
+      "notes": [
+        "SDEX/USDC: bids but no asks; counted as zero (no reference price)",
+        "SDEX/XLM: bids but no asks; counted as zero (no reference price)"
+      ]
+    },
+    {
+      "code": "MEXe",
+      "issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+      "depths": [
+        {
+          "asset": "MEXe",
+          "band": 200,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1319632",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        },
+        {
+          "asset": "MEXe",
+          "band": 1000,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1319632",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        },
+        {
+          "asset": "MEXe",
+          "band": 2500,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "0.0000000"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1319632",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "0.0000000",
+          "verdict": "dead"
+        }
+      ],
+      "notes": [
+        "SDEX/USDC: bids but no asks; counted as zero (no reference price)",
+        "SDEX/XLM: bids but no asks; counted as zero (no reference price)"
+      ]
+    },
+    {
+      "code": "USDY",
+      "issuer": "GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6",
+      "depths": [
+        {
+          "asset": "USDY",
+          "band": 200,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "1941.4538609",
+                "counter_raised": "2165.2875711"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "2165.2875711"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 200,
+              "quote": {
+                "base_sold": "0.0000000",
+                "counter_raised": "0.0000000"
+              },
+              "usd_per_counter": "0.1319632",
+              "usd": "0.0000000"
+            }
+          ],
+          "total_usd": "2165.2875711",
+          "verdict": "critical"
+        },
+        {
+          "asset": "USDY",
+          "band": 1000,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "2139.1521955",
+                "counter_raised": "2191.0215023"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "2191.0215023"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 1000,
+              "quote": {
+                "base_sold": "26.4107948",
+                "counter_raised": "179.8801465"
+              },
+              "usd_per_counter": "0.1319632",
+              "usd": "23.7375597"
+            }
+          ],
+          "total_usd": "2214.7590620",
+          "verdict": "critical"
+        },
+        {
+          "asset": "USDY",
+          "band": 2500,
+          "venues": [
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "USDC"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "2617.4121221",
+                "counter_raised": "2234.0648956"
+              },
+              "usd_per_counter": "1.0000000",
+              "usd": "2234.0648956"
+            },
+            {
+              "venue": {
+                "kind": "sdex",
+                "counter": "XLM"
+              },
+              "band": 2500,
+              "quote": {
+                "base_sold": "185.5926958",
+                "counter_raised": "1053.3710803"
+              },
+              "usd_per_counter": "0.1319632",
+              "usd": "139.0062185"
+            }
+          ],
+          "total_usd": "2373.0711141",
+          "verdict": "critical"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "skipped": []
+}

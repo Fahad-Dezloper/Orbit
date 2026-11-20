@@ -33,8 +33,8 @@ Snapshot from the research phase (19 Nov 2026, 10% band):
 | Path | What | Language |
 | --- | --- | --- |
 | `crates/pocky-core` | Pure depth math: fixed-point, order-book and AMM exit, verdicts, windowed minimum | Rust, no I/O |
-| `crates/pocky-ingest` | Horizon, Soroban RPC and SEP-1 clients | Rust (phase 2) |
-| `crates/pocky-cli` | `pocky measure` | Rust (phase 2) |
+| `crates/pocky-ingest` | Horizon and SEP-1 clients (Soroban RPC next) | Rust |
+| `crates/pocky-cli` | `pocky measure` | Rust |
 | `crates/pocky-api` | HTTP service and history | Rust (phase 4) |
 | `contracts/depth-oracle` | On-chain depth oracle with SEP-40-style reads | Rust / Soroban (phase 3) |
 | `web/` | Dashboard | TypeScript / Next.js (phase 4) |
@@ -49,7 +49,15 @@ cargo clippy --workspace --all-targets -- -D warnings
 
 ## Status
 
-Phase 1 (depth math) is complete. See [`docs/PLAN.md`](docs/PLAN.md) for every phase and
+Phase 1 (depth math) is complete. Phase 2 reads live SDEX order books with SEP-1 issuer
+checks:
+
+```bash
+cargo run --release -p pocky-cli -- measure          # table
+cargo run --release -p pocky-cli -- measure --json   # JSON
+```
+
+Soroban AMM pools (needed for USDY and deJAAA) are next. See [`docs/PLAN.md`](docs/PLAN.md) for every phase and
 subphase, and [`docs/SECURITY.md`](docs/SECURITY.md) for the threat model.
 
 ## Principles
