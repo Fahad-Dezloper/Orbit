@@ -1,0 +1,10 @@
+/target
+**/target
+.env
+.env.*
+*.pem
+*.key
+/data/snapshots
+node_modules
+.next
+.DS_Store
