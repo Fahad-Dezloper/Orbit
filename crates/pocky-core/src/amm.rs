@@ -57,6 +57,37 @@ impl CpPool {
             counter_raised: out,
         })
     }
+
+    /// Like [`exit`](Self::exit), but the band is measured from an external `reference`
+    /// price (COUNTER per asset) instead of the pool's own mid.
+    ///
+    /// This is what stops a pool from vouching for itself: if its price has been pushed up,
+    /// a reference taken from other venues makes its admissible exit shrink, and if the
+    /// pool is already below `reference * (1 - band)` it contributes nothing.
+    ///
+    /// The average price of a sale is `(1 - f) y / (x + dx')`. Requiring it to stay at or
+    /// above the floor gives `x + dx' <= (1 - f) y / floor`.
+    pub fn exit_against(&self, reference: Fx, band: Band) -> Result<ExitQuote, CoreError> {
+        if self.reserve_asset.is_zero() || self.reserve_counter.is_zero() || reference.is_zero() {
+            return Ok(ExitQuote::default());
+        }
+        if self.fee_bps >= 10_000 {
+            return Err(CoreError::BadBand(self.fee_bps));
+        }
+        let floor = band.floor(reference)?; // rounded up: conservative
+        let keep = Fx::from_raw(i128::from(10_000 - self.fee_bps) * 1_000)?; // (1 - f)
+        let max_x = self.reserve_counter.mul_down(keep)?.div_down(floor)?;
+        if max_x <= self.reserve_asset {
+            return Ok(ExitQuote::default());
+        }
+        let dx_eff = max_x.checked_sub(self.reserve_asset)?;
+        let out = self.reserve_counter.mul_div_down(dx_eff, max_x)?;
+        let dx = dx_eff.div_up(keep)?;
+        Ok(ExitQuote {
+            base_sold: dx,
+            counter_raised: out,
+        })
+    }
 }
 
 #[cfg(test)]
@@ -110,6 +141,41 @@ mod tests {
             fee_bps: 300,
         };
         assert_eq!(pool.exit(Band::TWO_PCT).unwrap(), ExitQuote::default());
+    }
+
+    #[test]
+    fn exit_against_own_mid_matches_closed_form() {
+        let pool = CpPool {
+            reserve_asset: fx("889850.1654914"),
+            reserve_counter: fx("1018012.7008436"),
+            fee_bps: 10,
+        };
+        let a = pool.exit(Band::TEN_PCT).unwrap().counter_raised;
+        let b = pool
+            .exit_against(pool.mid().unwrap(), Band::TEN_PCT)
+            .unwrap()
+            .counter_raised;
+        // Both paths round toward less depth; they agree to within $1.
+        assert!((a.raw() - b.raw()).abs() <= 10_000_000, "{a} vs {b}");
+    }
+
+    #[test]
+    fn a_higher_reference_only_shrinks_exit() {
+        let pool = CpPool {
+            reserve_asset: fx("1000000"),
+            reserve_counter: fx("1000000"),
+            fee_bps: 30,
+        };
+        let at_mid = pool.exit_against(fx("1"), Band::TEN_PCT).unwrap();
+        let above = pool.exit_against(fx("1.05"), Band::TEN_PCT).unwrap();
+        assert!(above.counter_raised < at_mid.counter_raised);
+        // Pool already more than 10% below the reference: nothing qualifies.
+        let far = pool.exit_against(fx("1.2"), Band::TEN_PCT).unwrap();
+        assert_eq!(far, ExitQuote::default());
+        // The average price of what is counted never breaks the floor.
+        let avg = above.counter_raised.div_down(above.base_sold).unwrap();
+        let floor = Band::TEN_PCT.floor(fx("1.05")).unwrap();
+        assert!(avg >= floor.checked_sub(fx("0.000001")).unwrap());
     }
 
     #[test]

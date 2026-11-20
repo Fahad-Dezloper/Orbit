@@ -19,6 +19,7 @@ pub mod book;
 pub mod depth;
 pub mod error;
 pub mod fixed;
+pub mod reference;
 pub mod window;
 
 pub use amm::CpPool;
@@ -27,4 +28,5 @@ pub use book::{Ask, Bid, ExitQuote, OrderBook};
 pub use depth::{collateral_at_risk, AssetDepth, Thresholds, Venue, VenueExit, Verdict};
 pub use error::CoreError;
 pub use fixed::Fx;
+pub use reference::{consensus_reference, deviation_bps, Reference, VenueMid};
 pub use window::{windowed_min, Sample, WindowPolicy, WindowedDepth};
