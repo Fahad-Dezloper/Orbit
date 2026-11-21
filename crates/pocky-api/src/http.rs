@@ -245,8 +245,10 @@ mod tests {
                 venue_mids: vec![],
                 depths,
                 notes: vec![],
+                venues_read: 0,
             }],
             skipped: vec![],
+            stats: Default::default(),
         }
     }
 

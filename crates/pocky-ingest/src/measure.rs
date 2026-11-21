@@ -49,6 +49,9 @@ pub struct AssetReport {
     pub depths: Vec<AssetDepth>,
     /// Facts a reader needs to interpret the figure, e.g. a one-sided book.
     pub notes: Vec<String>,
+    /// Venues actually read (two SDEX books plus every pool that passed verification).
+    #[serde(default)]
+    pub venues_read: usize,
 }
 
 /// USD per XLM from the XLM/USDC SDEX book. Fails closed if the book is one-sided.
@@ -100,6 +103,33 @@ pub fn measure_asset(
     cfg: &MeasureConfig,
 ) -> Result<AssetReport, IngestError> {
     let mut notes = Vec::new();
+    let mine: Vec<&PoolSpec> = match rpc {
+        Some(_) => pools.iter().filter(|p| p.asset == asset.code).collect(),
+        None => Vec::new(),
+    };
+    // Both books and every pool are fetched at the same time.
+    let (usdc_book, xlm_book, pool_reads) = std::thread::scope(|s| {
+        let usdc_book = s.spawn(|| h.order_book(asset, &Side::Credit(usdc)));
+        let xlm_book = s.spawn(|| h.order_book(asset, &Side::Native));
+        let pool_handles: Vec<_> = mine
+            .iter()
+            .map(|&spec| {
+                s.spawn(move || match rpc {
+                    Some(rpc) => read_pool(rpc, spec, asset, usdc),
+                    None => Err(IngestError::Registry("no RPC".into())),
+                })
+            })
+            .collect();
+        let panicked = || IngestError::Registry("venue read panicked".into());
+        (
+            usdc_book.join().unwrap_or_else(|_| Err(panicked())),
+            xlm_book.join().unwrap_or_else(|_| Err(panicked())),
+            pool_handles
+                .into_iter()
+                .map(|h| h.join().unwrap_or_else(|_| Err(panicked())))
+                .collect::<Vec<_>>(),
+        )
+    });
     let mut legs = vec![
         Leg {
             venue: Venue::Sdex {
@@ -107,7 +137,7 @@ pub fn measure_asset(
             },
             label: "SDEX/USDC".into(),
             usd_per_counter: Fx::ONE,
-            source: Source::Book(h.order_book(asset, &Side::Credit(usdc))?),
+            source: Source::Book(usdc_book?),
         },
         Leg {
             venue: Venue::Sdex {
@@ -115,14 +145,14 @@ pub fn measure_asset(
             },
             label: "SDEX/XLM".into(),
             usd_per_counter: xlm_usd,
-            source: Source::Book(h.order_book(asset, &Side::Native)?),
+            source: Source::Book(xlm_book?),
         },
     ];
-    if let Some(rpc) = rpc {
-        for spec in pools.iter().filter(|p| p.asset == asset.code) {
+    {
+        for (spec, read) in mine.iter().zip(pool_reads) {
             let short = spec.contract.get(..8).unwrap_or(&spec.contract);
             let label = format!("{} {short}", spec.label());
-            match read_pool(rpc, spec, asset, usdc) {
+            match read {
                 Ok(pool) => legs.push(Leg {
                     venue: Venue::Amm {
                         protocol: spec.protocol.name().into(),
@@ -242,5 +272,6 @@ pub fn measure_asset(
         venue_mids: mids,
         depths,
         notes,
+        venues_read: legs.len(),
     })
 }

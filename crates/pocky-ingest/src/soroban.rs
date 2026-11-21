@@ -8,6 +8,7 @@
 //! Stellar Asset Contract (SAC) is a hash of the network id and the asset, so we derive it
 //! locally and never trust a pool, an API or a registry to tell us which token it holds.
 
+use std::sync::{Condvar, Mutex};
 use std::thread::sleep;
 use std::time::Duration;
 
@@ -29,7 +30,10 @@ use crate::registry::Asset;
 pub const MAINNET_PASSPHRASE: &str = "Public Global Stellar Network ; September 2015";
 pub const DEFAULT_MAINNET_RPC: &str = "https://mainnet.sorobanrpc.com";
 
-const ATTEMPTS: u32 = 3;
+const ATTEMPTS: u32 = 5;
+/// Most requests in flight to one RPC endpoint at a time. Public endpoints rate-limit
+/// bursts; a small cap keeps a parallel run fast without tripping them.
+pub const MAX_IN_FLIGHT: usize = 4;
 const TIMEOUT: Duration = Duration::from_secs(20);
 
 /// A token as seen by Soroban: native XLM or a classic credit asset, both through their SAC.
@@ -126,6 +130,20 @@ pub struct SorobanRpc {
     url: String,
     passphrase: String,
     agent: ureq::Agent,
+    in_flight: Mutex<usize>,
+    slot_free: Condvar,
+}
+
+/// A held request slot; released on drop, even if the request panics.
+struct Slot<'a>(&'a SorobanRpc);
+
+impl Drop for Slot<'_> {
+    fn drop(&mut self) {
+        if let Ok(mut n) = self.0.in_flight.lock() {
+            *n = n.saturating_sub(1);
+        }
+        self.0.slot_free.notify_one();
+    }
 }
 
 impl SorobanRpc {
@@ -138,6 +156,8 @@ impl SorobanRpc {
             url: url.into(),
             passphrase: passphrase.into(),
             agent,
+            in_flight: Mutex::new(0),
+            slot_free: Condvar::new(),
         }
     }
 
@@ -223,13 +243,31 @@ impl SorobanRpc {
         ScVal::from_xdr_base64(&first.xdr, Limits::len(64 * 1024)).map_err(|e| bad(&what, e))
     }
 
+    fn slot(&self) -> Slot<'_> {
+        if let Ok(mut n) = self.in_flight.lock() {
+            while *n >= MAX_IN_FLIGHT {
+                n = match self.slot_free.wait(n) {
+                    Ok(g) => g,
+                    Err(_) => return Slot(self),
+                };
+            }
+            *n += 1;
+        }
+        Slot(self)
+    }
+
     fn post<T: serde::de::DeserializeOwned>(
         &self,
         body: &serde_json::Value,
     ) -> Result<T, IngestError> {
         let mut last = String::new();
         for attempt in 1..=ATTEMPTS {
-            match self.agent.post(&self.url).send_json(body.clone()) {
+            let sent = {
+                let _slot = self.slot();
+                self.agent.post(&self.url).send_json(body.clone())
+            };
+            let mut backoff_ms = 300 * u64::from(attempt);
+            match sent {
                 Ok(resp) => {
                     return resp
                         .into_json::<T>()
@@ -242,10 +280,15 @@ impl SorobanRpc {
                         reason: format!("status {code}"),
                     })
                 }
+                Err(ureq::Error::Status(429, _)) => {
+                    // Rate limited: back off exponentially (0.6s, 1.2s, 2.4s, 4.8s).
+                    last = "status 429 (rate limited)".into();
+                    backoff_ms = 300 << attempt;
+                }
                 Err(e) => last = e.to_string(),
             }
             if attempt < ATTEMPTS {
-                sleep(Duration::from_millis(500 * u64::from(attempt)));
+                sleep(Duration::from_millis(backoff_ms));
             }
         }
         Err(IngestError::Http {

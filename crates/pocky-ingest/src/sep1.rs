@@ -28,28 +28,44 @@ struct Currency {
 /// Returns `Ok(())` only if the domain's stellar.toml lists exactly this code and issuer.
 pub fn verify(asset: &Asset) -> Result<(), IngestError> {
     asset.validate()?;
-    let url = format!("https://{}/.well-known/stellar.toml", asset.home_domain);
-    let fail = |reason: String| IngestError::Sep1 {
+    let body = fetch_toml(&asset.home_domain).map_err(|reason| IngestError::Sep1 {
         code: asset.code.clone(),
         domain: asset.home_domain.clone(),
         reason,
-    };
+    })?;
+    check_toml(asset, &body).map_err(|reason| IngestError::Sep1 {
+        code: asset.code.clone(),
+        domain: asset.home_domain.clone(),
+        reason,
+    })
+}
+
+/// Fetches `https://{domain}/.well-known/stellar.toml`, at most `MAX_BYTES`. Callers that
+/// verify several assets from one issuer fetch once and run [`check_toml`] per asset.
+pub fn fetch_toml(domain: &str) -> Result<String, String> {
+    if domain.is_empty()
+        || !domain
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b == b'.' || b == b'-')
+    {
+        return Err(format!("invalid home domain {domain:?}"));
+    }
+    let url = format!("https://{domain}/.well-known/stellar.toml");
     let agent = ureq::AgentBuilder::new()
         .timeout(Duration::from_secs(15))
         .redirects(2)
         .user_agent("pocky/0.1")
         .build();
-    let resp = agent.get(&url).call().map_err(|e| fail(e.to_string()))?;
+    let resp = agent.get(&url).call().map_err(|e| e.to_string())?;
     let mut body = String::new();
     std::io::Read::read_to_string(
         &mut std::io::Read::take(resp.into_reader(), MAX_BYTES),
         &mut body,
     )
-    .map_err(|e| fail(e.to_string()))?;
-    check_toml(asset, &body).map_err(fail)
+    .map_err(|e| e.to_string())?;
+    Ok(body)
 }
 
-/// Pure check, separated for testing.
 pub fn check_toml(asset: &Asset, body: &str) -> Result<(), String> {
     let t: Toml = toml::from_str(body).map_err(|e| format!("unparseable stellar.toml: {e}"))?;
     let found = t.currencies.iter().any(|c| {

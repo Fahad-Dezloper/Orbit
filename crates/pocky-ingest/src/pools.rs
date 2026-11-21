@@ -8,6 +8,10 @@
 //! A pool that cannot be read or verified is left out and noted. Leaving a venue out can
 //! only understate depth.
 
+use std::collections::HashMap;
+use std::sync::{Mutex, OnceLock};
+use std::time::{Duration, Instant};
+
 use pocky_core::{CpPool, Fx};
 use serde::{Deserialize, Serialize};
 
@@ -17,6 +21,17 @@ use crate::soroban::{self, SorobanRpc, Token};
 
 /// Soroswap pairs charge a fixed 0.3% on the input (the pair contract hard-codes 997/1000).
 pub const SOROSWAP_FEE_BPS: u32 = 30;
+
+/// How long a pool's verified tokens, type and fee are reused before being read again.
+/// Reserves are always read fresh.
+pub const METADATA_TTL: Duration = Duration::from_secs(6 * 3600);
+
+type MetaCache = Mutex<HashMap<(String, String), (Instant, Vec<String>, u32)>>;
+
+fn meta_cache() -> &'static MetaCache {
+    static CACHE: OnceLock<MetaCache> = OnceLock::new();
+    CACHE.get_or_init(|| Mutex::new(HashMap::new()))
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -89,7 +104,40 @@ pub fn read_pool(
         Counter::Xlm => soroban::sac_address(Token::Native, rpc.passphrase())?,
     };
     let c = &spec.contract;
-    let (tokens, fee_bps) = match spec.protocol {
+    let key = (rpc.passphrase().to_string(), c.clone());
+    let cached = meta_cache().lock().ok().and_then(|m| {
+        m.get(&key)
+            .filter(|(at, _, _)| at.elapsed() < METADATA_TTL)
+            .map(|(_, t, f)| (t.clone(), *f))
+    });
+    let (tokens, fee_bps) = match cached {
+        Some(hit) => hit,
+        None => read_metadata(rpc, spec)?,
+    };
+    if fee_bps >= 10_000 {
+        return Err(reject(spec, format!("fee of {fee_bps} bps")));
+    }
+    let reserves = soroban::amounts(&rpc.read(c, "get_reserves", vec![])?)?;
+    let pool = pool_from(
+        spec,
+        &tokens,
+        &reserves,
+        fee_bps,
+        &want_asset,
+        &want_counter,
+    )?;
+    // Only metadata that passed verification is cached.
+    if let Ok(mut m) = meta_cache().lock() {
+        m.entry(key)
+            .or_insert_with(|| (Instant::now(), tokens, fee_bps));
+    }
+    Ok(pool)
+}
+
+/// The static part of a pool: its tokens and fee, after checking its type.
+fn read_metadata(rpc: &SorobanRpc, spec: &PoolSpec) -> Result<(Vec<String>, u32), IngestError> {
+    let c = &spec.contract;
+    Ok(match spec.protocol {
         Protocol::Aquarius => {
             let kind = soroban::as_symbol(&rpc.read(c, "pool_type", vec![])?)?;
             if kind != "constant_product" {
@@ -107,19 +155,7 @@ pub fn read_pool(
             let t1 = soroban::contract_address(&rpc.read(c, "token_1", vec![])?)?;
             (vec![t0, t1], SOROSWAP_FEE_BPS)
         }
-    };
-    if fee_bps >= 10_000 {
-        return Err(reject(spec, format!("fee of {fee_bps} bps")));
-    }
-    let reserves = soroban::amounts(&rpc.read(c, "get_reserves", vec![])?)?;
-    pool_from(
-        spec,
-        &tokens,
-        &reserves,
-        fee_bps,
-        &want_asset,
-        &want_counter,
-    )
+    })
 }
 
 /// Pure part of [`read_pool`]: matches token order to reserves and checks identity.
