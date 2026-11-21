@@ -27,6 +27,9 @@ with passing checks. Nothing in this plan writes to mainnet.
 - [x] 2.6 Cross-venue reference price: every venue measured from the upper median of venues
   with real depth, never from its own mid
 - [ ] 2.7 Aquarius stable and concentrated pools; pools against other counters (sUSD, XLD)
+- [x] 2.8 Parallel ingestion: one stellar.toml fetch per issuer, assets and venues read
+  concurrently, bounded RPC concurrency with 429 back-off, pool metadata cached (17s to 4s)
+- [x] 2.9 Liquidation curve (0.5% to 50%) and collateral cap for a liquidation bonus
 
 ## Phase 3: On-chain oracle (`contracts/depth-oracle`)
 - [x] 3.1 Storage layout, admin and publisher roles, TTL extension
@@ -40,7 +43,8 @@ with passing checks. Nothing in this plan writes to mainnet.
 - [x] 4.2 History and windowed-minimum endpoint per asset (fails closed on thin coverage)
 - [~] 4.3 `web/`: asset table with venue breakdown and price-gap flags done; history chart
   and methodology page next
-- [ ] 4.4 Collateral-at-risk view: borrowed against an asset vs its exit depth
+- [~] 4.4 Collateral view: liquidatable at a bonus and recommended cap done (API and
+  dashboard); live borrowed amounts per lender next
 - [x] 4.5 `pocky-publisher`: windowed minimum to oracle batches; no replays, fails closed,
   mainnet refused; end-to-end local demo (`scripts/local-publish-demo.sh`)
 - [x] 4.6 Container image and deployment guide (`Dockerfile`, `docs/DEPLOY.md`)

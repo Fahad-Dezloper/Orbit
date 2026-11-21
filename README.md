@@ -34,6 +34,10 @@ Live run, 21 Nov 2026, 10% band, SDEX order books plus nine Soroban AMM pools
 
 ![Pocky dashboard, live run of 21 Nov 2026](docs/img/dashboard.jpg)
 
+**The five-minute story, with live numbers: [`docs/DEMO.md`](docs/DEMO.md).** A full scan of
+10 assets across 29 venues takes about 4 seconds; the depth maths for one asset's full
+liquidation curve takes 22 µs.
+
 ## Layout
 
 | Path | What | Language |
@@ -82,6 +86,7 @@ cd web && npm install && npm run dev         # dashboard on http://localhost:310
 | `GET /v1/latest` | latest run, every asset and venue (503 if older than 2h) |
 | `GET /v1/assets/{code}` | latest report plus the 24h windowed minimum per band |
 | `GET /v1/assets/{code}/history?band=1000&hours=24` | exit series for one band |
+| `GET /v1/assets/{code}/cap?bonus_bps=500&safety_bps=5000` | collateral liquidatable at a liquidation bonus, and a recommended cap |
 | `GET /health` | measurement loop status |
 
 ### On testnet

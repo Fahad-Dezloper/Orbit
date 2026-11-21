@@ -1,0 +1,99 @@
+# Demo: exit liquidity for Stellar RWAs
+
+A five-minute walkthrough. Every number below is from a live, read-only measurement of
+Stellar mainnet on 21 Nov 2026.
+
+## 1. The problem
+
+In February 2026 the YieldBlox pool on Blend lost **$10.97M** against a token whose price
+was reported correctly. The market behind that price was so thin that the collateral could
+not be sold when it had to be. A price feed says what one token is worth; it does not say
+how much of it can be sold.
+
+Of the three fixes auditors prescribed afterwards, **market-depth validation is the one
+nobody built.** Lenders on Stellar still size RWA collateral from price (or NAV) alone.
+
+## 2. What it measures, live
+
+| Asset | Exit @10% | Where it is | Verdict |
+| --- | ---: | --- | --- |
+| USTRY | $371,837 | SDEX $261K · Aquarius $107K · Soroswap $4.5K | healthy |
+| CETES | $361,535 | SDEX $260K · Aquarius $102K | healthy |
+| USDY | $103,118 | Aquarius $101K · SDEX only **$2.2K** | healthy |
+| TESOURO | $57,729 | SDEX $52K · Aquarius $5.3K | shallow |
+| MEX, CETESZ, EUROB, GILTS, KTB, MEXe | **$0** | bids only, no price on any venue | dead |
+
+- **6 of the 10** freely tradable RWA tokens on Stellar cannot be sold at all.
+- Measuring the SDEX alone gets USDY wrong by **~50x**: its market is an Aquarius pool.
+- A lender elsewhere has **$3.56M** borrowed against deJAAA, which has **$0** of exit on
+  Stellar (research figure, 19 Nov).
+
+## 3. The number a lender actually needs
+
+A liquidator paid a bonus `b` only acts if it can sell the seized collateral at most `b`
+below the price. So **the exit at band `b` is the most collateral that can be liquidated
+on-chain at that bonus.** Pocky computes that curve for every asset, from 0.5% to 50%:
+
+- USTRY at a 5% bonus: **$314,464** can be liquidated right now. Above that, a pool is
+  holding bad debt it cannot clear.
+- `GET /v1/assets/USTRY/cap?bonus_bps=500&safety_bps=5000` turns the 24h minimum of that
+  figure into a recommended collateral cap.
+
+## 4. How fast and how cheap
+
+| | |
+| --- | --- |
+| Full scan: 10 assets, 29 venues (20 order books, 9 AMM pools) | **4.0 s** (was 17 s) |
+| Depth maths for one asset's full 12-band curve | **22 µs** (all ten assets: 0.2 ms) |
+| Soroban RPC calls per pool per run, after warm-up | **1** (tokens/type/fee cached 6h) |
+| Measurement cadence / published window | every 30 min / minimum over 24h, ≥12 samples |
+| On-chain oracle reads | SEP-40 style: `depth`, `depths`, `fresh_depth`, `last_timestamp` |
+| Tests | 72 (63 engine/API/publisher, 9 contract) |
+
+The scan is network-bound: the maths is four orders of magnitude faster than the I/O.
+
+## 5. Why it is trustworthy
+
+- **Read-only.** The engine never signs. Pools are read by simulation only.
+- **Identity from first principles.** Issuers are checked against their own `stellar.toml`
+  (SEP-1); pool tokens must equal Stellar Asset Contract ids derived locally from the
+  network id. Impostor tokens with the same code are rejected.
+- **No venue is its own reference.** Every venue is measured from the median price of the
+  venues that hold real depth; a thin venue cannot move it, and pushing one venue can only
+  make the others look thinner.
+- **Manipulation can only lower the figure.** Published depth is the 24h minimum, so
+  liquidity parked for one measurement cannot raise it.
+- **Fails closed.** Stale data, thin windows or an unreadable oracle publish nothing.
+- **Every rounding understates depth.** Fixed-point, no floats.
+
+## 6. What only this does
+
+| | Price oracles (Reflector, RedStone NAV) | Oracle Shield-style scorers | **Pocky** |
+| --- | --- | --- | --- |
+| Price | ✓ | compares venue prices | reference from venues with depth |
+| How much can be sold | – | – | ✓ every venue, every band |
+| SDEX order books + Soroban AMMs together | – | SDEX, CEX | ✓ |
+| Collateral cap for a liquidation bonus | – | – | ✓ |
+| On-chain, readable by a Soroban lender | price only | – | ✓ depth oracle |
+| History of depth | – | – | ✓ append-only, since 21 Nov 2026 |
+
+Building this in-house means: the order-book unit conventions, constant-product exit maths
+against an external reference, pool discovery and on-chain verification, SAC derivation,
+reference selection, windowing, history storage, an oracle contract and a publisher, each
+tested. The history cannot be rebuilt at all: depth that was not recorded is gone.
+
+## 7. Where it stands
+
+- Live: engine, API, dashboard, liquidation curve and cap, publisher.
+- On-chain: oracle deployed on testnet carrying live mainnet figures
+  ([`deployments/testnet.md`](deployments/testnet.md)). Mainnet after an external audit.
+- Next: audit of the contract and publisher, then mainnet; stable and concentrated pools;
+  hosting around the clock.
+
+## Running the demo
+
+```bash
+cargo run --release -p pocky-api            # measures every 30 min, serves :8080
+cd web && npm run dev                        # dashboard on :3100
+curl 'localhost:8080/v1/assets/USTRY/cap?bonus_bps=500'
+```
