@@ -13,13 +13,12 @@
 
 use std::path::PathBuf;
 use std::process::ExitCode;
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use clap::{Parser, Subcommand};
 use pocky_core::{Band, Fx};
+use pocky_ingest::run::{measure_all, Run, RunOptions};
 use pocky_ingest::soroban::{SorobanRpc, DEFAULT_MAINNET_RPC};
-use pocky_ingest::{measure::xlm_usd, measure_asset, sep1, Horizon, MeasureConfig, Registry};
-use serde::Serialize;
+use pocky_ingest::{Horizon, MeasureConfig, Registry};
 
 #[derive(Parser)]
 #[command(
@@ -60,21 +59,6 @@ enum Cmd {
     },
 }
 
-#[derive(Serialize)]
-struct Output {
-    measured_at: u64,
-    xlm_usd: String,
-    venues: String,
-    reports: Vec<pocky_ingest::AssetReport>,
-    skipped: Vec<Skipped>,
-}
-
-#[derive(Serialize)]
-struct Skipped {
-    code: String,
-    reason: String,
-}
-
 fn main() -> ExitCode {
     let cli = Cli::parse();
     match run(cli) {
@@ -105,50 +89,11 @@ fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
         s.check_network()?;
         Some(s)
     };
-    let cfg = MeasureConfig::default();
-    let xlm = xlm_usd(&h, &reg.usdc)?;
-
-    let mut reports = Vec::new();
-    let mut skipped = Vec::new();
-    for a in reg
-        .assets
-        .iter()
-        .filter(|a| asset.as_deref().is_none_or(|c| c == a.code))
-    {
-        if !skip_sep1 {
-            if let Err(e) = sep1::verify(a) {
-                skipped.push(Skipped {
-                    code: a.code.clone(),
-                    reason: e.to_string(),
-                });
-                continue;
-            }
-        }
-        match measure_asset(&h, soroban.as_ref(), a, &reg.usdc, &reg.pools, xlm, &cfg) {
-            Ok(r) => reports.push(r),
-            Err(e) => skipped.push(Skipped {
-                code: a.code.clone(),
-                reason: e.to_string(),
-            }),
-        }
-    }
-
-    let measured_at = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
-    let venues = if no_amm {
-        "SDEX order books only".to_string()
-    } else {
-        format!(
-            "SDEX order books + {} pinned Soroban AMM pools",
-            reg.pools.len()
-        )
+    let opts = RunOptions {
+        only: asset,
+        skip_sep1,
     };
-    let out = Output {
-        measured_at,
-        xlm_usd: xlm.to_string(),
-        venues,
-        reports,
-        skipped,
-    };
+    let out = measure_all(&h, soroban.as_ref(), &reg, &MeasureConfig::default(), &opts)?;
     if json {
         println!("{}", serde_json::to_string_pretty(&out)?);
     } else {
@@ -176,7 +121,7 @@ fn price(v: Fx) -> String {
     format!("${}.{:04}", r / 10_000_000, (r % 10_000_000) / 1_000)
 }
 
-fn print_table(out: &Output) {
+fn print_table(out: &Run) {
     println!("XLM/USD {}   ({})\n", out.xlm_usd, out.venues);
     println!("ASSET      REFERENCE     EXIT @2%    EXIT @10%    EXIT @25%  VERDICT @10%");
     for r in &out.reports {

@@ -15,6 +15,7 @@ pub mod horizon;
 pub mod measure;
 pub mod pools;
 pub mod registry;
+pub mod run;
 pub mod sep1;
 pub mod soroban;
 
