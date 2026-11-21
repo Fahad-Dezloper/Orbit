@@ -7,6 +7,7 @@ import {
   type Windowed,
   getAsset,
   getLatest,
+  liquidatableAt,
   usd,
   utc,
   venueName,
@@ -15,6 +16,37 @@ import {
 export const dynamic = "force-dynamic";
 
 const BANDS = [200, 1000, 2500] as const;
+/** Liquidation bonus used for the lender column. Blend-style pools pay 5% to 10%. */
+const BONUS_BPS = 500;
+
+/** Liquidation curve: total exit (y) against slippage band (x, evenly spaced samples). */
+function Curve({ r }: { r: AssetReport }) {
+  const pts = r.curve ?? [];
+  const max = Math.max(...pts.map((p) => Number(p.exit_usd)), 0);
+  if (pts.length < 2 || max < 1) return null;
+  const W = 260;
+  const H = 54;
+  const x = (i: number) => 4 + (i / (pts.length - 1)) * (W - 8);
+  const y = (v: number) => H - 4 - (v / max) * (H - 10);
+  const line = pts.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(Number(p.exit_usd)).toFixed(1)}`).join(" ");
+  const bi = pts.findIndex((p) => p.band === BONUS_BPS);
+  return (
+    <figure className="curve">
+      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${r.code} liquidation curve`}>
+        <path d={`${line} L${x(pts.length - 1)},${H - 4} L${x(0)},${H - 4} Z`} className="curve-fill" />
+        <path d={line} className="curve-line" />
+        {bi >= 0 && (
+          <circle cx={x(bi)} cy={y(Number(pts[bi].exit_usd))} r={3} className="curve-dot" />
+        )}
+      </svg>
+      <figcaption>
+        <span>{pts[0].band / 100}%</span>
+        <span>slippage → sellable</span>
+        <span>{pts[pts.length - 1].band / 100}%</span>
+      </figcaption>
+    </figure>
+  );
+}
 
 function venueColor(v: Venue): string {
   if (v.kind === "sdex") return "var(--sdex)";
@@ -135,11 +167,21 @@ export default async function Page() {
             XLM/USD <b className="num">{Number(run.xlm_usd).toFixed(4)}</b>
           </span>
           <span>{run.venues}</span>
+          {run.stats && (
+            <span>
+              full scan <b className="num">{(run.stats.duration_ms / 1000).toFixed(1)}s</b> ·{" "}
+              {run.stats.venues} venues
+            </span>
+          )}
         </div>
       </Header>
 
-      <section className="kpis">
-        <Kpi label="Assets measured" value={String(run.reports.length)} />
+      <section className="kpis five">
+        <Kpi
+          label="Full scan latency"
+          value={run.stats ? `${(run.stats.duration_ms / 1000).toFixed(1)}s` : "-"}
+        />
+        <Kpi label="Assets · venues" value={`${run.reports.length} · ${run.stats?.venues ?? "-"}`} />
         <Kpi label="Total exit @10%" value={usd(String(total10))} />
         <Kpi label="Healthy" value={String(healthy)} cls="v-healthy" />
         <Kpi label="Dead (no market)" value={String(dead)} cls="v-dead" />
@@ -157,6 +199,9 @@ export default async function Page() {
                 </th>
               ))}
               <th className="num">24h min @10%</th>
+              <th className="num" title="Collateral that can be liquidated on Stellar right now at a 5% liquidation bonus">
+                Liquidatable @5% bonus
+              </th>
               <th>Verdict</th>
             </tr>
           </thead>
@@ -182,12 +227,20 @@ export default async function Page() {
                   <td className="num">
                     <WindowCell w={w10} />
                   </td>
+                  <td className="num">
+                    {(() => {
+                      const v = liquidatableAt(r, BONUS_BPS);
+                      return v === null ? <span className="sub">-</span> : usd(v);
+                    })()}
+                  </td>
                   <td>{d10 && <Chip v={d10.verdict} />}</td>
                 </tr>,
                 <tr key={`${r.code}-d`} className="detail">
                   <td />
-                  <td colSpan={6}>
-                    <Venues r={r} />
+                  <td colSpan={7}>
+                    <div className="detail-grid">
+                      <div>
+                        <Venues r={r} />
                     {!r.reference && (
                       <div className="flag muted">
                         No venue holds $100 of depth at its own price, so there is no price to
@@ -195,6 +248,9 @@ export default async function Page() {
                       </div>
                     )}
                     <Notes r={r} />
+                      </div>
+                      <Curve r={r} />
+                    </div>
                   </td>
                 </tr>,
               ];

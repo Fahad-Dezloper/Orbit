@@ -36,6 +36,15 @@ export interface AssetReport {
   venue_mids: VenueMid[];
   depths: AssetDepth[];
   notes: string[];
+  venues_read?: number;
+  curve?: { band: number; exit_usd: string }[];
+}
+
+export interface RunStats {
+  duration_ms: number;
+  assets: number;
+  venues: number;
+  sep1_domains: number;
 }
 
 export interface Run {
@@ -44,6 +53,7 @@ export interface Run {
   venues: string;
   reports: AssetReport[];
   skipped: { code: string; reason: string }[];
+  stats?: RunStats;
 }
 
 export type Windowed =
@@ -102,4 +112,11 @@ export function venueName(v: Venue): string {
 
 export function utc(ts: number): string {
   return new Date(ts * 1000).toISOString().replace("T", " ").slice(0, 16) + " UTC";
+}
+
+/** Curve value at the largest sampled band not above `bonusBps` (never rounds up). */
+export function liquidatableAt(r: AssetReport, bonusBps: number): string | null {
+  const pts = (r.curve ?? []).filter((p) => p.band <= bonusBps);
+  if (pts.length === 0) return null;
+  return pts.reduce((a, b) => (b.band > a.band ? b : a)).exit_usd;
 }
