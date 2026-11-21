@@ -7,7 +7,8 @@
 //! ```
 //!
 //! The signing key never passes through this program: `--source` names an identity in the
-//! `stellar` CLI's keystore. Mainnet is refused.
+//! `stellar` CLI's keystore (on mainnet, the OS secure store). Mainnet requires
+//! `--mainnet-unaudited` and the full 12-sample window.
 
 #![forbid(unsafe_code)]
 
@@ -31,9 +32,12 @@ use pocky_publisher::{plan, to_cli_json, OracleAsset};
     about = "Publish windowed depth to the oracle"
 )]
 struct Args {
-    /// `local` or `testnet`. Mainnet is disabled.
+    /// `local`, `testnet` or `mainnet`.
     #[arg(long)]
     network: String,
+    /// Required for mainnet: acknowledges the oracle has not had an external review yet.
+    #[arg(long)]
+    mainnet_unaudited: bool,
     /// The depth oracle contract address.
     #[arg(long)]
     oracle: String,
@@ -75,12 +79,11 @@ fn round(args: &Args, network: Network, assets: &[OracleAsset]) -> Result<(), St
 
     // Read what the oracle already holds. If that read fails, publish nothing: a blind
     // publish could replay a timestamp and fail, or worse, hide a real problem.
-    let rpc = SorobanRpc::new(
-        args.rpc
-            .clone()
-            .unwrap_or_else(|| network.default_rpc().into()),
-        network.passphrase(),
-    );
+    let rpc_url = args
+        .rpc
+        .clone()
+        .unwrap_or_else(|| network.default_rpc().into());
+    let rpc = SorobanRpc::new(rpc_url.clone(), network.passphrase());
     rpc.check_network().map_err(|e| e.to_string())?;
     let mut held: HashMap<(String, u32), u64> = HashMap::new();
     for a in assets {
@@ -107,7 +110,7 @@ fn round(args: &Args, network: Network, assets: &[OracleAsset]) -> Result<(), St
             println!("dry run, would publish: {json}");
             continue;
         }
-        submit(network, &args.oracle, &args.source, &json)?;
+        submit(network, &rpc_url, &args.oracle, &args.source, &json)?;
         let names: Vec<String> = chunk
             .iter()
             .map(|u| format!("{}@{}", u.asset.code, u.band.bps()))
@@ -119,7 +122,14 @@ fn round(args: &Args, network: Network, assets: &[OracleAsset]) -> Result<(), St
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
-    let network = Network::parse(&args.network)?;
+    let network = Network::parse(&args.network, args.mainnet_unaudited)?;
+    if network == Network::Mainnet && args.min_samples < WindowPolicy::default().min_samples {
+        return Err(format!(
+            "mainnet requires the full window: --min-samples must be at least {}",
+            WindowPolicy::default().min_samples
+        )
+        .into());
+    }
     let reg = Registry::from_toml(&std::fs::read_to_string(&args.registry)?)?;
     // Assets are named by their mainnet SAC address, whatever network the oracle is on.
     let assets = reg

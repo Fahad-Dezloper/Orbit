@@ -52,7 +52,7 @@ echo "KTB   @10%: $(read_depth "$KTB_SAC")"
 echo "== publishing again with no new measurement must be a no-op"
 "${PUB[@]}" | grep -q "nothing new to publish" && echo "ok: no replay"
 
-echo "== the publisher refuses mainnet"
+echo "== the publisher refuses mainnet without the explicit flag"
 if ./target/release/pocky-publish --network mainnet --oracle "$ORACLE" --source pocky-publisher 2>/dev/null; then
   echo "FAIL: mainnet accepted"; exit 1
 else

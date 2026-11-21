@@ -2,8 +2,8 @@
 //! batch (signed by a `stellar` CLI identity, so no secret key ever passes through this
 //! program, its arguments or its config).
 //!
-//! Mainnet is deliberately not a variant of [`Network`]: publishing to mainnet is disabled
-//! until the contract and publisher have had an external review.
+//! Mainnet must be asked for explicitly (`allow_mainnet`), because the contract has not yet
+//! had an external review. On mainnet the 24h window must have its full sample count.
 
 use std::process::Command;
 
@@ -20,19 +20,24 @@ pub enum Network {
     Local,
     /// Stellar's public test network.
     Testnet,
+    /// Stellar mainnet. Only with explicit acknowledgement that the oracle is unaudited.
+    Mainnet,
 }
 
 impl Network {
-    pub fn parse(s: &str) -> Result<Network, String> {
+    pub fn parse(s: &str, allow_mainnet: bool) -> Result<Network, String> {
         match s {
             "local" => Ok(Network::Local),
             "testnet" => Ok(Network::Testnet),
-            "mainnet" | "public" | "pubnet" => Err(
-                "publishing to mainnet is disabled until the contract and publisher have had an \
-                 external review"
+            "mainnet" if allow_mainnet => Ok(Network::Mainnet),
+            "mainnet" => Err(
+                "the oracle has not had an external review; pass --mainnet-unaudited to publish \
+                 to mainnet anyway"
                     .into(),
             ),
-            other => Err(format!("unknown network {other:?}; use local or testnet")),
+            other => Err(format!(
+                "unknown network {other:?}; use local, testnet or mainnet"
+            )),
         }
     }
 
@@ -41,6 +46,7 @@ impl Network {
         match self {
             Network::Local => "local",
             Network::Testnet => "testnet",
+            Network::Mainnet => "mainnet",
         }
     }
 
@@ -48,6 +54,7 @@ impl Network {
         match self {
             Network::Local => "Standalone Network ; February 2017",
             Network::Testnet => "Test SDF Network ; September 2015",
+            Network::Mainnet => pocky_ingest::soroban::MAINNET_PASSPHRASE,
         }
     }
 
@@ -55,6 +62,7 @@ impl Network {
         match self {
             Network::Local => "http://localhost:8000/rpc",
             Network::Testnet => "https://soroban-testnet.stellar.org",
+            Network::Mainnet => pocky_ingest::soroban::DEFAULT_MAINNET_RPC,
         }
     }
 }
@@ -113,6 +121,7 @@ pub fn onchain_ts(
 /// Returns the CLI's output (the transaction result) on success.
 pub fn submit(
     network: Network,
+    rpc_url: &str,
     oracle: &str,
     source: &str,
     updates_json: &str,
@@ -134,8 +143,10 @@ pub fn submit(
             oracle,
             "--source-account",
             source,
-            "--network",
-            network.cli_name(),
+            "--rpc-url",
+            rpc_url,
+            "--network-passphrase",
+            network.passphrase(),
             "--send=yes",
             "--",
             "publish",
@@ -156,24 +167,26 @@ mod tests {
     use super::*;
 
     #[test]
-    fn mainnet_is_refused() {
-        for n in ["mainnet", "public", "pubnet"] {
-            assert!(Network::parse(n).unwrap_err().contains("disabled"));
-        }
-        assert_eq!(Network::parse("testnet").unwrap(), Network::Testnet);
-        assert!(Network::parse("futurenet").is_err());
+    fn mainnet_needs_explicit_acknowledgement() {
+        assert!(Network::parse("mainnet", false)
+            .unwrap_err()
+            .contains("--mainnet-unaudited"));
+        assert_eq!(Network::parse("mainnet", true).unwrap(), Network::Mainnet);
+        assert_eq!(Network::parse("testnet", false).unwrap(), Network::Testnet);
+        assert!(Network::parse("futurenet", true).is_err());
     }
 
     #[test]
     fn rejects_identity_names_that_could_be_flags() {
         let r = submit(
             Network::Local,
+            "http://localhost:8000/rpc",
             "CAS3J7GYLGXMF6TDJBBYYSE3HQ6BBSMLNUQ34T6TZMYMW2EVH34XOWMA",
             "--help",
             "[]",
         );
         assert!(r.unwrap_err().contains("invalid identity"));
-        let r = submit(Network::Local, "not-a-contract", "pub", "[]");
+        let r = submit(Network::Local, "http://x", "not-a-contract", "pub", "[]");
         assert!(r.is_err());
     }
 }
