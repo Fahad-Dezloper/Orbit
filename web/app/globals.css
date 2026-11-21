@@ -258,7 +258,7 @@ footer {
 
 .detail-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   gap: 18px;
   align-items: start;
 }
@@ -298,4 +298,45 @@ footer {
   .detail-grid {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+.hist {
+  margin: 0;
+}
+
+.hist svg {
+  display: block;
+}
+
+.hist-line {
+  fill: none;
+  stroke: var(--sdex);
+  stroke-width: 1.5;
+}
+
+.hist-min {
+  stroke: var(--shallow);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.hist-empty {
+  width: 200px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--faint);
+  font-size: 11px;
+  border: 1px dashed var(--line);
+  border-radius: 4px;
+}
+
+.hist figcaption {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--faint);
+  font-size: 10px;
+  font-family: var(--mono);
 }

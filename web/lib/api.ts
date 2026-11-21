@@ -91,6 +91,18 @@ export const getLatest = () => get<Run>("/v1/latest");
 export const getAsset = (code: string) =>
   get<AssetDetail>(`/v1/assets/${encodeURIComponent(code)}`);
 
+export interface History {
+  code: string;
+  band: number;
+  hours: number;
+  points: { ts: number; exit_usd: string }[];
+}
+
+export const getHistory = (code: string, band = 1000, hours = 24) =>
+  get<History>(
+    `/v1/assets/${encodeURIComponent(code)}/history?band=${band}&hours=${hours}`,
+  );
+
 // ------------------------------------------------------------------ formatting
 
 export function usd(v: string, digits = 0): string {

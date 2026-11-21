@@ -43,8 +43,8 @@ with passing checks. Nothing in this plan writes to mainnet.
 ## Phase 4: Service and dashboard
 - [x] 4.1 `pocky-api`: scheduled measurement loop, append-only snapshot store, JSON endpoints
 - [x] 4.2 History and windowed-minimum endpoint per asset (fails closed on thin coverage)
-- [~] 4.3 `web/`: asset table with venue breakdown and price-gap flags done; history chart
-  and methodology page next
+- [~] 4.3 `web/`: asset table, venue breakdown, price-gap flags, liquidation curve and 24h
+  history chart done; methodology page next
 - [~] 4.4 Collateral view: liquidatable at a bonus and recommended cap done (API and
   dashboard); live borrowed amounts per lender next
 - [x] 4.5 `pocky-publisher`: windowed minimum to oracle batches; no replays, fails closed,

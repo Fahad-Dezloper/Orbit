@@ -5,7 +5,9 @@ import {
   type Venue,
   type Verdict,
   type Windowed,
+  type History,
   getAsset,
+  getHistory,
   getLatest,
   liquidatableAt,
   usd,
@@ -18,6 +20,47 @@ export const dynamic = "force-dynamic";
 const BANDS = [200, 1000, 2500] as const;
 /** Liquidation bonus used for the lender column. Blend-style pools pay 5% to 10%. */
 const BONUS_BPS = 500;
+
+/**
+ * Exit at 10% over the last 24 hours, one point per measurement. The dashed line is the
+ * lowest value in the window: the figure that gets published.
+ */
+function HistoryChart({ h }: { h: History | undefined }) {
+  const pts = h?.points ?? [];
+  if (pts.length < 2) {
+    return (
+      <figure className="hist">
+        <div className="hist-empty">{pts.length} sample{pts.length === 1 ? "" : "s"} · history building</div>
+        <figcaption><span>24h exit @10%</span></figcaption>
+      </figure>
+    );
+  }
+  const W = 200;
+  const H = 54;
+  const vals = pts.map((p) => Number(p.exit_usd));
+  const max = Math.max(...vals);
+  const min = Math.min(...vals);
+  const t0 = pts[0].ts;
+  const t1 = pts[pts.length - 1].ts;
+  const span = Math.max(t1 - t0, 1);
+  const x = (ts: number) => 4 + ((ts - t0) / span) * (W - 8);
+  const y = (v: number) => (max > 0 ? H - 4 - (v / max) * (H - 10) : H - 4);
+  const line = pts
+    .map((p, i) => `${i ? "L" : "M"}${x(p.ts).toFixed(1)},${y(Number(p.exit_usd)).toFixed(1)}`)
+    .join(" ");
+  return (
+    <figure className="hist">
+      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label="24 hour exit history">
+        <line x1={4} x2={W - 4} y1={y(min)} y2={y(min)} className="hist-min" />
+        <path d={line} className="hist-line" />
+      </svg>
+      <figcaption>
+        <span>24h exit @10%</span>
+        <span>min {usd(String(min))} · {pts.length} samples</span>
+      </figcaption>
+    </figure>
+  );
+}
 
 /** Liquidation curve: total exit (y) against slippage band (x, evenly spaced samples). */
 function Curve({ r }: { r: AssetReport }) {
@@ -144,6 +187,14 @@ export default async function Page() {
       run.reports.map(async (r) => [r.code, await getAsset(r.code)] as const),
     ),
   );
+  const histories = new Map<string, History | undefined>(
+    await Promise.all(
+      run.reports.map(async (r) => {
+        const h = await getHistory(r.code);
+        return [r.code, h.ok ? h.data : undefined] as const;
+      }),
+    ),
+  );
 
   const at10 = run.reports.map((r) => exitAt(r, 1000));
   const total10 = at10.reduce((s, d) => s + Number(d?.total_usd ?? 0), 0);
@@ -249,6 +300,7 @@ export default async function Page() {
                     )}
                     <Notes r={r} />
                       </div>
+                      <HistoryChart h={histories.get(r.code)} />
                       <Curve r={r} />
                     </div>
                   </td>
