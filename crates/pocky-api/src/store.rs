@@ -179,6 +179,7 @@ mod tests {
                 depths: vec![depth],
                 notes: vec![],
                 venues_read: 0,
+                curve: vec![],
             }],
             skipped: vec![],
             stats: Default::default(),

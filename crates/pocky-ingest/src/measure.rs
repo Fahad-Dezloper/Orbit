@@ -8,8 +8,8 @@
 //! 4. Measure every venue's exit from that reference, at every band, and sum them.
 
 use pocky_core::{
-    consensus_reference, deviation_bps, AssetDepth, Band, CpPool, ExitQuote, Fx, OrderBook,
-    Reference, Thresholds, Venue, VenueExit, VenueMid,
+    consensus_reference, curve_bands, deviation_bps, AssetDepth, Band, CpPool, CurvePoint,
+    ExitQuote, Fx, OrderBook, Reference, Thresholds, Venue, VenueExit, VenueMid,
 };
 use serde::{Deserialize, Serialize};
 
@@ -52,6 +52,10 @@ pub struct AssetReport {
     /// Venues actually read (two SDEX books plus every pool that passed verification).
     #[serde(default)]
     pub venues_read: usize,
+    /// Total exit across all venues at each band of `pocky_core::CURVE_BPS`, from the same
+    /// reference. Empty when there is no reference.
+    #[serde(default)]
+    pub curve: Vec<CurvePoint>,
 }
 
 /// USD per XLM from the XLM/USDC SDEX book. Fails closed if the book is one-sided.
@@ -204,6 +208,7 @@ pub fn measure_asset(
 
     let reference = consensus_reference(&mids, cfg.thresholds.dead_below);
     let mut by_venue = Vec::new();
+    let mut curve = Vec::new();
     match &reference {
         None => {
             notes.push(format!(
@@ -222,6 +227,18 @@ pub fn measure_asset(
             }
         }
         Some(r) => {
+            for band in curve_bands()? {
+                let mut total = Fx::ZERO;
+                for leg in &legs {
+                    let reference_counter = r.price_usd.div_up(leg.usd_per_counter)?;
+                    let q = leg.exit_against(reference_counter, band)?;
+                    total = total.checked_add(q.counter_raised.mul_down(leg.usd_per_counter)?)?;
+                }
+                curve.push(CurvePoint {
+                    band,
+                    exit_usd: total,
+                });
+            }
             for m in &mids {
                 let d = deviation_bps(m.mid_usd, r.price_usd)?;
                 if d.abs() > DEVIATION_NOTE_BPS {
@@ -273,5 +290,6 @@ pub fn measure_asset(
         depths,
         notes,
         venues_read: legs.len(),
+        curve,
     })
 }

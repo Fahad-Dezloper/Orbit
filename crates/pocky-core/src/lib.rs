@@ -16,6 +16,7 @@
 pub mod amm;
 pub mod band;
 pub mod book;
+pub mod curve;
 pub mod depth;
 pub mod error;
 pub mod fixed;
@@ -25,6 +26,7 @@ pub mod window;
 pub use amm::CpPool;
 pub use band::Band;
 pub use book::{Ask, Bid, ExitQuote, OrderBook};
+pub use curve::{curve_bands, liquidatable_at, safe_cap, CurvePoint, CURVE_BPS};
 pub use depth::{collateral_at_risk, AssetDepth, Thresholds, Venue, VenueExit, Verdict};
 pub use error::CoreError;
 pub use fixed::Fx;
