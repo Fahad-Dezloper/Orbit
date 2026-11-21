@@ -47,6 +47,16 @@ number can cost someone real money, so correctness is a security property here.
   bundled inside Next 15 (build-time CSS processing of our own stylesheet only; the fix
   requires Next 16, tracked for 5.1).
 
+## Publisher
+
+- The only component that signs. Its key is a `stellar` CLI identity; it never appears in
+  this repository, a config file or the process arguments. Identity names that could be
+  read as flags are rejected.
+- Reads the oracle before writing and publishes only newer windows, so it cannot replay a
+  timestamp; if the read fails it publishes nothing.
+- Mainnet is not a selectable network in the binary until the external review (phase 5).
+- Batches of 10 updates per transaction keep well inside Soroban resource limits.
+
 ## Rules for contributors
 
 - No mainnet or public-testnet writes outside an explicitly approved release step.

@@ -41,6 +41,10 @@ with passing checks. Nothing in this plan writes to mainnet.
 - [~] 4.3 `web/`: asset table with venue breakdown and price-gap flags done; history chart
   and methodology page next
 - [ ] 4.4 Collateral-at-risk view: borrowed against an asset vs its exit depth
+- [x] 4.5 `pocky-publisher`: windowed minimum to oracle batches; no replays, fails closed,
+  mainnet refused; end-to-end local demo (`scripts/local-publish-demo.sh`)
+- [x] 4.6 Container image and deployment guide (`Dockerfile`, `docs/DEPLOY.md`)
+- [ ] 4.7 Hosted API with a public URL, measuring around the clock
 
 ## Phase 5: Hardening and proof
 - [ ] 5.1 Security review against `SECURITY.md`; fix findings
@@ -50,4 +54,6 @@ with passing checks. Nothing in this plan writes to mainnet.
 
 ## Phase 6: Beyond Stellar venues (after first integrations)
 - [ ] 6.1 Exit routes for Stellar assets that leave Stellar (NEAR Intents, issuer redemption)
-- [ ] 6.2 Publisher on testnet, then mainnet, after an external review
+- [x] 6.2a Oracle and publisher on testnet with live mainnet figures
+  (`docs/deployments/testnet.md`)
+- [ ] 6.2b Mainnet, after an external review

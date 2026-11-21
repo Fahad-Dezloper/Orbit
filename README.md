@@ -42,6 +42,7 @@ Live run, 21 Nov 2026, 10% band, SDEX order books plus nine Soroban AMM pools
 | `crates/pocky-ingest` | Horizon, Soroban RPC and SEP-1 clients; pool verification | Rust |
 | `crates/pocky-cli` | `pocky measure` | Rust |
 | `crates/pocky-api` | Scheduled measurement, snapshot store, read-only HTTP API | Rust (axum) |
+| `crates/pocky-publisher` | Publishes the windowed minimum to the oracle | Rust |
 | `contracts/depth-oracle` | On-chain depth oracle with SEP-40-style reads | Rust / Soroban |
 | `web/` | Dashboard over the API | TypeScript / Next.js |
 | `docs/` | Idea, architecture, plan, security model | |
@@ -82,6 +83,13 @@ cd web && npm install && npm run dev         # dashboard on http://localhost:310
 | `GET /v1/assets/{code}` | latest report plus the 24h windowed minimum per band |
 | `GET /v1/assets/{code}/history?band=1000&hours=24` | exit series for one band |
 | `GET /health` | measurement loop status |
+
+### On testnet
+
+The depth oracle is live on Stellar testnet with **live mainnet figures**, so a protocol can
+build against real numbers today: `CCOI2QVXHQIX7ZADUT5LSJPDAQSKPEINUK6HCMCSCZTWLB5BK7W4CBUQ`.
+How to read it from the CLI or a contract: [`docs/deployments/testnet.md`](docs/deployments/testnet.md).
+Deployment of every piece: [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
 ## Status
 
