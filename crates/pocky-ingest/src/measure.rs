@@ -9,13 +9,13 @@
 
 use pocky_core::{
     consensus_reference, curve_bands, deviation_bps, AssetDepth, Band, CpPool, CurvePoint,
-    ExitQuote, Fx, OrderBook, Reference, Thresholds, Venue, VenueExit, VenueMid,
+    ExitQuote, Fx, OrderBook, QuotedPool, Reference, Thresholds, Venue, VenueExit, VenueMid,
 };
 use serde::{Deserialize, Serialize};
 
 use crate::error::IngestError;
 use crate::horizon::{Horizon, Side};
-use crate::pools::{read_pool, Counter, PoolSpec};
+use crate::pools::{read_pool_state, Counter, PoolSpec, PoolState};
 use crate::registry::Asset;
 use crate::soroban::SorobanRpc;
 
@@ -69,6 +69,7 @@ pub fn xlm_usd(h: &Horizon, usdc: &Asset) -> Result<Fx, IngestError> {
 enum Source {
     Book(OrderBook),
     Pool(CpPool),
+    Quoted(QuotedPool),
 }
 
 struct Leg {
@@ -85,6 +86,7 @@ impl Leg {
             Source::Book(b) => b.mid().ok(),
             Source::Pool(p) if p.reserve_asset.is_zero() || p.reserve_counter.is_zero() => None,
             Source::Pool(p) => p.mid().ok(),
+            Source::Quoted(q) => q.mid().ok().filter(|m| !m.is_zero()),
         }
     }
 
@@ -92,6 +94,7 @@ impl Leg {
         Ok(match &self.source {
             Source::Book(b) => b.exit(reference, band)?,
             Source::Pool(p) => p.exit_against(reference, band)?,
+            Source::Quoted(q) => q.exit_against(reference, band)?,
         })
     }
 }
@@ -119,7 +122,7 @@ pub fn measure_asset(
             .iter()
             .map(|&spec| {
                 s.spawn(move || match rpc {
-                    Some(rpc) => read_pool(rpc, spec, asset, usdc),
+                    Some(rpc) => read_pool_state(rpc, spec, asset, usdc),
                     None => Err(IngestError::Registry("no RPC".into())),
                 })
             })
@@ -168,7 +171,10 @@ pub fn measure_asset(
                         Counter::Usdc => Fx::ONE,
                         Counter::Xlm => xlm_usd,
                     },
-                    source: Source::Pool(pool),
+                    source: match pool {
+                        PoolState::ConstantProduct(p) => Source::Pool(p),
+                        PoolState::Quoted(q) => Source::Quoted(q),
+                    },
                 }),
                 Err(e) => notes.push(format!("{label}: left out ({e})")),
             }

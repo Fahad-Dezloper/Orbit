@@ -3,7 +3,13 @@
 //! Pools are pinned in `assets.toml`. A pinned address is never trusted on its own: before a
 //! pool's reserves are used, its token list must equal the locally derived SAC addresses of
 //! the asset and the counter. A pool holding an impostor token with the same code is
-//! rejected, and so is any pool whose type is not constant-product.
+//! rejected, and so is any pool whose type does not match how it is pinned.
+//!
+//! Two kinds are measured:
+//! - **constant-product** pools (Aquarius standard, Soroswap): reserves are read and the
+//!   exit is computed exactly from `x * y = k`;
+//! - **quoted** pools (Aquarius concentrated and stable): the pool's own `estimate_swap` is
+//!   sampled at increasing sale sizes, so its tick or curve maths is used as-is.
 //!
 //! A pool that cannot be read or verified is left out and noted. Leaving a venue out can
 //! only understate depth.
@@ -12,7 +18,7 @@ use std::collections::HashMap;
 use std::sync::{Mutex, OnceLock};
 use std::time::{Duration, Instant};
 
-use pocky_core::{CpPool, Fx};
+use pocky_core::{CpPool, Fx, QuoteSample, QuotedPool, QUOTE_FRACTIONS_BPS};
 use serde::{Deserialize, Serialize};
 
 use crate::error::IngestError;
@@ -69,6 +75,17 @@ impl Counter {
     }
 }
 
+/// How a pool's exit is computed.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PoolKind {
+    /// `x * y = k`, computed from reserves.
+    #[default]
+    ConstantProduct,
+    /// Sampled from the pool's own swap quotes (Aquarius concentrated or stable pools).
+    Quoted,
+}
+
 /// One pinned pool from the registry.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PoolSpec {
@@ -78,11 +95,27 @@ pub struct PoolSpec {
     pub protocol: Protocol,
     /// The pool's contract address (`C...`).
     pub contract: String,
+    #[serde(default)]
+    pub kind: PoolKind,
+}
+
+/// What was read from a pool.
+#[derive(Clone, Debug)]
+pub enum PoolState {
+    ConstantProduct(CpPool),
+    Quoted(QuotedPool),
 }
 
 impl PoolSpec {
     pub fn validate(&self) -> Result<(), IngestError> {
-        soroban::parse_contract(&self.contract).map(|_| ())
+        soroban::parse_contract(&self.contract)?;
+        if self.kind == PoolKind::Quoted && self.protocol != Protocol::Aquarius {
+            return Err(IngestError::Registry(format!(
+                "pool {}: only Aquarius pools can be quoted",
+                self.contract
+            )));
+        }
+        Ok(())
     }
 
     pub fn label(&self) -> String {
@@ -194,6 +227,148 @@ fn reject(spec: &PoolSpec, why: impl std::fmt::Display) -> IngestError {
     }
 }
 
+/// Reads any pinned pool according to its kind.
+pub fn read_pool_state(
+    rpc: &SorobanRpc,
+    spec: &PoolSpec,
+    asset: &Asset,
+    usdc: &Asset,
+) -> Result<PoolState, IngestError> {
+    match spec.kind {
+        PoolKind::ConstantProduct => {
+            read_pool(rpc, spec, asset, usdc).map(PoolState::ConstantProduct)
+        }
+        PoolKind::Quoted => read_quoted_pool(rpc, spec, asset, usdc).map(PoolState::Quoted),
+    }
+}
+
+fn u128_val(v: i128) -> Result<stellar_xdr::ScVal, IngestError> {
+    let u = u128::try_from(v).map_err(|_| IngestError::Registry("negative amount".into()))?;
+    Ok(stellar_xdr::ScVal::U128(stellar_xdr::UInt128Parts {
+        hi: (u >> 64) as u64,
+        lo: u as u64,
+    }))
+}
+
+/// What the pool would pay, in counter units, for `base_in` of the asset.
+fn quote(
+    rpc: &SorobanRpc,
+    c: &str,
+    in_idx: u32,
+    out_idx: u32,
+    base_in: Fx,
+) -> Result<Fx, IngestError> {
+    let v = rpc.read(
+        c,
+        "estimate_swap",
+        vec![
+            stellar_xdr::ScVal::U32(in_idx),
+            stellar_xdr::ScVal::U32(out_idx),
+            u128_val(base_in.raw())?,
+        ],
+    )?;
+    let wrapped = stellar_xdr::ScVal::Vec(Some(
+        vec![v]
+            .try_into()
+            .map_err(|_| IngestError::Registry("quote".into()))?,
+    ));
+    soroban::amounts(&wrapped)?
+        .pop()
+        .ok_or_else(|| reject(&dummy_spec(c), "empty quote"))
+}
+
+fn dummy_spec(c: &str) -> PoolSpec {
+    PoolSpec {
+        asset: String::new(),
+        counter: Counter::Usdc,
+        protocol: Protocol::Aquarius,
+        contract: c.to_string(),
+        kind: PoolKind::Quoted,
+    }
+}
+
+/// Samples an Aquarius concentrated or stable pool's own swap quotes for selling `asset`,
+/// after checking its type and that it holds exactly `asset` and the counter.
+pub fn read_quoted_pool(
+    rpc: &SorobanRpc,
+    spec: &PoolSpec,
+    asset: &Asset,
+    usdc: &Asset,
+) -> Result<QuotedPool, IngestError> {
+    let want_asset = soroban::sac_address(Token::Credit(asset), rpc.passphrase())?;
+    let want_counter = match spec.counter {
+        Counter::Usdc => soroban::sac_address(Token::Credit(usdc), rpc.passphrase())?,
+        Counter::Xlm => soroban::sac_address(Token::Native, rpc.passphrase())?,
+    };
+    let c = &spec.contract;
+    let kind = soroban::as_symbol(&rpc.read(c, "pool_type", vec![])?)?;
+    if kind != "concentrated" && kind != "stable" {
+        return Err(reject(
+            spec,
+            format!("pool type is {kind:?}, not concentrated or stable"),
+        ));
+    }
+    let tokens = soroban::contract_addresses(&rpc.read(c, "get_tokens", vec![])?)?;
+    if tokens.len() != 2 {
+        return Err(reject(spec, "expected exactly two tokens"));
+    }
+    let (in_idx, out_idx) = if tokens[0] == want_asset && tokens[1] == want_counter {
+        (0u32, 1u32)
+    } else if tokens[1] == want_asset && tokens[0] == want_counter {
+        (1, 0)
+    } else {
+        return Err(reject(
+            spec,
+            format!("holds {tokens:?}, expected {want_asset} and {want_counter}"),
+        ));
+    };
+    let reserves = soroban::amounts(&rpc.read(c, "get_reserves", vec![])?)?;
+    let counter_reserve = *reserves
+        .get(out_idx as usize)
+        .ok_or_else(|| reject(spec, "missing reserve"))?;
+    if counter_reserve.is_zero() {
+        return QuotedPool::new(vec![]).map_err(IngestError::from);
+    }
+
+    // Probe with one unit of the asset to learn the pool's price, then size the samples as
+    // fractions of the counter reserve converted at that price.
+    let one = Fx::ONE;
+    let probe_out = quote(rpc, c, in_idx, out_idx, one)?;
+    if probe_out.is_zero() {
+        return QuotedPool::new(vec![]).map_err(IngestError::from);
+    }
+    let sizes: Vec<Fx> = QUOTE_FRACTIONS_BPS
+        .iter()
+        .map(|&f| counter_reserve.mul_bps_down(f)?.div_down(probe_out))
+        .collect::<Result<_, _>>()?;
+    let outs: Vec<Result<Fx, IngestError>> = std::thread::scope(|s| {
+        let handles: Vec<_> = sizes
+            .iter()
+            .map(|&size| s.spawn(move || quote(rpc, c, in_idx, out_idx, size)))
+            .collect();
+        handles
+            .into_iter()
+            .map(|h| {
+                h.join()
+                    .unwrap_or_else(|_| Err(IngestError::Registry("quote panicked".into())))
+            })
+            .collect()
+    });
+    let mut samples = vec![QuoteSample {
+        base_in: one,
+        counter_out: probe_out,
+    }];
+    for (size, out) in sizes.into_iter().zip(outs) {
+        if size > one {
+            samples.push(QuoteSample {
+                base_in: size,
+                counter_out: out?,
+            });
+        }
+    }
+    QuotedPool::new(samples).map_err(|e| reject(spec, format!("inconsistent quotes: {e}")))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -208,6 +383,7 @@ mod tests {
             counter: Counter::Usdc,
             protocol: Protocol::Aquarius,
             contract: "CCX2TYR4AQTPPMTZOIMP3YIBHAYLLSTXVP47PAGTL753PCQFSKV32MIA".into(),
+            kind: PoolKind::ConstantProduct,
         }
     }
 
@@ -266,9 +442,14 @@ mod tests {
         rpc.check_network().unwrap();
         for p in &reg.pools {
             let asset = reg.assets.iter().find(|a| a.code == p.asset).unwrap();
-            let pool = read_pool(&rpc, p, asset, &reg.usdc)
-                .unwrap_or_else(|e| panic!("{} {}: {e}", p.asset, p.contract));
-            assert!(!pool.reserve_asset.is_zero(), "{}", p.contract);
+            match read_pool_state(&rpc, p, asset, &reg.usdc)
+                .unwrap_or_else(|e| panic!("{} {}: {e}", p.asset, p.contract))
+            {
+                PoolState::ConstantProduct(pool) => {
+                    assert!(!pool.reserve_asset.is_zero(), "{}", p.contract)
+                }
+                PoolState::Quoted(q) => assert!(q.samples.len() > 1, "{}", p.contract),
+            }
         }
     }
 }

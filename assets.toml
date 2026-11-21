@@ -72,8 +72,10 @@ home_domain = "centre.io"
 # its tokens must equal the locally derived SAC addresses of the asset and the counter, and
 # Aquarius pools must report pool_type "constant_product". Found from Aquarius's pool list
 # and the Soroswap factory's get_pair; a pool left out here only understates depth.
-# Not yet measured: Aquarius stable and concentrated pools, and pools against other
-# counters (sUSD, XLD, AQUA, KPOP).
+# Pools with kind = "quoted" (Aquarius concentrated or stable) are measured from the
+# pool's own estimate_swap quotes; their type must be concentrated or stable.
+# Not yet measured: pools against counters other than USDC and XLM (sUSD, XLD, AQUA, KPOP),
+# which includes the only stable pool for these assets (USTRY/XLD).
 
 [[pool]]
 asset = "USTRY"
@@ -128,3 +130,10 @@ asset = "USDY"
 counter = "XLM"
 protocol = "soroswap"
 contract = "CA53URIS7E2LIWASEH7IACBU6FB3EBUYPNW5IRKZBHALRNXLZ3DE7XTP"
+
+[[pool]]
+asset = "USDY"
+counter = "USDC"
+protocol = "aquarius"
+kind = "quoted"
+contract = "CCV2X5THRWCT7HCGJU42DMOVYLAARVIPEDG2LQOVVA2WGONF2MZY2OX6"

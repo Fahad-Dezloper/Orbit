@@ -26,7 +26,9 @@ with passing checks. Nothing in this plan writes to mainnet.
   (`docs/measurements/2026-11-21-all-venues.md`)
 - [x] 2.6 Cross-venue reference price: every venue measured from the upper median of venues
   with real depth, never from its own mid
-- [ ] 2.7 Aquarius stable and concentrated pools; pools against other counters (sUSD, XLD)
+- [x] 2.7 Aquarius concentrated and stable pools, measured from the pool's own swap quotes
+  (USDY's concentrated pool adds ~$8K at 10%)
+- [ ] 2.7b Pools against counters other than USDC and XLM (sUSD, XLD)
 - [x] 2.8 Parallel ingestion: one stellar.toml fetch per issuer, assets and venues read
   concurrently, bounded RPC concurrency with 429 back-off, pool metadata cached (17s to 4s)
 - [x] 2.9 Liquidation curve (0.5% to 50%) and collateral cap for a liquidation bonus
