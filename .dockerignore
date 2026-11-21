@@ -1,0 +1,8 @@
+target
+**/target
+web/node_modules
+web/.next
+data
+.git
+.env
+.env.*
