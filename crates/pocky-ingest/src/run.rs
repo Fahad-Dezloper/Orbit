@@ -22,7 +22,7 @@ pub struct Skipped {
 }
 
 /// The result of one run. This is the snapshot format stored and served by `pocky-api`.
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Run {
     /// Unix seconds at the end of the run.
     pub measured_at: u64,

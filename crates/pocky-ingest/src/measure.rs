@@ -11,7 +11,7 @@ use pocky_core::{
     consensus_reference, deviation_bps, AssetDepth, Band, CpPool, ExitQuote, Fx, OrderBook,
     Reference, Thresholds, Venue, VenueExit, VenueMid,
 };
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::error::IngestError;
 use crate::horizon::{Horizon, Side};
@@ -37,7 +37,7 @@ impl Default for MeasureConfig {
     }
 }
 
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AssetReport {
     pub code: String,
     pub issuer: String,
