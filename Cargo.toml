@@ -13,6 +13,7 @@ rust-version = "1.82"
 pocky-core = { path = "crates/pocky-core" }
 pocky-ingest = { path = "crates/pocky-ingest" }
 pocky-api = { path = "crates/pocky-api" }
+pocky-publisher = { path = "crates/pocky-publisher" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "1"
