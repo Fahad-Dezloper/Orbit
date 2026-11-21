@@ -6,6 +6,7 @@
 //! | `GET /v1/latest` | the latest run (every asset, every venue) |
 //! | `GET /v1/assets/{code}` | latest report for one asset plus its windowed minimum per band |
 //! | `GET /v1/assets/{code}/history?band=1000&hours=24` | exit series for one band |
+//! | `GET /v1/assets/{code}/cap?bonus_bps=500&safety_bps=5000` | liquidatable collateral at a liquidation bonus, and a recommended cap |
 //!
 //! Fails closed: if the latest run is older than `max_staleness_secs`, `/v1/latest` returns
 //! 503 instead of serving an old figure as if it were current, and a window without enough
@@ -19,7 +20,9 @@ use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use axum::routing::get;
 use axum::{Json, Router};
-use pocky_core::{windowed_min, Band, Fx, Sample, Thresholds, Verdict, WindowPolicy};
+use pocky_core::{
+    liquidatable_at, safe_cap, windowed_min, Band, Fx, Sample, Thresholds, Verdict, WindowPolicy,
+};
 use pocky_ingest::run::Run;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -57,6 +60,7 @@ pub fn router(state: Shared) -> Router {
         .route("/v1/latest", get(latest))
         .route("/v1/assets/{code}", get(asset))
         .route("/v1/assets/{code}/history", get(history))
+        .route("/v1/assets/{code}/cap", get(cap))
         .layer(cors)
         .with_state(state)
 }
@@ -299,6 +303,43 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn cap_needs_a_window_and_applies_the_margin() {
+        let s = state("cap");
+        let t = now();
+        let with_curve = |ts: u64, usd: &str| {
+            let mut r = run(ts, usd);
+            r.reports[0].curve = vec![pocky_core::CurvePoint {
+                band: Band::new(500).unwrap(),
+                exit_usd: usd.parse().unwrap(),
+            }];
+            r
+        };
+        s.store.append(&with_curve(t, "200000")).unwrap();
+        let (code, body) = get(&s, "/v1/assets/USTRY/cap?bonus_bps=500").await;
+        assert_eq!(code, StatusCode::OK);
+        assert_eq!(body["liquidatable_now_usd"], "200000.0000000");
+        assert!(
+            body["recommended_cap_usd"].is_null(),
+            "no cap without a full window"
+        );
+
+        for i in 1..13u64 {
+            let v = if i == 4 { "80000" } else { "200000" };
+            s.store.append(&with_curve(t - i * 3600, v)).unwrap();
+        }
+        let (_, body) = get(&s, "/v1/assets/USTRY/cap?bonus_bps=500&safety_bps=5000").await;
+        assert_eq!(body["window"]["min_usd"], "80000.0000000");
+        assert_eq!(body["recommended_cap_usd"], "40000.0000000");
+        // A bonus below the smallest sampled band claims nothing.
+        let (_, body) = get(&s, "/v1/assets/USTRY/cap?bonus_bps=10").await;
+        assert!(body["liquidatable_now_usd"].is_null());
+        assert_eq!(
+            get(&s, "/v1/assets/USTRY/cap?bonus_bps=0").await.0,
+            StatusCode::BAD_REQUEST
+        );
+    }
+
+    #[tokio::test]
     async fn rejects_bad_input() {
         let s = state("bad");
         s.store.append(&run(now(), "1")).unwrap();
@@ -310,4 +351,81 @@ mod tests {
         let (code, _) = get(&s, "/v1/assets/USTRY/history?band=0").await;
         assert_eq!(code, StatusCode::BAD_REQUEST);
     }
+}
+
+#[derive(Deserialize)]
+struct CapQuery {
+    bonus_bps: Option<u32>,
+    safety_bps: Option<u32>,
+}
+
+/// Liquidatable collateral at a liquidation bonus, now and as the 24h minimum, and a
+/// recommended cap. The cap is built from the windowed minimum only: if the window lacks
+/// coverage there is no recommendation.
+async fn cap(
+    State(s): State<Shared>,
+    Path(code): Path<String>,
+    Query(q): Query<CapQuery>,
+) -> Response {
+    if !valid_code(&code) {
+        return error(StatusCode::BAD_REQUEST, "invalid asset code");
+    }
+    let bonus = q.bonus_bps.unwrap_or(500);
+    let safety = q.safety_bps.unwrap_or(5_000);
+    if bonus == 0 || bonus >= 10_000 || safety >= 10_000 {
+        return error(
+            StatusCode::BAD_REQUEST,
+            "bonus_bps must be 1..9999 and safety_bps 0..9999",
+        );
+    }
+    let run = match latest_run(&s) {
+        Ok(r) => r,
+        Err(resp) => return *resp,
+    };
+    let Some(report) = run.reports.iter().find(|r| r.code == code) else {
+        return error(StatusCode::NOT_FOUND, format!("{code} is not measured"));
+    };
+    let now_usd = liquidatable_at(&report.curve, bonus);
+    let at = now();
+    let loaded = match s.store.load(at.saturating_sub(s.policy.window_secs), at) {
+        Ok(l) => l,
+        Err(e) => return internal(e),
+    };
+    let points: Vec<Sample> = loaded
+        .runs
+        .iter()
+        .filter_map(|r| {
+            let rep = r.reports.iter().find(|x| x.code == code)?;
+            Some(Sample {
+                ts: r.measured_at,
+                exit_usd: liquidatable_at(&rep.curve, bonus)?,
+            })
+        })
+        .collect();
+    let (window, recommended) = match windowed_min(&points, at, &s.policy) {
+        Ok(w) => match safe_cap(w.min_exit_usd, safety) {
+            Ok(c) => (
+                json!({"status": "ok", "min_usd": w.min_exit_usd, "samples": w.samples}),
+                Some(c),
+            ),
+            Err(e) => return internal(e),
+        },
+        Err(e) => (
+            json!({"status": "insufficient", "reason": e.to_string()}),
+            None,
+        ),
+    };
+    Json(json!({
+        "code": code,
+        "bonus_bps": bonus,
+        "safety_bps": safety,
+        "measured_at": run.measured_at,
+        "liquidatable_now_usd": now_usd,
+        "window": window,
+        "recommended_cap_usd": recommended,
+        "meaning": "Collateral above liquidatable_usd cannot be liquidated on Stellar at this \
+                    bonus without the lender taking the loss. The cap uses the 24h minimum, \
+                    reduced by safety_bps.",
+    }))
+    .into_response()
 }
