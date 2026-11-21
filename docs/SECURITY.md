@@ -35,6 +35,18 @@ number can cost someone real money, so correctness is a security property here.
 | Contract state archival | Instance and record TTL extended on every publish |
 | Secrets in the repo | No keys in code or config; `.env` ignored; publisher key from the environment only |
 
+## Service and dashboard
+
+- `pocky-api` binds to `127.0.0.1` by default, serves GET only, and allows any origin
+  because the data is public. It holds no keys.
+- `/v1/latest` returns 503 rather than a figure older than the window's 2h gap limit; a
+  window with too few samples returns its reason, never a number.
+- The snapshot store is append-only; a torn line is skipped and counted, never repaired by
+  guessing.
+- Dashboard dependencies are pinned to exact patched versions. Known open advisory: PostCSS
+  bundled inside Next 15 (build-time CSS processing of our own stylesheet only; the fix
+  requires Next 16, tracked for 5.1).
+
 ## Rules for contributors
 
 - No mainnet or public-testnet writes outside an explicitly approved release step.

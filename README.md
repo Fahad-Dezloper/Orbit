@@ -32,6 +32,8 @@ Live run, 21 Nov 2026, 10% band, SDEX order books plus nine Soroban AMM pools
 | six Etherfuse bond tokens | $0 | bids only, no price anywhere | dead |
 | deJAAA | $0, with $3.56M borrowed against it (research, 19 Nov) | no Stellar venue | dead |
 
+![Pocky dashboard, live run of 21 Nov 2026](docs/img/dashboard.jpg)
+
 ## Layout
 
 | Path | What | Language |
@@ -39,9 +41,9 @@ Live run, 21 Nov 2026, 10% band, SDEX order books plus nine Soroban AMM pools
 | `crates/pocky-core` | Pure depth math: fixed-point, order-book and AMM exit, verdicts, windowed minimum | Rust, no I/O |
 | `crates/pocky-ingest` | Horizon, Soroban RPC and SEP-1 clients; pool verification | Rust |
 | `crates/pocky-cli` | `pocky measure` | Rust |
-| `crates/pocky-api` | HTTP service and history | Rust (phase 4) |
+| `crates/pocky-api` | Scheduled measurement, snapshot store, read-only HTTP API | Rust (axum) |
 | `contracts/depth-oracle` | On-chain depth oracle with SEP-40-style reads | Rust / Soroban |
-| `web/` | Dashboard | TypeScript / Next.js (phase 4) |
+| `web/` | Dashboard over the API | TypeScript / Next.js |
 | `docs/` | Idea, architecture, plan, security model | |
 
 ## Build and test
@@ -66,6 +68,21 @@ Deploys the contract, publishes live figures, reads them back, and checks that a
 the admin, a replayed timestamp, a future-dated figure and a self-rotating publisher are all
 rejected.
 
+### Run the service and dashboard
+
+```bash
+cargo run --release -p pocky-api -- --once   # seed the store with one live run
+cargo run --release -p pocky-api             # measure every 30 min, serve 127.0.0.1:8080
+cd web && npm install && npm run dev         # dashboard on http://localhost:3100
+```
+
+| Endpoint | Returns |
+| --- | --- |
+| `GET /v1/latest` | latest run, every asset and venue (503 if older than 2h) |
+| `GET /v1/assets/{code}` | latest report plus the 24h windowed minimum per band |
+| `GET /v1/assets/{code}/history?band=1000&hours=24` | exit series for one band |
+| `GET /health` | measurement loop status |
+
 ## Status
 
 Depth math, live ingestion (SDEX books and Soroban AMM pools, with SEP-1 issuer checks and
@@ -77,7 +94,9 @@ cargo run --release -p pocky-cli -- measure --json   # JSON
 cargo run --release -p pocky-cli -- measure --no-amm # SDEX order books only
 ```
 
-Pools are read from Soroban RPC by simulation only. Next: the API service and dashboard. See [`docs/PLAN.md`](docs/PLAN.md) for every phase and
+Pools are read from Soroban RPC by simulation only. The API service and dashboard run
+locally. Next: the collateral-at-risk view and a local demo where the oracle blocks a borrow
+against a thin market. See [`docs/PLAN.md`](docs/PLAN.md) for every phase and
 subphase, and [`docs/SECURITY.md`](docs/SECURITY.md) for the threat model.
 
 ## Principles

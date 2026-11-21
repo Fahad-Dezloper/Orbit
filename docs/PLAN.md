@@ -36,9 +36,10 @@ with passing checks. Nothing in this plan writes to mainnet.
 - [x] 3.5 Local-network deployment script (`scripts/local-oracle-demo.sh`); never public testnet or mainnet in this phase
 
 ## Phase 4: Service and dashboard
-- [ ] 4.1 `pocky-api`: scheduled measurement loop, snapshot store, JSON endpoints
-- [ ] 4.2 History and windowed-minimum endpoint per asset
-- [ ] 4.3 `web/`: asset table, depth history chart, methodology page
+- [x] 4.1 `pocky-api`: scheduled measurement loop, append-only snapshot store, JSON endpoints
+- [x] 4.2 History and windowed-minimum endpoint per asset (fails closed on thin coverage)
+- [~] 4.3 `web/`: asset table with venue breakdown and price-gap flags done; history chart
+  and methodology page next
 - [ ] 4.4 Collateral-at-risk view: borrowed against an asset vs its exit depth
 
 ## Phase 5: Hardening and proof
