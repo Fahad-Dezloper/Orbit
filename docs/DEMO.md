@@ -10,8 +10,9 @@ was reported correctly. The market behind that price was so thin that the collat
 not be sold when it had to be. A price feed says what one token is worth; it does not say
 how much of it can be sold.
 
-Of the three fixes auditors prescribed afterwards, **market-depth validation is the one
-nobody built.** Lenders on Stellar still size RWA collateral from price (or NAV) alone.
+Auditors prescribed **market-depth validation** afterwards. The checks that exist today
+read the SDEX order book only, and lenders on Stellar still size RWA collateral from price
+(or NAV) alone.
 
 ## 2. What it measures, live
 
@@ -96,14 +97,19 @@ The scan is network-bound: the maths is four orders of magnitude faster than the
 
 ## 7. What only this does
 
-| | Price oracles (Reflector, RedStone NAV) | Oracle Shield-style scorers | **Pocky** |
-| --- | --- | --- | --- |
-| Price | ✓ | compares venue prices | reference from venues with depth |
-| How much can be sold | – | – | ✓ every venue, every band |
-| SDEX order books + Soroban AMMs together | – | SDEX, CEX | ✓ |
-| Collateral cap for a liquidation bonus | – | – | ✓ |
-| On-chain, readable by a Soroban lender | price only | – | ✓ depth oracle |
-| History of depth | – | – | ✓ append-only, since 21 Nov 2026 |
+| | Price oracles (Reflector, RedStone NAV) | Oracle Shield | Damper | **Pocky** |
+| --- | --- | --- | --- | --- |
+| Question answered | what is it worth | is this price trustworthy | what does it cost to move the book | **how much can be sold** |
+| Depth measured | – | SDEX near the mid (±40 bps), as a score input | SDEX, USDC cost to clear | ✓ every venue, 12 bands to 50% |
+| Soroban AMMs (incl. concentrated) | – | not yet ("requires a dedicated approach") | – | ✓ verified against on-chain balances |
+| Works with no CEX listing | ✓ | needs a CEX reference | ✓ | ✓ reference from Stellar venues |
+| Collateral cap for a liquidation bonus | – | – | – | ✓ |
+| On-chain | price | circuit breaker | wrapper, not deployed | ✓ depth oracle (testnet) |
+| History of depth | – | – | – | ✓ append-only, since 21 Nov 2026 |
+
+USDY is the test case: about 98% of its exit is in an Aquarius pool, so any SDEX-only check
+reports a market about 50 times thinner than it is. Oracle Shield and Damper are not rivals
+to replace; the AMM-inclusive figure is the input both lack, and either can read it.
 
 Building this in-house means: the order-book unit conventions, constant-product exit maths
 against an external reference, pool discovery and on-chain verification, SAC derivation,

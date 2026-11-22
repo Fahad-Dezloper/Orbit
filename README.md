@@ -7,8 +7,9 @@ could actually be sold right now** before the price collapses, so collateral can
 by what the market can absorb.
 
 > February 2026: the YieldBlox pool on Blend lost $10.97M against a token whose price was
-> reported correctly, on a market where almost nothing could be sold. Of the three fixes
-> auditors prescribed afterwards, market depth validation is the one nobody built.
+> reported correctly, on a market where almost nothing could be sold. Auditors prescribed
+> market depth validation afterwards. Today's checks read the SDEX order book only, and
+> on Stellar much of the RWA market is not there.
 
 ## What it measures
 
@@ -33,6 +34,22 @@ Live run, 21 Nov 2026, 10% band, SDEX order books plus nine Soroban AMM pools
 | deJAAA | $0, with $3.56M borrowed against it (research, 19 Nov) | no Stellar venue | dead |
 
 ![Pocky dashboard, live run of 21 Nov 2026](docs/img/dashboard.jpg)
+
+## Where Pocky sits
+
+Oracle Shield asks whether a price can be trusted. Damper asks what it costs to clear the
+order book. Pocky answers the lender's question: **how many dollars of this collateral can be
+sold, on every Stellar venue, before the liquidation bonus is gone.**
+
+- **Every venue, not just the order book.** USDY's market is an Aquarius pool: an SDEX-only
+  view sees about 2% of it. For USTRY it misses about 30%.
+- **No outside market needed.** The reference price comes from Stellar venues with real
+  depth, so it works for tokens that trade on no exchange, which is every Etherfuse token.
+  A check that compares against an exchange price cannot cover them.
+- **A cap, not a score.** The output is a USD figure per band, a liquidation curve and a
+  collateral cap a lender can enforce, published on-chain.
+- **Built to be read by others.** The AMM-inclusive depth figure is the input both of the
+  above lack; a circuit breaker or a price guard can read it rather than rebuild it.
 
 Every rule behind the figures, step by step: [`docs/METHODOLOGY.md`](docs/METHODOLOGY.md).
 

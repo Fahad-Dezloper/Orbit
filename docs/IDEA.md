@@ -22,8 +22,10 @@ between them is where money is lost.
   Blend's contracts had no bug. The missing input was **depth**.
 - After the exploit, auditors prescribed three fixes: minimum liquidity thresholds, circuit
   breakers, and market depth validation. Thresholds exist in-house at some protocols. A
-  circuit breaker (Oracle Shield, SCF #43) is funded but defines no score inputs. **Market
-  depth validation has not been built by anyone.**
+  circuit breaker (Oracle Shield, SCF #43) is funded and reads SDEX depth near the mid as a
+  score input; Damper (open source, not deployed) measures the cost to clear the SDEX book.
+  **Neither counts the Soroban AMM pools, and neither produces a sellable-dollar cap.** That
+  is the gap Pocky fills.
 
 ## What we measured (live, read-only, 18 to 19 Nov 2026)
 
