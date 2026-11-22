@@ -14,7 +14,7 @@ by what the market can absorb.
 ## What it measures
 
 For each asset, at 2%, 10% and 25% bands: the USD that could be raised by selling across
-every Stellar venue (SDEX order books and Soroban AMM pools) before the **average** sale price
+Stellar's order books and AMM pools (SDEX, Aquarius including concentrated pools, Soroswap) before the **average** sale price
 falls more than the band below the reference price. The published figure is the **minimum
 over a 24-hour window**, so liquidity that is parked and pulled cannot inflate it.
 
@@ -39,15 +39,20 @@ Live run, 21 Nov 2026, 10% band, SDEX order books plus nine Soroban AMM pools
 
 Oracle Shield asks whether a price can be trusted. Damper asks what it costs to clear the
 order book. Pocky answers the lender's question: **how many dollars of this collateral can be
-sold, on every Stellar venue, before the liquidation bonus is gone.**
+sold across Stellar's order books and AMM pools before the liquidation bonus is gone.**
 
-- **Every venue, not just the order book.** USDY's market is an Aquarius pool: an SDEX-only
+- **Order books and AMM pools together.** USDY's market is an Aquarius pool: an SDEX-only
   view sees about 2% of it. For USTRY it misses about 30%.
 - **No outside market needed.** The reference price comes from Stellar venues with real
   depth, so it works for tokens that trade on no exchange, which is every Etherfuse token.
   A check that compares against an exchange price cannot cover them.
+- **Continuous, not a report.** RedStone's October 2026 RWA research measured exit depth for
+  USTRY, CETES and USDY once. Pocky measures it every half hour, keeps the history and
+  publishes it on-chain.
 - **A cap, not a score.** The output is a USD figure per band, a liquidation curve and a
   collateral cap a lender can enforce, published on-chain.
+- **Not yet counted:** Curve (on Stellar since 29 Oct 2026) and Sushi pools (since Sep 2026,
+  including deJAAA). Venues left out can only understate depth; adding them is plan 2.10.
 - **Built to be read by others.** The AMM-inclusive depth figure is the input both of the
   above lack; a circuit breaker or a price guard can read it rather than rebuild it.
 

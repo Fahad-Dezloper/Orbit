@@ -29,7 +29,7 @@ between them is where money is lost.
 
 ## What we measured (live, read-only, 18 to 19 Nov 2026)
 
-Real exit = USD raised selling into all Stellar venues (SDEX order books plus Soroban AMM
+Real exit = USD raised selling into the Stellar venues we read (SDEX order books plus Soroban AMM
 pools) before losing more than 10%.
 
 | Token | Real exit on Stellar | Note |

@@ -126,8 +126,8 @@ first).
 
 ## 11. Known limits
 
-- Venues not pinned (new pools, pools against counters other than USDC and XLM) are not
-  counted. This understates depth.
+- Venues not pinned (new pools, pools against counters other than USDC and XLM, and as of
+  Nov 2026 Curve and Sushi pools) are not counted. This understates depth.
 - Quoted pools are sampled, not solved: exit between samples is not credited.
 - Depth on other chains, and redemption with the issuer, are not exit on Stellar and are not
   counted.

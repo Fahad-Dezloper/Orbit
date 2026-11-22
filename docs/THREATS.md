@@ -120,13 +120,13 @@ The hardest question is not technical.
 | --- | --- | --- |
 | Sun Zu Lab Oracle Shield (SCF #43, $120K) | Readiness score includes **depth**, spread, divergence; on-chain circuit breaker. Their team (Nov 2026, direct correspondence) already runs a Stellar SDEX feed handler showing market depth (±40 bps buckets) | Purpose is to **validate a price**: SDEX mid against a CEX mid ("SDEX cannot be used as a reference"). A health score, not a USD figure of what can be sold. By their own account: AMM liquidity is not yet a source ("one cannot build a regular orderbook from an AMM; extracted liquidity signals will require a dedicated approach"); the USTRY scenario is hypothetical because no CEX lists it; mid-vs-mid is "only a first step" and sources, signals and formulas are still to be extended. **Risk:** they named AMM liquidity as something they "have to consider", so they could build into our area |
 | Damper (open source, first mainnet scan 17 Nov 2026) | Manipulation-resistant SEP-40 wrapper for Blend; measures USDC cost to clear the SDEX book | SDEX only (no AMMs), unaudited, not deployed |
-| RedStone (Stellar since Mar 2026; serves Blend, Templar, Centrifuge, XOXNO) | Holds the RWA feeds; pushing Settle (KYC'd liquidators) and Credora ratings | NAV ("fundamental") feeds, no depth metric |
+| RedStone (Stellar since Mar 2026; serves Blend, Templar, Centrifuge, XOXNO) | Holds the RWA feeds; pushing Settle (KYC'd liquidators) and Credora ratings | NAV ("fundamental") feeds, no depth feed. But its Oct 2026 report "Next Phase for RWAs on Stellar" measured exit depth once (USTRY/CETES about $260K within 2%, USDY about 10% slippage on $100K, 21.5% of deJAAA in a Sushi pool). **Risk:** the analysis exists and RedStone already prices Templar; turning it into a feed is a short step. Also the natural partner |
 | Chainlink (live on Stellar Sep/Oct 2026) | "Liquidity Indicators" (±2% depth, 2023 R&D) and State Pricing (depth-weighted DEX prices) exist elsewhere | Not offered on Stellar today; the largest latent substitute |
 | Chaos Labs Edge | Dynamic caps driven by liquidity depth, live on Aave since 2025 | Not on Stellar; left Aave in Apr 2026 |
 | Pyth Pro, Reflector | Price feeds on Stellar | No depth |
 
-Our ground: the only measure across **all** Stellar venues (SDEX plus Aquarius, including
-concentrated pools, plus Soroswap) from one manipulation-resistant reference, verified against
+Our ground: the only continuous measure across Stellar's order books and AMM pools (SDEX plus
+Aquarius, including concentrated pools, plus Soroswap; Curve and Sushi not yet) from one manipulation-resistant reference, verified against
 on-chain balances, turned into a USD liquidation curve and cap, published on-chain, with an
 append-only history that cannot be rebuilt later. It needs **no outside market**: the
 reference comes from Stellar venues themselves, so it works for RWA tokens that trade on no
@@ -142,6 +142,10 @@ today. The two are complementary: Oracle Shield asks "is this price trustworthy?
    Sun Zu Lab, RedStone or Credora).
 3. Issuers guaranteeing NAV redemption or market making while lenders price at NAV (already
    true for USDY and deJAAA).
+
+New venues appear: Curve launched on Stellar on 29 Oct 2026 and Sushi pools from Sep 2026
+are not yet read. A pinned list understates depth safely but goes stale; venue coverage has
+to be maintained (plan 2.10).
 
 Also structural: issuer or validator freezes (CAP-77, auth revocation) remove offers
 instantly; Horizon end-of-life removes the easy order-book API; liquidity for some tokens

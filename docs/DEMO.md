@@ -100,7 +100,7 @@ The scan is network-bound: the maths is four orders of magnitude faster than the
 | | Price oracles (Reflector, RedStone NAV) | Oracle Shield | Damper | **Pocky** |
 | --- | --- | --- | --- | --- |
 | Question answered | what is it worth | is this price trustworthy | what does it cost to move the book | **how much can be sold** |
-| Depth measured | – | SDEX near the mid (±40 bps), as a score input | SDEX, USDC cost to clear | ✓ every venue, 12 bands to 50% |
+| Depth measured | – | SDEX near the mid (±40 bps), as a score input | SDEX, USDC cost to clear | ✓ SDEX + Aquarius + Soroswap (Curve, Sushi next), 12 bands to 50% |
 | Soroban AMMs (incl. concentrated) | – | not yet ("requires a dedicated approach") | – | ✓ verified against on-chain balances |
 | Works with no CEX listing | ✓ | needs a CEX reference | ✓ | ✓ reference from Stellar venues |
 | Collateral cap for a liquidation bonus | – | – | – | ✓ |
