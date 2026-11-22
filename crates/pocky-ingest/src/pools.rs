@@ -11,6 +11,11 @@
 //! - **quoted** pools (Aquarius concentrated and stable): the pool's own `estimate_swap` is
 //!   sampled at increasing sale sizes, so its tick or curve maths is used as-is.
 //!
+//! A pool's answers about itself (tokens, reserves, quotes) come from the pool contract, and
+//! Aquarius pools are upgradeable, so they are never taken on trust alone: what a pool
+//! reports is checked against what the token contracts say it actually holds
+//! ([`check_held`]). A pool that claims more than it holds is rejected.
+//!
 //! A pool that cannot be read or verified is left out and noted. Leaving a venue out can
 //! only understate depth.
 
@@ -159,6 +164,9 @@ pub fn read_pool(
         &want_asset,
         &want_counter,
     )?;
+    let held_asset = held_balance(rpc, &want_asset, c)?;
+    let held_counter = held_balance(rpc, &want_counter, c)?;
+    let pool = check_held(spec, pool, held_asset, held_counter)?;
     // Only metadata that passed verification is cached.
     if let Ok(mut m) = meta_cache().lock() {
         m.entry(key)
@@ -188,6 +196,61 @@ fn read_metadata(rpc: &SorobanRpc, spec: &PoolSpec) -> Result<(Vec<String>, u32)
             let t1 = soroban::contract_address(&rpc.read(c, "token_1", vec![])?)?;
             (vec![t0, t1], SOROSWAP_FEE_BPS)
         }
+    })
+}
+
+/// How much of `token` the token contract itself says `holder` owns. The pool cannot
+/// influence this answer.
+fn held_balance(rpc: &SorobanRpc, token: &str, holder: &str) -> Result<Fx, IngestError> {
+    let id = soroban::parse_contract(holder)?;
+    let v = rpc.read(
+        token,
+        "balance",
+        vec![stellar_xdr::ScVal::Address(
+            stellar_xdr::ScAddress::Contract(stellar_xdr::ContractId(stellar_xdr::Hash(id))),
+        )],
+    )?;
+    let wrapped = stellar_xdr::ScVal::Vec(Some(
+        vec![v]
+            .try_into()
+            .map_err(|_| IngestError::Registry("balance".into()))?,
+    ));
+    soroban::amounts(&wrapped)?
+        .pop()
+        .ok_or_else(|| IngestError::Registry("empty balance".into()))
+}
+
+/// Largest gap allowed between what a pool reports and what it holds, in basis points.
+/// Pools may hold slightly more than their reserves (accrued fees), never more than a hair
+/// less.
+pub const HELD_TOLERANCE_BPS: u32 = 10;
+
+/// Rejects a pool whose reported reserves exceed what the token contracts say it holds,
+/// and otherwise uses the smaller of the two.
+pub fn check_held(
+    spec: &PoolSpec,
+    pool: CpPool,
+    held_asset: Fx,
+    held_counter: Fx,
+) -> Result<CpPool, IngestError> {
+    for (reported, held, side) in [
+        (pool.reserve_asset, held_asset, "asset"),
+        (pool.reserve_counter, held_counter, "counter"),
+    ] {
+        let allowed = held
+            .checked_add(held.mul_bps_down(HELD_TOLERANCE_BPS)?)?
+            .checked_add(Fx::from_raw(1)?)?;
+        if reported > allowed {
+            return Err(reject(
+                spec,
+                format!("reports {reported} of the {side} but holds {held}"),
+            ));
+        }
+    }
+    Ok(CpPool {
+        reserve_asset: pool.reserve_asset.min(held_asset),
+        reserve_counter: pool.reserve_counter.min(held_counter),
+        fee_bps: pool.fee_bps,
     })
 }
 
@@ -366,6 +429,17 @@ pub fn read_quoted_pool(
             });
         }
     }
+    // A pool cannot pay out more of the counter than the counter contract says it holds.
+    let held_counter = held_balance(rpc, &want_counter, c)?;
+    if let Some(s) = samples.iter().find(|s| s.counter_out > held_counter) {
+        return Err(reject(
+            spec,
+            format!(
+                "quotes {} of the counter but holds {held_counter}",
+                s.counter_out
+            ),
+        ));
+    }
     QuotedPool::new(samples).map_err(|e| reject(spec, format!("inconsistent quotes: {e}")))
 }
 
@@ -398,6 +472,23 @@ mod tests {
         assert_eq!((a.reserve_asset, a.reserve_counter), (fx("100"), fx("250")));
         let b = pool_from(&spec(), &[USDC.into(), USTRY.into()], &r, 30, USTRY, USDC).unwrap();
         assert_eq!((b.reserve_asset, b.reserve_counter), (fx("250"), fx("100")));
+    }
+
+    #[test]
+    fn a_pool_cannot_claim_more_than_it_holds() {
+        let pool = CpPool {
+            reserve_asset: fx("1000"),
+            reserve_counter: fx("1000"),
+            fee_bps: 30,
+        };
+        // Holds exactly what it reports, or a little more (fees): accepted, reserves kept.
+        let ok = check_held(&spec(), pool, fx("1000"), fx("1003")).unwrap();
+        assert_eq!(ok.reserve_counter, fx("1000"));
+        // Reports a counter reserve it does not hold: rejected outright.
+        assert!(check_held(&spec(), pool, fx("1000"), fx("500")).is_err());
+        // Within the 0.1% tolerance: accepted but capped at what it holds.
+        let capped = check_held(&spec(), pool, fx("999.5"), fx("1000")).unwrap();
+        assert_eq!(capped.reserve_asset, fx("999.5"));
     }
 
     #[test]
