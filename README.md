@@ -34,6 +34,8 @@ Live run, 21 Nov 2026, 10% band, SDEX order books plus nine Soroban AMM pools
 
 ![Pocky dashboard, live run of 21 Nov 2026](docs/img/dashboard.jpg)
 
+Every rule behind the figures, step by step: [`docs/METHODOLOGY.md`](docs/METHODOLOGY.md).
+
 **The five-minute story, with live numbers: [`docs/DEMO.md`](docs/DEMO.md).** A full scan of
 10 assets across 29 venues takes about 4 seconds; the depth maths for one asset's full
 liquidation curve takes 22 µs.

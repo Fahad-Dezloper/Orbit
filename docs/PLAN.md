@@ -43,8 +43,8 @@ with passing checks. Nothing in this plan writes to mainnet.
 ## Phase 4: Service and dashboard
 - [x] 4.1 `pocky-api`: scheduled measurement loop, append-only snapshot store, JSON endpoints
 - [x] 4.2 History and windowed-minimum endpoint per asset (fails closed on thin coverage)
-- [~] 4.3 `web/`: asset table, venue breakdown, price-gap flags, liquidation curve and 24h
-  history chart done; methodology page next
+- [x] 4.3 `web/`: asset table, venue breakdown, price-gap flags, liquidation curve, 24h
+  history chart and methodology page
 - [~] 4.4 Collateral view: liquidatable at a bonus and recommended cap done (API and
   dashboard); live borrowed amounts per lender next
 - [x] 4.5 `pocky-publisher`: windowed minimum to oracle batches; no replays, fails closed,
@@ -55,7 +55,7 @@ with passing checks. Nothing in this plan writes to mainnet.
 ## Phase 5: Hardening and proof
 - [ ] 5.1 Security review against `SECURITY.md`; fix findings
 - [ ] 5.2 Local-network demo: thin market, price pushed, depth oracle blocks the borrow
-- [ ] 5.3 Methodology document a protocol risk team can audit
+- [x] 5.3 Methodology document a protocol risk team can audit (`docs/METHODOLOGY.md`)
 - [ ] 5.4 Release notes and SCF application material
 
 ## Phase 6: Beyond Stellar venues (after first integrations)

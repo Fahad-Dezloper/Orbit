@@ -340,3 +340,101 @@ footer {
   font-size: 10px;
   font-family: var(--mono);
 }
+
+.head-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.nav {
+  display: flex;
+  gap: 14px;
+  font-size: 12px;
+}
+
+.nav a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.nav a:hover {
+  color: var(--text);
+}
+
+.nav [aria-current] {
+  color: var(--text);
+  border-bottom: 1px solid var(--aquarius);
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 16px 0;
+}
+
+.step {
+  display: flex;
+  gap: 12px;
+  background: var(--panel);
+  padding: 14px 16px;
+}
+
+.step-n {
+  font-family: var(--mono);
+  color: var(--aquarius);
+  font-size: 12px;
+  padding-top: 2px;
+}
+
+.step h2,
+.limits h2 {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.step p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.step b,
+.step i {
+  color: var(--text);
+}
+
+code {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text);
+}
+
+.limits {
+  padding: 14px 16px;
+}
+
+.limits ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+}
+
+.limits li {
+  margin: 3px 0;
+}
+
+@media (max-width: 720px) {
+  .steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .head-right {
+    align-items: flex-start;
+  }
+}

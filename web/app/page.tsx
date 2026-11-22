@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   type AssetDetail,
   type AssetReport,
@@ -329,7 +330,13 @@ function Header({ children }: { children?: React.ReactNode }) {
         <h1>Exit liquidity on Stellar</h1>
         <p>How much of each real-world asset can actually be sold before the price breaks.</p>
       </div>
-      {children}
+      <div className="head-right">
+        <nav className="nav">
+          <span aria-current="page">Dashboard</span>
+          <Link href="/methodology">Methodology</Link>
+        </nav>
+        {children}
+      </div>
     </header>
   );
 }
