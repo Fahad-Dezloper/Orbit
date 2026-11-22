@@ -5,7 +5,9 @@
 //! look deep. Instead each venue reports its mid in USD, and the reference is the **upper
 //! median** of the mids of venues that hold at least a minimum amount of exit liquidity.
 //!
-//! - A single thin venue (below `min_depth_usd`) cannot move the reference at all.
+//! - A thin venue cannot move the reference at all. To count, a venue needs at least
+//!   `min_depth_usd` **and** at least [`RELATIVE_MIN_BPS`] of the deepest venue's depth, so
+//!   a cheap pool or a few offers placed at a made-up price cannot vote.
 //! - With an even number of qualifying venues the higher middle value is used, so a tie
 //!   resolves toward a higher reference, which can only lower measured depth.
 //! - Pushing one venue's price up makes the other venues' depth shrink, never grow: the
@@ -32,13 +34,21 @@ pub struct Reference {
     pub qualifying: Vec<String>,
 }
 
-/// Upper median of the mids of venues with at least `min_depth_usd` of depth.
+/// A venue must hold at least this share of the deepest venue's depth to help set the
+/// reference (5%). An absolute floor alone is too cheap to clear.
+pub const RELATIVE_MIN_BPS: u32 = 500;
+
+/// Upper median of the mids of venues with at least `min_depth_usd` of depth and at least
+/// [`RELATIVE_MIN_BPS`] of the deepest venue's depth.
 /// Returns `None` when no venue qualifies: then there is no trustworthy price to measure
 /// from, and the caller must count no depth at all.
 pub fn consensus_reference(mids: &[VenueMid], min_depth_usd: Fx) -> Option<Reference> {
+    let deepest = mids.iter().map(|m| m.depth_usd).max().unwrap_or(Fx::ZERO);
+    let relative = deepest.mul_bps_down(RELATIVE_MIN_BPS).unwrap_or(deepest);
+    let floor = min_depth_usd.max(relative);
     let mut q: Vec<&VenueMid> = mids
         .iter()
-        .filter(|m| !m.mid_usd.is_zero() && m.depth_usd >= min_depth_usd)
+        .filter(|m| !m.mid_usd.is_zero() && m.depth_usd >= floor)
         .collect();
     if q.is_empty() {
         return None;
@@ -94,6 +104,20 @@ mod tests {
             r.qualifying,
             vec!["aquarius".to_string(), "sdex".to_string()]
         );
+    }
+
+    #[test]
+    fn a_cheap_venue_at_a_made_up_price_cannot_vote() {
+        // Two real venues, and two cheap ones placed high to drag the upper median up.
+        let mids = [
+            m("sdex", "1.08", "270000"),
+            m("aquarius", "1.07", "107000"),
+            m("fake-1", "1.60", "2000"),
+            m("fake-2", "1.70", "2000"),
+        ];
+        let r = consensus_reference(&mids, fx("100")).unwrap();
+        assert_eq!(r.price_usd, fx("1.08"));
+        assert_eq!(r.qualifying.len(), 2);
     }
 
     #[test]
