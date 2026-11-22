@@ -17,6 +17,7 @@ use std::time::Duration;
 
 use clap::Parser;
 use pocky_api::http::{now, router, AppState, Shared, Status};
+use pocky_api::schedule::{jittered, seed};
 use pocky_api::store::Store;
 use pocky_core::{Thresholds, WindowPolicy};
 use pocky_ingest::run::{measure_all, RunOptions};
@@ -49,8 +50,9 @@ struct Args {
     /// Measure SDEX order books only.
     #[arg(long)]
     no_amm: bool,
-    /// Seconds between measurements (minimum 300). 1800 gives 48 samples a day, well above
-    /// the 12 the 24h window requires, and never a gap near the 2h limit.
+    /// Average seconds between measurements (minimum 300). Each wait is randomized by ±25%
+    /// so sample times cannot be predicted. 1800 gives about 48 samples a day, well above the
+    /// 12 the 24h window requires, and never a gap near the 2h limit.
     #[arg(long, default_value_t = 1800)]
     interval_secs: u64,
     /// Run one measurement into the store and exit.
@@ -136,15 +138,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     if !args.serve_only {
         let (st, a, r) = (state.clone(), args.clone(), reg.clone());
         tokio::spawn(async move {
-            let mut tick = tokio::time::interval(Duration::from_secs(a.interval_secs));
-            tick.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
+            // Measure now, then at unpredictable times around the interval.
             loop {
-                tick.tick().await;
                 let (a2, r2) = (a.clone(), r.clone());
                 match tokio::task::spawn_blocking(move || measure_once(&a2, &r2)).await {
                     Ok(result) => record(&st, result),
                     Err(e) => record(&st, Err(format!("measurement task panicked: {e}"))),
                 }
+                let wait = jittered(Duration::from_secs(a.interval_secs), seed());
+                tokio::time::sleep(wait).await;
             }
         });
     }
