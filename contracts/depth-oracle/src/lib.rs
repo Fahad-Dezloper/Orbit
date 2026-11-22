@@ -10,7 +10,10 @@
 //! protocol can read depth the same way it reads price.
 //!
 //! ## Safety rules enforced here
-//! - Only the publisher can write; only the admin can rotate the publisher.
+//! - Only the publisher can write; only the admin can rotate the publisher, and the admin
+//!   role moves only with the signatures of both the current and the new admin.
+//! - The asset list is capped, so a compromised publisher cannot grow instance storage
+//!   until the contract can no longer load.
 //! - Timestamps must strictly increase per (asset, band), may not be in the future
 //!   beyond a small skew, and may not be older than `MAX_AGE_SECS` at publish time.
 //! - Bands must be 1..=9999 bps; values must be non-negative and below a sanity cap.
@@ -36,6 +39,9 @@ pub const MAX_AGE_SECS: u64 = 6 * 3600;
 pub const HISTORY_LEN: u32 = 48;
 /// Most updates accepted in one call, to bound cost.
 pub const MAX_BATCH: u32 = 64;
+/// Most distinct assets the oracle will track. The list lives in instance storage, which
+/// is loaded on every call, so it must stay small.
+pub const MAX_ASSETS: u32 = 200;
 
 const DAY_LEDGERS: u32 = 17_280; // ~5s ledgers
 const TTL_THRESHOLD: u32 = 7 * DAY_LEDGERS;
@@ -53,6 +59,7 @@ pub enum Error {
     BatchTooLarge = 6,
     EmptyBatch = 7,
     NotInitialized = 8,
+    TooManyAssets = 9,
 }
 
 /// SEP-40 style asset identifier.
@@ -109,6 +116,12 @@ pub struct DepthPublished {
     pub timestamp: u64,
 }
 
+#[contractevent(topics = ["admin"])]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct AdminChanged {
+    pub admin: Address,
+}
+
 #[contractevent(topics = ["publisher"])]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PublisherChanged {
@@ -137,6 +150,16 @@ impl DepthOracle {
         env.storage().instance().set(&Key::Publisher, &publisher);
         bump_instance(&env);
         PublisherChanged { publisher }.publish(&env);
+    }
+
+    /// Hands the admin role to `new_admin`. Needs the current admin's signature and the new
+    /// admin's, so the role cannot be sent to a mistyped or unowned address.
+    pub fn set_admin(env: Env, new_admin: Address) {
+        read_admin(&env).require_auth();
+        new_admin.require_auth();
+        env.storage().instance().set(&Key::Admin, &new_admin);
+        bump_instance(&env);
+        AdminChanged { admin: new_admin }.publish(&env);
     }
 
     pub fn admin(env: Env) -> Address {
@@ -193,6 +216,9 @@ impl DepthOracle {
             store.extend_ttl(&key, TTL_THRESHOLD, TTL_EXTEND_TO);
 
             if !assets.contains(&u.asset) {
+                if assets.len() >= MAX_ASSETS {
+                    panic_with_error!(&env, Error::TooManyAssets);
+                }
                 assets.push_back(u.asset.clone());
             }
             if u.timestamp > latest {

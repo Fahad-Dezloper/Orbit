@@ -4,7 +4,9 @@ extern crate std;
 use soroban_sdk::testutils::{Address as _, Ledger, MockAuth, MockAuthInvoke};
 use soroban_sdk::{vec, Address, Env, IntoVal, Symbol, Vec};
 
-use crate::{Asset, DepthOracle, DepthOracleClient, DepthRecord, DepthUpdate, Error, HISTORY_LEN};
+use crate::{
+    Asset, DepthOracle, DepthOracleClient, DepthRecord, DepthUpdate, Error, HISTORY_LEN, MAX_ASSETS,
+};
 
 const NOW: u64 = 1_800_000_000;
 const TEN_PCT: u32 = 1_000;
@@ -258,4 +260,82 @@ fn fresh_depth_respects_reader_max_age() {
         .publish(&vec![&s.env, update(&s.asset, usd(100), NOW - 1800)]);
     assert!(s.client.fresh_depth(&s.asset, &TEN_PCT, &3600).is_some());
     assert!(s.client.fresh_depth(&s.asset, &TEN_PCT, &600).is_none());
+}
+
+#[test]
+fn admin_moves_only_with_both_signatures() {
+    let s = setup();
+    let next = Address::generate(&s.env);
+    // Only the current admin signs: refused.
+    let res = s
+        .client
+        .mock_auths(&[MockAuth {
+            address: &s.admin,
+            invoke: &MockAuthInvoke {
+                contract: &s.client.address,
+                fn_name: "set_admin",
+                args: (next.clone(),).into_val(&s.env),
+                sub_invokes: &[],
+            },
+        }])
+        .try_set_admin(&next);
+    assert!(res.is_err(), "the new admin must also sign");
+    // Both sign: the role moves, and the old admin loses it.
+    s.env.mock_all_auths();
+    s.client.set_admin(&next);
+    assert_eq!(s.client.admin(), next);
+    let new_pub = Address::generate(&s.env);
+    let res = s
+        .client
+        .mock_auths(&[MockAuth {
+            address: &s.admin,
+            invoke: &MockAuthInvoke {
+                contract: &s.client.address,
+                fn_name: "set_publisher",
+                args: (new_pub.clone(),).into_val(&s.env),
+                sub_invokes: &[],
+            },
+        }])
+        .try_set_publisher(&new_pub);
+    assert!(
+        res.is_err(),
+        "the old admin can no longer rotate the publisher"
+    );
+}
+
+#[test]
+fn the_asset_list_is_capped() {
+    let s = setup();
+    s.env.mock_all_auths();
+    s.env.cost_estimate().budget().reset_unlimited();
+    // Fill the list in batches of 50.
+    let mut n = 0u32;
+    while n < MAX_ASSETS {
+        let mut batch = Vec::new(&s.env);
+        for _ in 0..50 {
+            if n < MAX_ASSETS {
+                batch.push_back(update(
+                    &Asset::Stellar(Address::generate(&s.env)),
+                    usd(1),
+                    NOW,
+                ));
+                n += 1;
+            }
+        }
+        s.client.publish(&batch);
+    }
+    assert_eq!(s.client.assets().len(), MAX_ASSETS);
+    let one_more = vec![
+        &s.env,
+        update(&Asset::Stellar(Address::generate(&s.env)), usd(1), NOW),
+    ];
+    assert_eq!(
+        s.client.try_publish(&one_more).err().unwrap().unwrap(),
+        Error::TooManyAssets.into()
+    );
+    // Existing assets can still be updated.
+    s.env.ledger().with_mut(|l| l.timestamp = NOW + 10);
+    let first = s.client.assets().get(0).unwrap();
+    s.client
+        .publish(&vec![&s.env, update(&first, usd(2), NOW + 5)]);
 }
