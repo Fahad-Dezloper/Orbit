@@ -54,7 +54,8 @@ with passing checks. Nothing in this plan writes to mainnet.
 
 ## Phase 5: Hardening and proof
 - [ ] 5.1 Security review against `SECURITY.md`; fix findings
-- [ ] 5.2 Local-network demo: thin market, price pushed, depth oracle blocks the borrow
+- [x] 5.2 Local-network demo: a lending pool reads the depth oracle and refuses collateral
+  the market cannot absorb (`contracts/demo-lender`, `scripts/blocked-borrow-demo.sh`)
 - [x] 5.3 Methodology document a protocol risk team can audit (`docs/METHODOLOGY.md`)
 - [ ] 5.4 Release notes and SCF application material
 

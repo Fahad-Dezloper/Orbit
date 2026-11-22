@@ -50,6 +50,7 @@ liquidation curve takes 22 µs.
 | `crates/pocky-api` | Scheduled measurement, snapshot store, read-only HTTP API | Rust (axum) |
 | `crates/pocky-publisher` | Publishes the windowed minimum to the oracle | Rust |
 | `contracts/depth-oracle` | On-chain depth oracle with SEP-40-style reads | Rust / Soroban |
+| `contracts/demo-lender` | Demo pool that caps collateral by the depth oracle (local only) | Rust / Soroban |
 | `web/` | Dashboard over the API | TypeScript / Next.js |
 | `docs/` | Idea, architecture, plan, security model | |
 
@@ -62,6 +63,14 @@ cargo clippy --workspace --all-targets -- -D warnings
 # contract (own workspace)
 cd contracts/depth-oracle && cargo test
 stellar contract build   # needs stellar-cli v25.2+
+```
+
+### See a lender refuse collateral the market cannot absorb
+
+```bash
+stellar container start local
+(cd contracts/demo-lender && stellar contract build)
+./scripts/blocked-borrow-demo.sh
 ```
 
 ### Run the oracle on a local network

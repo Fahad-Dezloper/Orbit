@@ -39,7 +39,35 @@ on-chain at that bonus.** Pocky computes that curve for every asset, from 0.5% t
 - `GET /v1/assets/USTRY/cap?bonus_bps=500&safety_bps=5000` turns the 24h minimum of that
   figure into a recommended collateral cap.
 
-## 4. How fast and how cheap
+## 4. A lender that checks depth, live
+
+`scripts/blocked-borrow-demo.sh` runs the whole chain on a local network: a live mainnet
+measurement, published to the depth oracle, read by a small lending pool
+(`contracts/demo-lender`) that refuses collateral the market could not absorb. The pool
+takes collateral up to the depth within 10%, less a 50% safety margin. Run of 22 Nov 2026:
+
+```
+== what the pool sees (cap = depth within 10% x 50%)
+  USTRY  cap $191,233
+  KTB    cap $0
+  deJAAA cap none   (no market on Stellar; $3.56M lent against it elsewhere)
+
+== deposits
+  ACCEPTED  alice: $150,000 of USTRY
+  REFUSED   bob:   $100,000 of USTRY (pool would exceed)   DepthCapExceeded: the market cannot absorb it
+  ACCEPTED  bob:   $20,000 of USTRY
+  REFUSED   alice: $1,000 of KTB (priced, unsellable)      DepthCapExceeded: the market cannot absorb it
+  REFUSED   alice: $1,000 of deJAAA                        NoFreshDepth: no depth data, no collateral
+
+== pool totals
+  USTRY collateral $170,000 of cap $191,233
+  KTB   collateral $0
+```
+
+The check is one cross-contract call (`fresh_depth`) and one comparison; a Blend-style pool
+could add it to its supply path.
+
+## 5. How fast and how cheap
 
 | | |
 | --- | --- |
@@ -48,11 +76,11 @@ on-chain at that bonus.** Pocky computes that curve for every asset, from 0.5% t
 | Soroban RPC calls per pool per run, after warm-up | **1** (tokens/type/fee cached 6h) |
 | Measurement cadence / published window | every 30 min / minimum over 24h, ≥12 samples |
 | On-chain oracle reads | SEP-40 style: `depth`, `depths`, `fresh_depth`, `last_timestamp` |
-| Tests | 72 (63 engine/API/publisher, 9 contract) |
+| Tests | 84 (67 engine/API/publisher, 9 oracle contract, 8 demo lender) |
 
 The scan is network-bound: the maths is four orders of magnitude faster than the I/O.
 
-## 5. Why it is trustworthy
+## 6. Why it is trustworthy
 
 - **Read-only.** The engine never signs. Pools are read by simulation only.
 - **Identity from first principles.** Issuers are checked against their own `stellar.toml`
@@ -66,7 +94,7 @@ The scan is network-bound: the maths is four orders of magnitude faster than the
 - **Fails closed.** Stale data, thin windows or an unreadable oracle publish nothing.
 - **Every rounding understates depth.** Fixed-point, no floats.
 
-## 6. What only this does
+## 7. What only this does
 
 | | Price oracles (Reflector, RedStone NAV) | Oracle Shield-style scorers | **Pocky** |
 | --- | --- | --- | --- |
@@ -82,9 +110,10 @@ against an external reference, pool discovery and on-chain verification, SAC der
 reference selection, windowing, history storage, an oracle contract and a publisher, each
 tested. The history cannot be rebuilt at all: depth that was not recorded is gone.
 
-## 7. Where it stands
+## 8. Where it stands
 
-- Live: engine, API, dashboard, liquidation curve and cap, publisher.
+- Live: engine, API, dashboard, liquidation curve and cap, publisher, methodology.
+- Proven end to end: a lending pool that refuses collateral the market cannot absorb.
 - On-chain: oracle deployed on testnet carrying live mainnet figures
   ([`deployments/testnet.md`](deployments/testnet.md)). Mainnet after an external audit.
 - Next: audit of the contract and publisher, then mainnet; stable and concentrated pools;
