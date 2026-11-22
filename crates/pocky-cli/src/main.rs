@@ -107,7 +107,7 @@ fn usd(v: Fx) -> String {
     let s = whole.to_string();
     let mut grouped = String::new();
     for (i, c) in s.chars().enumerate() {
-        if i > 0 && (s.len() - i) % 3 == 0 {
+        if i > 0 && (s.len() - i).is_multiple_of(3) {
             grouped.push(',');
         }
         grouped.push(c);
