@@ -134,11 +134,13 @@ impl Store {
     }
 }
 
-/// Total exit for one asset at one band in every run where it was measured.
+/// Total exit for one asset at one band in every run where it was measured completely.
+/// A report that missed a venue is skipped: it counts as a missing sample (which the window's
+/// coverage rules catch), not as low depth.
 pub fn samples(runs: &[Run], code: &str, band: Band) -> Vec<Sample> {
     runs.iter()
         .filter_map(|run| {
-            let report = run.reports.iter().find(|r| r.code == code)?;
+            let report = run.reports.iter().find(|r| r.code == code && r.complete)?;
             let depth = report.depths.iter().find(|d| d.band == band)?;
             Some(Sample {
                 ts: run.measured_at,
@@ -180,6 +182,7 @@ mod tests {
                 notes: vec![],
                 venues_read: 0,
                 curve: vec![],
+                complete: true,
             }],
             skipped: vec![],
             stats: Default::default(),
@@ -213,6 +216,16 @@ mod tests {
         let latest = s.latest(t0 + 15 * 3600, 6 * 3600).unwrap().unwrap();
         assert_eq!(latest.measured_at, t0 + 14 * 3600);
         let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn an_incomplete_run_is_a_missing_sample_not_a_low_one() {
+        let mut low = run(100, "2000");
+        low.reports[0].complete = false;
+        let runs = vec![run(0, "100000"), low, run(200, "100000")];
+        let pts = samples(&runs, "USTRY", Band::TEN_PCT);
+        assert_eq!(pts.len(), 2);
+        assert!(pts.iter().all(|p| p.exit_usd == "100000".parse().unwrap()));
     }
 
     #[test]

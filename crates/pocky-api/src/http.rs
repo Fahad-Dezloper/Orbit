@@ -251,6 +251,7 @@ mod tests {
                 notes: vec![],
                 venues_read: 0,
                 curve: vec![],
+                complete: true,
             }],
             skipped: vec![],
             stats: Default::default(),
@@ -395,7 +396,7 @@ async fn cap(
         .runs
         .iter()
         .filter_map(|r| {
-            let rep = r.reports.iter().find(|x| x.code == code)?;
+            let rep = r.reports.iter().find(|x| x.code == code && x.complete)?;
             Some(Sample {
                 ts: r.measured_at,
                 exit_usd: liquidatable_at(&rep.curve, bonus)?,

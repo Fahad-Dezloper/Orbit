@@ -176,6 +176,7 @@ mod tests {
                 notes: vec![],
                 venues_read: 0,
                 curve: vec![],
+                complete: true,
             }],
             skipped: vec![],
             stats: Default::default(),

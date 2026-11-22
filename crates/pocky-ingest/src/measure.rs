@@ -56,6 +56,15 @@ pub struct AssetReport {
     /// reference. Empty when there is no reference.
     #[serde(default)]
     pub curve: Vec<CurvePoint>,
+    /// False if any pinned venue could not be read (for example the RPC rate-limited the
+    /// run). An incomplete report understates depth for reasons unrelated to the market, so
+    /// it is kept for the record but never used as a sample in the 24h window.
+    #[serde(default = "complete_by_default")]
+    pub complete: bool,
+}
+
+fn complete_by_default() -> bool {
+    true
 }
 
 /// USD per XLM from the XLM/USDC SDEX book. Fails closed if the book is one-sided.
@@ -110,6 +119,7 @@ pub fn measure_asset(
     cfg: &MeasureConfig,
 ) -> Result<AssetReport, IngestError> {
     let mut notes = Vec::new();
+    let mut complete = true;
     let mine: Vec<&PoolSpec> = match rpc {
         Some(_) => pools.iter().filter(|p| p.asset == asset.code).collect(),
         None => Vec::new(),
@@ -159,6 +169,9 @@ pub fn measure_asset(
         for (spec, read) in mine.iter().zip(pool_reads) {
             let short = spec.contract.get(..8).unwrap_or(&spec.contract);
             let label = format!("{} {short}", spec.label());
+            if read.is_err() {
+                complete = false;
+            }
             match read {
                 Ok(pool) => legs.push(Leg {
                     venue: Venue::Amm {
@@ -297,5 +310,6 @@ pub fn measure_asset(
         notes,
         venues_read: legs.len(),
         curve,
+        complete,
     })
 }

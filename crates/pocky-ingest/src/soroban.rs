@@ -8,6 +8,7 @@
 //! Stellar Asset Contract (SAC) is a hash of the network id and the asset, so we derive it
 //! locally and never trust a pool, an API or a registry to tell us which token it holds.
 
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Condvar, Mutex};
 use std::thread::sleep;
 use std::time::Duration;
@@ -28,7 +29,9 @@ use crate::error::IngestError;
 use crate::registry::Asset;
 
 pub const MAINNET_PASSPHRASE: &str = "Public Global Stellar Network ; September 2015";
-pub const DEFAULT_MAINNET_RPC: &str = "https://mainnet.sorobanrpc.com";
+/// Independent public mainnet RPC providers, tried in rotation. Spreading reads across
+/// providers keeps any one of them from rate-limiting a run into missing venues.
+pub const DEFAULT_MAINNET_RPC: &str = "https://mainnet.sorobanrpc.com,https://soroban-rpc.mainnet.stellar.gateway.fm,https://rpc.lightsail.network";
 
 const ATTEMPTS: u32 = 5;
 /// Most requests in flight to one RPC endpoint at a time. Public endpoints rate-limit
@@ -127,7 +130,8 @@ struct SimEntry {
 
 /// A read-only Soroban RPC client with timeouts and bounded retries.
 pub struct SorobanRpc {
-    url: String,
+    urls: Vec<String>,
+    next: AtomicUsize,
     passphrase: String,
     agent: ureq::Agent,
     in_flight: Mutex<usize>,
@@ -147,13 +151,22 @@ impl Drop for Slot<'_> {
 }
 
 impl SorobanRpc {
+    /// `url` may list several providers separated by commas; requests rotate across them and
+    /// a failed or rate-limited attempt moves to the next one.
     pub fn new(url: impl Into<String>, passphrase: impl Into<String>) -> SorobanRpc {
         let agent = ureq::AgentBuilder::new()
             .timeout(TIMEOUT)
             .user_agent("pocky/0.1")
             .build();
+        let urls: Vec<String> = url
+            .into()
+            .split(',')
+            .map(|u| u.trim().trim_end_matches('/').to_string())
+            .filter(|u| !u.is_empty())
+            .collect();
         SorobanRpc {
-            url: url.into(),
+            urls,
+            next: AtomicUsize::new(0),
             passphrase: passphrase.into(),
             agent,
             in_flight: Mutex::new(0),
@@ -169,9 +182,19 @@ impl SorobanRpc {
         &self.passphrase
     }
 
-    /// Confirms the endpoint serves the network we expect. Run once before reading: a
-    /// misconfigured URL must not let testnet state pass as mainnet.
+    /// Confirms **every** configured provider serves the network we expect. Run once before
+    /// reading: a misconfigured URL must not let testnet state pass as mainnet.
     pub fn check_network(&self) -> Result<(), IngestError> {
+        if self.urls.is_empty() {
+            return Err(bad("rpc", "no RPC URL configured"));
+        }
+        for url in &self.urls {
+            self.check_one(url)?;
+        }
+        Ok(())
+    }
+
+    fn check_one(&self, url: &str) -> Result<(), IngestError> {
         #[derive(Deserialize)]
         struct Net {
             passphrase: String,
@@ -180,14 +203,17 @@ impl SorobanRpc {
         struct Resp {
             result: Option<Net>,
         }
-        let r: Resp = self.post(&json!({"jsonrpc": "2.0", "id": 1, "method": "getNetwork"}))?;
+        let r: Resp = self.post_to(
+            &json!({"jsonrpc": "2.0", "id": 1, "method": "getNetwork"}),
+            Some(url),
+        )?;
         match r.result {
             Some(n) if n.passphrase == self.passphrase => Ok(()),
             Some(n) => Err(bad(
-                &self.url,
+                url,
                 format!("serves {:?}, expected {:?}", n.passphrase, self.passphrase),
             )),
-            None => Err(bad(&self.url, "getNetwork returned no result")),
+            None => Err(bad(url, "getNetwork returned no result")),
         }
     }
 
@@ -260,22 +286,40 @@ impl SorobanRpc {
         &self,
         body: &serde_json::Value,
     ) -> Result<T, IngestError> {
+        self.post_to(body, None)
+    }
+
+    /// Sends `body`, to `fixed` if given, otherwise rotating across providers: each attempt
+    /// (including retries after a 429) goes to the next provider in turn.
+    fn post_to<T: serde::de::DeserializeOwned>(
+        &self,
+        body: &serde_json::Value,
+        fixed: Option<&str>,
+    ) -> Result<T, IngestError> {
+        let n = self.urls.len().max(1);
+        let start = self.next.fetch_add(1, Ordering::Relaxed);
         let mut last = String::new();
+        let mut last_url = String::new();
         for attempt in 1..=ATTEMPTS {
+            let url = match fixed {
+                Some(u) => u.to_string(),
+                None => self
+                    .urls
+                    .get((start + attempt as usize - 1) % n)
+                    .cloned()
+                    .unwrap_or_default(),
+            };
+            last_url.clone_from(&url);
             let sent = {
                 let _slot = self.slot();
-                self.agent.post(&self.url).send_json(body.clone())
+                self.agent.post(&url).send_json(body.clone())
             };
             let mut backoff_ms = 300 * u64::from(attempt);
             match sent {
-                Ok(resp) => {
-                    return resp
-                        .into_json::<T>()
-                        .map_err(|e| bad(&self.url, e.to_string()))
-                }
+                Ok(resp) => return resp.into_json::<T>().map_err(|e| bad(&url, e.to_string())),
                 Err(ureq::Error::Status(code, _)) if code != 429 && code < 500 => {
                     return Err(IngestError::Http {
-                        url: self.url.clone(),
+                        url: url.clone(),
                         attempts: attempt,
                         reason: format!("status {code}"),
                     })
@@ -292,7 +336,7 @@ impl SorobanRpc {
             }
         }
         Err(IngestError::Http {
-            url: self.url.clone(),
+            url: last_url,
             attempts: ATTEMPTS,
             reason: last,
         })
