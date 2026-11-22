@@ -32,6 +32,8 @@ with passing checks. Nothing in this plan writes to mainnet.
 - [x] 2.8 Parallel ingestion: one stellar.toml fetch per issuer, assets and venues read
   concurrently, bounded RPC concurrency with 429 back-off, pool metadata cached (17s to 4s)
 - [x] 2.9 Liquidation curve (0.5% to 50%) and collateral cap for a liquidation bonus
+- [ ] 2.10 New venues: Curve (on Stellar since 29 Oct 2026), Comet, Stellar Broker and Sushi pools (since Sep 2026,
+  including deJAAA); a check that flags new pools for pinned assets
 
 ## Phase 3: On-chain oracle (`contracts/depth-oracle`)
 - [x] 3.1 Storage layout, admin and publisher roles, TTL extension
@@ -76,3 +78,9 @@ with passing checks. Nothing in this plan writes to mainnet.
 - [x] 6.2a Oracle and publisher on testnet with live mainnet figures
   (`docs/deployments/testnet.md`)
 - [ ] 6.2b Mainnet, after an external review
+
+## Later: first integrations
+- [ ] 7.1 Nectar Network (SCF #42, Blend liquidation keepers): upcoming testnet integration
+  through a direct contact, before the SCF application. Keepers read the curve or `/cap`
+  (or `fresh_depth` on the testnet oracle) before bidding on Blend auctions. Needs a hosted
+  endpoint (4.7) or the testnet contract. Ask for a merged PR and a short quote
