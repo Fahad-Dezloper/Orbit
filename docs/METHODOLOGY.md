@@ -29,8 +29,9 @@ issuer. Horizon's asset list is never used to discover issuers: it contains impo
 | Concentrated and stable pools (Aquarius) | Soroban RPC simulation: the pool's own `estimate_swap` | sampled quotes (§5.3) |
 
 Pools are pinned in `assets.toml` and verified on every read: their two tokens must equal the
-Stellar Asset Contract ids derived locally as `sha256(network id, asset)`, and their reported
-type must match how they are pinned. A pool that fails verification, or cannot be read, is
+Stellar Asset Contract ids derived locally as `sha256(network id, asset)`, their reported
+type must match how they are pinned, and what they report (reserves, quoted outputs) must not
+exceed what the token contracts themselves say the pool holds. A pool that fails verification, or cannot be read, is
 left out and noted. Leaving a venue out can only understate depth.
 
 All reads are simulations or GETs. Nothing is signed.
@@ -38,8 +39,9 @@ All reads are simulations or GETs. Nothing is signed.
 ## 4. The reference price
 
 Each venue reports its own price in USD (book: mid of best bid and best ask; constant-product
-pool: `y / x`; quoted pool: average price of a one-unit sale). Venues holding less than $100
-of exit at the widest band, measured from their own price, are excluded. The reference is the
+pool: `y / x`; quoted pool: average price of a one-unit sale). A venue may help set the
+reference only if it holds at least $100 **and** at least 5% of the deepest venue's exit at
+the widest band, measured from its own price; an absolute floor alone is too cheap to clear. The reference is the
 **upper median** of the remaining venues' prices.
 
 - No venue is its own reference, so pushing one venue's price moves only that venue.
@@ -88,7 +90,10 @@ Verdict at 10%: dead below $100, critical below $10K, shallow below $100K, healt
 
 ## 7. Time: the published figure
 
-A measurement runs every 30 minutes. The published figure for an asset and band is the
+A measurement runs on average every 30 minutes, at a randomized time (±25%) so nobody can
+place liquidity just before a sample and pull it just after. Soroban reads rotate across
+independent RPC providers. A run that could not read every pinned venue is kept but marked
+incomplete and is never used as a sample: missing data is a gap, not low depth. The published figure for an asset and band is the
 **minimum over the last 24 hours**, and only if the window has at least 12 samples with no
 gap longer than 2 hours (including the gap from the last sample to now). Otherwise nothing is
 published. Liquidity placed just before one measurement and pulled after it can only lower

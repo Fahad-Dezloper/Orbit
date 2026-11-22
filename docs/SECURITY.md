@@ -20,18 +20,20 @@ number can cost someone real money, so correctness is a security property here.
 
 | Threat | Mitigation |
 | --- | --- |
-| Depth spoofing (orders placed then pulled) | Windowed minimum; persistence filter counts only liquidity seen in consecutive snapshots |
+| Depth spoofing (orders placed then pulled) | Published figure is the 24h minimum with at least 12 samples and no gap over 2h, so parked liquidity can only lower it. (A separate persistence filter was planned and is not built; the minimum already covers placed-then-pulled depth.) |
 | Wash liquidity (self-trading pools) | AMM exit uses reserves, not volume; volume is never an input |
 | Impostor assets with the same code | Issuer pinned by SEP-1; asset id = code + issuer |
-| Impostor or swapped AMM pools | Pool tokens must equal SAC ids derived locally from the network id and asset; non-constant-product pools rejected |
+| Impostor or swapped AMM pools | Pool tokens must equal SAC ids derived locally from the network id and asset; pool type must match how it is pinned |
+| A pool lying about itself (pools are upgradeable and self-report reserves and quotes) | Reported reserves and quoted outputs are checked against the balances the token contracts report for the pool; a pool claiming more than it holds is rejected |
 | A venue pushing its own price to look deep | One cross-venue reference (upper median of venues with real depth); a thin venue cannot set it; pushing one venue only lowers the others |
 | RPC pointed at the wrong network | `getNetwork` passphrase checked before any read |
 | Reading pools moves funds | Pools are read by simulation only; the simulated source account is all zeros and nothing is signed or submitted |
-| Unit errors (Horizon bid/ask units) | Single conversion function, unit-tested against a known `/offers` reconciliation |
+| Unit errors (Horizon bid/ask units) | One parsing path in `horizon.rs`; unit tests pin the convention (a bid's amount is in the counter asset), and live figures were checked against the research snapshot |
 | Numeric overflow or precision loss | Checked arithmetic in core; contract stores scaled `i128`; bounds checks on publish |
 | Stale on-chain data | Every record carries a timestamp; readers get it; contract rejects non-increasing timestamps |
-| Publisher key compromise | Publisher role separate from admin; admin can rotate the publisher; per-publish bounds |
-| Upstream outage or tampering (Horizon/RPC) | Timeouts, bounded retries, cross-check against a second endpoint before publishing |
+| Publisher key compromise | Publisher role separate from admin; admin can rotate the publisher; per-publish bounds; the asset list is capped (200) so a rogue publisher cannot grow storage until the contract stops loading |
+| Admin key loss or compromise | `set_admin` moves the role only with both the current and the new admin's signatures; a production admin should be a multisig account |
+| Upstream outage or tampering (Horizon/RPC) | Timeouts, bounded retries with back-off, network passphrase check. **Not yet built:** cross-checking figures against a second Horizon and RPC provider before publishing (plan 5.1b) |
 | Contract state archival | Instance and record TTL extended on every publish |
 | Secrets in the repo | No keys in code or config; `.env` ignored; publisher key from the environment only |
 

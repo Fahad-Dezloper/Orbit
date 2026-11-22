@@ -17,7 +17,8 @@ docker run -d --name pocky-api -p 8080:8080 -v pocky-data:/data pocky-api
 
 - Measures every 30 minutes into `/data` and serves `GET /v1/...`. Keep the volume: the 24h
   windowed minimum needs at least 12 samples, so a fresh store takes about 6 hours to fill.
-- Put it behind HTTPS (the host's TLS or a reverse proxy). The API is GET-only and public.
+- Put it behind HTTPS and a reverse proxy with rate limits (the host's TLS, Caddy or nginx).
+  The API is GET-only and public, and has no rate limiting of its own.
 - `docker run ... pocky-api --once` takes a single measurement, useful to check egress.
 
 ## 2. Publisher
@@ -32,11 +33,14 @@ pocky-publish --network testnet --oracle <ORACLE_ID> --source pocky-testnet-publ
 
 - The key lives in the `stellar` CLI keystore and never in this repository, its config or
   the process arguments.
+- Run the publisher as its own OS user with read-only access to the snapshot store: anyone
+  who can write the store can make it sign false figures.
 - Publishes only windows with enough samples, never replays a timestamp the oracle already
   holds, and publishes nothing if it cannot read the oracle first.
 - `--min-samples` below 12 is for test networks while history builds; every record carries
   its sample count.
-- Mainnet is refused by the binary until the external review in `PLAN.md` phase 5.
+- Mainnet requires `--mainnet-unaudited` until the external audit (`PLAN.md` 5.1c), and is
+  never published with fewer than 12 samples.
 
 ## 3. Dashboard
 

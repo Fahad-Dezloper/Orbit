@@ -13,7 +13,7 @@ with passing checks. Nothing in this plan writes to mainnet.
 - [x] 1.2 Order-book exit walk with the Horizon unit convention
 - [x] 1.3 Constant-product AMM exit at a slippage band
 - [x] 1.4 Cross-venue aggregation and verdicts (dead / critical / shallow / healthy)
-- [x] 1.5 Manipulation resistance: windowed minimum and persistence filter
+- [x] 1.5 Manipulation resistance: 24h windowed minimum with coverage rules
 - [x] 1.6 Unit tests, including the February USTRY book shape
 
 ## Phase 2: Ingest (`pocky-ingest`, `pocky-cli`)
@@ -53,11 +53,23 @@ with passing checks. Nothing in this plan writes to mainnet.
 - [ ] 4.7 Hosted API with a public URL, measuring around the clock
 
 ## Phase 5: Hardening and proof
-- [ ] 5.1 Security review against `SECURITY.md`; fix findings
+- [x] 5.1 Internal security review (`docs/reviews/2026-11-22-internal.md`); findings fixed or tracked
+- [ ] 5.1b Cross-check each run against a second Horizon and Soroban RPC provider before publishing
+- [ ] 5.1c External audit of the contracts and publisher
 - [x] 5.2 Local-network demo: a lending pool reads the depth oracle and refuses collateral
   the market cannot absorb (`contracts/demo-lender`, `scripts/blocked-borrow-demo.sh`)
 - [x] 5.3 Methodology document a protocol risk team can audit (`docs/METHODOLOGY.md`)
 - [ ] 5.4 Release notes and SCF application material
+- [ ] 5.5 Slow up, fast down: a published figure may rise only on depth sustained for 7 days,
+  and falls on the first low sample (`docs/THREATS.md` §2)
+- [ ] 5.6 Concentration haircut: count at most a set share of depth from any single SDEX
+  offer account or LP position
+- [ ] 5.7 Offer age filter: count only SDEX offers resting for at least N hours
+- [x] 5.8 Randomized sample times; relative reference threshold; RPC rotation across three
+  providers; incomplete runs excluded from the window
+- [ ] 5.9 Depth-aware SEP-40 wrapper oracle for new Blend v2 pools; depth-aware caps proposal
+  for the Blend v3 draft
+- [ ] 5.10 Own ledger ingestion for order books (Horizon end-of-life; RPC has no offers API)
 
 ## Phase 6: Beyond Stellar venues (after first integrations)
 - [ ] 6.1 Exit routes for Stellar assets that leave Stellar (NEAR Intents, issuer redemption)
