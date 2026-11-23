@@ -33,7 +33,7 @@ read the SDEX order book only, and lenders on Stellar still size RWA collateral 
 
 A liquidator paid a bonus `b` only acts if it can sell the seized collateral at most `b`
 below the price. So **the exit at band `b` is the most collateral that can be liquidated
-on-chain at that bonus.** Pocky computes that curve for every asset, from 0.5% to 50%:
+on-chain at that bonus.** Orbit computes that curve for every asset, from 0.5% to 50%:
 
 - USTRY at a 5% bonus: **$314,464** can be liquidated right now. Above that, a pool is
   holding bad debt it cannot clear.
@@ -97,7 +97,7 @@ The scan is network-bound: the maths is four orders of magnitude faster than the
 
 ## 7. What only this does
 
-| | Price oracles (Reflector, RedStone NAV) | Oracle Shield | Damper | **Pocky** |
+| | Price oracles (Reflector, RedStone NAV) | Oracle Shield | Damper | **Orbit** |
 | --- | --- | --- | --- | --- |
 | Question answered | what is it worth | is this price trustworthy | what does it cost to move the book | **how much can be sold** |
 | Depth measured | – | SDEX near the mid (±40 bps), as a score input | SDEX, USDC cost to clear | ✓ SDEX + Aquarius + Soroswap (Curve, Sushi next), 12 bands to 50% |
@@ -128,7 +128,7 @@ tested. The history cannot be rebuilt at all: depth that was not recorded is gon
 ## Running the demo
 
 ```bash
-cargo run --release -p pocky-api            # measures every 30 min, serves :8080
+cargo run --release -p orbit-api            # measures every 30 min, serves :8080
 cd web && npm run dev                        # dashboard on :3100
 curl 'localhost:8080/v1/assets/USTRY/cap?bonus_bps=500'
 ```

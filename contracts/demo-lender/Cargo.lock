@@ -1176,6 +1176,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
 
 [[package]]
+name = "orbit-demo-lender"
+version = "0.1.0"
+dependencies = [
+ "orbit-depth-oracle",
+ "soroban-sdk",
+]
+
+[[package]]
+name = "orbit-depth-oracle"
+version = "0.1.0"
+dependencies = [
+ "soroban-sdk",
+]
+
+[[package]]
 name = "p256"
 version = "0.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1207,21 +1222,6 @@ checksum = "f950b2377845cebe5cf8b5165cb3cc1a5e0fa5cfa3e1f7f55707d8fd82e0a7b7"
 dependencies = [
  "der",
  "spki",
-]
-
-[[package]]
-name = "pocky-demo-lender"
-version = "0.1.0"
-dependencies = [
- "pocky-depth-oracle",
- "soroban-sdk",
-]
-
-[[package]]
-name = "pocky-depth-oracle"
-version = "0.1.0"
-dependencies = [
- "soroban-sdk",
 ]
 
 [[package]]

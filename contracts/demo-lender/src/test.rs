@@ -1,7 +1,7 @@
 #![cfg(test)]
 extern crate std;
 
-use pocky_depth_oracle::{Asset, DepthOracle, DepthOracleClient as OracleClient, DepthUpdate};
+use orbit_depth_oracle::{Asset, DepthOracle, DepthOracleClient as OracleClient, DepthUpdate};
 use soroban_sdk::testutils::{Address as _, Ledger};
 use soroban_sdk::{vec, Address, Env};
 

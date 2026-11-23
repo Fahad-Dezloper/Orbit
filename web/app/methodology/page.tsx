@@ -1,8 +1,8 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Methodology · Pocky",
-  description: "How Pocky measures exit liquidity on Stellar, step by step.",
+  title: "Methodology · Orbit",
+  description: "How Orbit measures exit liquidity on Stellar, step by step.",
 };
 
 const STEPS: { n: string; title: string; body: React.ReactNode }[] = [

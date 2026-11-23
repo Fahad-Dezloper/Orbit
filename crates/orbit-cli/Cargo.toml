@@ -1,0 +1,18 @@
+[package]
+name = "orbit-cli"
+description = "Measure exit liquidity for Stellar real-world assets from the command line"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+name = "orbit"
+path = "src/main.rs"
+
+[dependencies]
+orbit-core = { workspace = true }
+orbit-ingest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+clap = { version = "4", features = ["derive"] }

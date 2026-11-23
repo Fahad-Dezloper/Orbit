@@ -1,4 +1,4 @@
-# Pocky: the idea
+# Orbit: the idea
 
 > Read this first if you are new to the project (human or agent). It explains what we are
 > building, why, and what we already proved. The research behind it lives in
@@ -6,7 +6,7 @@
 
 ## One sentence
 
-Pocky publishes, for every real-world-asset (RWA) token on Stellar, **how much of it can
+Orbit publishes, for every real-world-asset (RWA) token on Stellar, **how much of it can
 actually be sold right now**, so lending protocols can cap collateral by what the market can
 absorb instead of trusting a price alone.
 
@@ -25,7 +25,7 @@ between them is where money is lost.
   circuit breaker (Oracle Shield, SCF #43) is funded and reads SDEX depth near the mid as a
   score input; Damper (open source, not deployed) measures the cost to clear the SDEX book.
   **Neither counts the Soroban AMM pools, and neither produces a sellable-dollar cap.** That
-  is the gap Pocky fills.
+  is the gap Orbit fills.
 
 ## What we measured (live, read-only, 18 to 19 Nov 2026)
 
@@ -45,7 +45,7 @@ deJAAA is the sharpest case: about $3.56M of Stellar USDC is lent against it in 
 markets (contracts on NEAR, assets bridged from Stellar), priced by a single NAV feed, and
 there is no deJAAA pool or order book anywhere on Stellar. That is a cannot-liquidate risk.
 
-## What Pocky is
+## What Orbit is
 
 1. **A measurement engine** (Rust) that reads public Stellar data (Horizon order books,
    Soroban AMM pool reserves) and computes exit liquidity per asset at several slippage
@@ -71,7 +71,7 @@ there is no deJAAA pool or order book anywhere on Stellar. That is a cannot-liqu
 ## The standing constraint
 
 "I don't want to depend on any other service to exist. I want to be the one others integrate
-with." Pocky reads only public chain data. If every protocol ignored it, it would still
+with." Orbit reads only public chain data. If every protocol ignored it, it would still
 publish.
 
 ## What is explicitly out of scope

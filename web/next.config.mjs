@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
-// With POCKY_STATIC_DIR set, the dashboard is built as static files from exported JSON
-// (GitHub Pages); otherwise it renders on each request from a running pocky-api.
-const isStatic = Boolean(process.env.POCKY_STATIC_DIR);
+// With ORBIT_STATIC_DIR set, the dashboard is built as static files from exported JSON
+// (GitHub Pages); otherwise it renders on each request from a running orbit-api.
+const isStatic = Boolean(process.env.ORBIT_STATIC_DIR);
 
 const nextConfig = {
   reactStrictMode: true,

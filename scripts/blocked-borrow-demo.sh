@@ -8,17 +8,17 @@
 #   stellar container start local
 #   (cd contracts/depth-oracle && stellar contract build)
 #   (cd contracts/demo-lender && stellar contract build)
-#   cargo build --release -p pocky-api -p pocky-publisher
+#   cargo build --release -p orbit-api -p orbit-publisher
 set -euo pipefail
 
 NET=local
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
-ORACLE_WASM=contracts/depth-oracle/target/wasm32v1-none/release/pocky_depth_oracle.wasm
-LENDER_WASM=contracts/demo-lender/target/wasm32v1-none/release/pocky_demo_lender.wasm
+ORACLE_WASM=contracts/depth-oracle/target/wasm32v1-none/release/orbit_depth_oracle.wasm
+LENDER_WASM=contracts/demo-lender/target/wasm32v1-none/release/orbit_demo_lender.wasm
 for w in "$ORACLE_WASM" "$LENDER_WASM"; do [ -f "$w" ] || { echo "missing $w: build the contracts first"; exit 1; }; done
 
-# Mainnet SAC addresses (derived and checked in pocky-ingest's tests).
+# Mainnet SAC addresses (derived and checked in orbit-ingest's tests).
 USTRY=CBLV4ATSIWU67CFSQU2NVRKINQIKUZ2ODSZBUJTJ43VJVRSBTZYOPNUR
 KTB=CBAECV6UVDS6ZKPMC63MUYY4V7Q3KTHR7NLUFGVVGK7K3AQT475QTETP
 DEJAAA=CC64WBDGS6QQP22QTTIACYIXT3WF7BBQEYOQPLTP7GTKYY7PZ74QYGSL
@@ -40,14 +40,14 @@ fund() { # the local friendbot takes a while after the container starts
   done
   echo "could not fund $1 on the local network"; exit 1
 }
-for id in pocky-admin pocky-publisher pocky-alice pocky-bob; do fund "$id"; done
+for id in orbit-admin orbit-publisher orbit-alice orbit-bob; do fund "$id"; done
 
 echo "== deploy the depth oracle and a lending pool that reads it"
-ORACLE=$(stellar contract deploy --wasm "$ORACLE_WASM" --source pocky-admin --network "$NET" \
-  -- --admin "$(stellar keys address pocky-admin)" --publisher "$(stellar keys address pocky-publisher)" 2>/dev/null)
+ORACLE=$(stellar contract deploy --wasm "$ORACLE_WASM" --source orbit-admin --network "$NET" \
+  -- --admin "$(stellar keys address orbit-admin)" --publisher "$(stellar keys address orbit-publisher)" 2>/dev/null)
 # Collateral must be sellable within 10%; half of the measured depth is never lent against;
 # depth older than 1h is not trusted.
-POOL=$(stellar contract deploy --wasm "$LENDER_WASM" --source pocky-admin --network "$NET" \
+POOL=$(stellar contract deploy --wasm "$LENDER_WASM" --source orbit-admin --network "$NET" \
   -- --oracle "$ORACLE" --band_bps 1000 --safety_bps 5000 --max_age_secs 3600 2>/dev/null)
 echo "oracle $ORACLE"
 echo "pool   $POOL"
@@ -57,13 +57,13 @@ echo "== measure mainnet now (read-only) and publish to the local oracle"
 # publish across gaps over 2h (for example a laptop that slept), which is the point of it.
 DEMO_DATA="$(mktemp -d)"
 trap 'rm -rf "$DEMO_DATA"' EXIT
-./target/release/pocky-api --once --data-dir "$DEMO_DATA" >/dev/null
+./target/release/orbit-api --once --data-dir "$DEMO_DATA" >/dev/null
 # Local network only: accept a one-sample window; every record carries its sample count.
-./target/release/pocky-publish --network "$NET" --oracle "$ORACLE" --source pocky-publisher \
+./target/release/orbit-publish --network "$NET" --oracle "$ORACLE" --source orbit-publisher \
   --data-dir "$DEMO_DATA" --min-samples 1 | grep -c '^published' | xargs -I{} echo "published {} batches"
 
 pool() { stellar contract invoke --id "$POOL" --network "$NET" "$@" 2>&1; }
-read_only() { pool --source pocky-bob --send=no -- "$@" | tail -1; }
+read_only() { pool --source orbit-bob --send=no -- "$@" | tail -1; }
 try_deposit() { # label user asset usd
   local out
   if out=$(pool --source "$2" -- deposit --user "$(stellar keys address "$2")" --asset "$3" --value_usd "$(usd "$4")"); then
@@ -86,11 +86,11 @@ echo "  deJAAA cap $(fmt "$(read_only cap --asset "$DEJAAA")")   (no market on S
 
 echo
 echo "== deposits"
-try_deposit "alice: \$150,000 of USTRY"                    pocky-alice "$USTRY" 150000
-try_deposit "bob:   \$100,000 of USTRY (pool would exceed)" pocky-bob   "$USTRY" 100000
-try_deposit "bob:   \$20,000 of USTRY"                     pocky-bob   "$USTRY" 20000
-try_deposit "alice: \$1,000 of KTB (priced, unsellable)"   pocky-alice "$KTB"   1000
-try_deposit "alice: \$1,000 of deJAAA"                     pocky-alice "$DEJAAA" 1000
+try_deposit "alice: \$150,000 of USTRY"                    orbit-alice "$USTRY" 150000
+try_deposit "bob:   \$100,000 of USTRY (pool would exceed)" orbit-bob   "$USTRY" 100000
+try_deposit "bob:   \$20,000 of USTRY"                     orbit-bob   "$USTRY" 20000
+try_deposit "alice: \$1,000 of KTB (priced, unsellable)"   orbit-alice "$KTB"   1000
+try_deposit "alice: \$1,000 of deJAAA"                     orbit-alice "$DEJAAA" 1000
 
 echo
 echo "== pool totals"

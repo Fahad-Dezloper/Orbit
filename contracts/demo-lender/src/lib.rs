@@ -1,6 +1,6 @@
 //! # Demo lender: collateral capped by market depth
 //!
-//! A deliberately small lending pool that shows how a Soroban lender would use the Pocky
+//! A deliberately small lending pool that shows how a Soroban lender would use the Orbit
 //! depth oracle. It only tracks collateral; there is no borrowing or interest. **Demo code
 //! for a local network, not a lending protocol.**
 //!

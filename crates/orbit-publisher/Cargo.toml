@@ -1,0 +1,20 @@
+[package]
+name = "orbit-publisher"
+description = "Publish windowed exit-liquidity figures to the Orbit depth oracle"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+name = "orbit-publish"
+path = "src/main.rs"
+
+[dependencies]
+orbit-api = { workspace = true }
+orbit-core = { workspace = true }
+orbit-ingest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+clap = { version = "4", features = ["derive"] }
+stellar-xdr = { version = "28", default-features = false, features = ["std", "base64"] }

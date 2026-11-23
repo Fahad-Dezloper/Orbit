@@ -177,8 +177,8 @@ export default async function Page() {
         <div className="panel empty">
           No current measurement: {latest.error}.
           <br />
-          Start the service with <code>pocky-api</code> (or seed it with{" "}
-          <code>pocky-api --once</code>).
+          Start the service with <code>orbit-api</code> (or seed it with{" "}
+          <code>orbit-api --once</code>).
         </div>
       </main>
     );

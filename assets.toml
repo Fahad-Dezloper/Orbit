@@ -1,4 +1,4 @@
-# Assets Pocky measures. An asset is only measured if its issuer is confirmed by the
+# Assets Orbit measures. An asset is only measured if its issuer is confirmed by the
 # issuer's own stellar.toml (SEP-1) at `home_domain`. Never add an issuer taken from
 # Horizon's asset list alone: it contains impostor tokens with the same codes.
 
@@ -154,7 +154,7 @@ name = "Etherfuse"
 contract = "CDMAVJPFXPADND3YRL4BSM3AKZWCTFMX27GLLXCML3PD62HEQS5FPVAI"
 
 [[lender]]
-name = "Orbit"
+name = "OrbitCDP"
 contract = "CAE7QVOMBLZ53CDRGK3UNRRHG5EZ5NQA7HHTFASEMYBWHG6MDFZTYHXC"
 
 [[lender]]

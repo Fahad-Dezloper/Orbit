@@ -1,0 +1,14 @@
+[package]
+name = "orbit-core"
+description = "Pure, I/O-free exit-liquidity math for Stellar assets"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }

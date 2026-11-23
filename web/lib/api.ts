@@ -1,10 +1,10 @@
-// Typed client for pocky-api. All figures arrive as fixed-point decimal strings with
+// Typed client for orbit-api. All figures arrive as fixed-point decimal strings with
 // 7 places ("271086.0000000"); they are parsed only for display, never for maths.
 
-export const API_URL = process.env.POCKY_API_URL ?? "http://127.0.0.1:8080";
+export const API_URL = process.env.ORBIT_API_URL ?? "http://127.0.0.1:8080";
 
-// Static build (GitHub Pages): read the files `pocky-api --export-dir` wrote, at build time.
-const STATIC_DIR = process.env.POCKY_STATIC_DIR;
+// Static build (GitHub Pages): read the files `orbit-api --export-dir` wrote, at build time.
+const STATIC_DIR = process.env.ORBIT_STATIC_DIR;
 
 /** `/v1/assets/X/history?band=1000&hours=24` -> `v1/assets/X/history.json`. Default
  *  parameters only, as exported. */
@@ -107,7 +107,7 @@ async function get<T>(path: string): Promise<Result<T>> {
     if (!res.ok) return { ok: false, error: body?.error ?? `HTTP ${res.status}` };
     return { ok: true, data: body as T };
   } catch (e) {
-    return { ok: false, error: `pocky-api unreachable at ${API_URL}` };
+    return { ok: false, error: `orbit-api unreachable at ${API_URL}` };
   }
 }
 

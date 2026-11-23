@@ -8,7 +8,7 @@ with passing checks. Nothing in this plan writes to mainnet.
 - [x] 0.2 Docs: idea, architecture, plan, security model
 - [x] 0.3 Toolchain pinned (`rust-toolchain.toml`), lint and format config
 
-## Phase 1: Depth math (`pocky-core`)
+## Phase 1: Depth math (`orbit-core`)
 - [x] 1.1 Types: assets, order-book levels, AMM pools, slippage bands
 - [x] 1.2 Order-book exit walk with the Horizon unit convention
 - [x] 1.3 Constant-product AMM exit at a slippage band
@@ -16,10 +16,10 @@ with passing checks. Nothing in this plan writes to mainnet.
 - [x] 1.5 Manipulation resistance: 24h windowed minimum with coverage rules
 - [x] 1.6 Unit tests, including the February USTRY book shape
 
-## Phase 2: Ingest (`pocky-ingest`, `pocky-cli`)
+## Phase 2: Ingest (`orbit-ingest`, `orbit-cli`)
 - [x] 2.1 Horizon order-book client with timeouts and bounded retries
 - [x] 2.2 Asset registry (issuers verified via SEP-1) and USD conversion for XLM pairs
-- [x] 2.3 `pocky measure` CLI: table and JSON output
+- [x] 2.3 `orbit measure` CLI: table and JSON output
 - [x] 2.4 Soroban RPC: read Aquarius and Soroswap constant-product pools by simulation; tokens
   verified against locally derived SAC ids (Phoenix has no pools for these assets)
 - [x] 2.5 Live check against mainnet: all venues match the research snapshot
@@ -43,14 +43,14 @@ with passing checks. Nothing in this plan writes to mainnet.
 - [x] 3.5 Local-network deployment script (`scripts/local-oracle-demo.sh`); never public testnet or mainnet in this phase
 
 ## Phase 4: Service and dashboard
-- [x] 4.1 `pocky-api`: scheduled measurement loop, append-only snapshot store, JSON endpoints
+- [x] 4.1 `orbit-api`: scheduled measurement loop, append-only snapshot store, JSON endpoints
 - [x] 4.2 History and windowed-minimum endpoint per asset (fails closed on thin coverage)
 - [x] 4.3 `web/`: asset table, venue breakdown, price-gap flags, liquidation curve, 24h
   history chart and methodology page
 - [x] 4.4 Collateral view: liquidatable at a bonus and recommended cap; RWA holdings of
   pinned Blend v2 pools (factory-verified) beside the exit (`/v1/lenders`, CLI, dashboard)
 - [ ] 4.4b Templar markets (where most Stellar RWA borrowing sits)
-- [x] 4.5 `pocky-publisher`: windowed minimum to oracle batches; no replays, fails closed,
+- [x] 4.5 `orbit-publisher`: windowed minimum to oracle batches; no replays, fails closed,
   mainnet refused; end-to-end local demo (`scripts/local-publish-demo.sh`)
 - [x] 4.6 Container image and deployment guide (`Dockerfile`, `docs/DEPLOY.md`)
 - [ ] 4.7 Hosted API with a public URL, measuring around the clock

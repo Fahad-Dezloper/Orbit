@@ -1,6 +1,6 @@
 # Security model
 
-Pocky's only product is a number other protocols may use to decide how much to lend. A wrong
+Orbit's only product is a number other protocols may use to decide how much to lend. A wrong
 number can cost someone real money, so correctness is a security property here.
 
 ## Principles
@@ -14,7 +14,7 @@ number can cost someone real money, so correctness is a security property here.
 4. **No unverified identities.** An asset is measured only if its issuer is confirmed by the
    issuer's own `stellar.toml` (SEP-1).
 5. **Reproducible.** Every published figure can be recomputed from a stored snapshot with
-   `pocky-core`, which has no I/O.
+   `orbit-core`, which has no I/O.
 
 ## Threats and mitigations
 
@@ -39,7 +39,7 @@ number can cost someone real money, so correctness is a security property here.
 
 ## Service and dashboard
 
-- `pocky-api` binds to `127.0.0.1` by default, serves GET only, and allows any origin
+- `orbit-api` binds to `127.0.0.1` by default, serves GET only, and allows any origin
   because the data is public. It holds no keys.
 - `/v1/latest` returns 503 rather than a figure older than the window's 2h gap limit; a
   window with too few samples returns its reason, never a number.

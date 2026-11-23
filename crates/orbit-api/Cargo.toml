@@ -1,0 +1,24 @@
+[package]
+name = "orbit-api"
+description = "Scheduled exit-liquidity measurement with history and a read-only HTTP API"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+name = "orbit-api"
+path = "src/main.rs"
+
+[dependencies]
+orbit-core = { workspace = true }
+orbit-ingest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+axum = "0.8"
+clap = { version = "4", features = ["derive"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "net", "signal"] }
+tower-http = { version = "0.6", features = ["cors"] }
+tower = { version = "0.5", features = ["util"] }
+http-body-util = "0.1"

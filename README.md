@@ -1,8 +1,8 @@
-# Pocky
+# Orbit
 
 **Market-depth validation for real-world assets on Stellar.**
 
-A price feed tells a lender what one token is worth. Pocky tells it **how much of that token
+A price feed tells a lender what one token is worth. Orbit tells it **how much of that token
 could actually be sold right now** before the price collapses, so collateral can be capped
 by what the market can absorb.
 
@@ -38,12 +38,12 @@ Live run, 21 Nov 2026, 10% band, SDEX order books plus nine Soroban AMM pools
 | six Etherfuse bond tokens | $0 | bids only, no price anywhere | dead |
 | deJAAA | $0, with $3.56M borrowed against it (research, 19 Nov) | no Stellar venue | dead |
 
-![Pocky dashboard, live run of 21 Nov 2026](docs/img/dashboard.jpg)
+![Orbit dashboard, live run of 21 Nov 2026](docs/img/dashboard.jpg)
 
-## Where Pocky sits
+## Where Orbit sits
 
 Oracle Shield asks whether a price can be trusted. Damper asks what it costs to clear the
-order book. Pocky answers the lender's question: **how many dollars of this collateral can be
+order book. Orbit answers the lender's question: **how many dollars of this collateral can be
 sold across Stellar's order books and AMM pools before the liquidation bonus is gone.**
 
 - **Order books and AMM pools together.** USDY's market is an Aquarius pool: an SDEX-only
@@ -52,10 +52,10 @@ sold across Stellar's order books and AMM pools before the liquidation bonus is 
   depth, so it works for tokens that trade on no exchange, which is every Etherfuse token.
   A check that compares against an exchange price cannot cover them.
 - **Continuous, not a report.** RedStone's October 2026 RWA research measured exit depth for
-  USTRY, CETES and USDY once. Pocky measures it every half hour, keeps the history and
+  USTRY, CETES and USDY once. Orbit measures it every half hour, keeps the history and
   publishes it on-chain.
 - **Computed, not quoted.** Other exit-cost services (sounding, live since Oct 2026) ask each
-  venue's quote API. Pocky reads the books and pool state itself and checks every pool's
+  venue's quote API. Orbit reads the books and pool state itself and checks every pool's
   reserves against its token balances, so a venue cannot report depth it does not hold.
 - **A cap, not a score.** The output is a USD figure per band, a liquidation curve and a
   collateral cap a lender can enforce, published on-chain.
@@ -74,11 +74,11 @@ liquidation curve takes 22 µs.
 
 | Path | What | Language |
 | --- | --- | --- |
-| `crates/pocky-core` | Pure depth math: fixed-point, order-book and AMM exit, verdicts, windowed minimum | Rust, no I/O |
-| `crates/pocky-ingest` | Horizon, Soroban RPC and SEP-1 clients; pool verification | Rust |
-| `crates/pocky-cli` | `pocky measure` | Rust |
-| `crates/pocky-api` | Scheduled measurement, snapshot store, read-only HTTP API | Rust (axum) |
-| `crates/pocky-publisher` | Publishes the windowed minimum to the oracle | Rust |
+| `crates/orbit-core` | Pure depth math: fixed-point, order-book and AMM exit, verdicts, windowed minimum | Rust, no I/O |
+| `crates/orbit-ingest` | Horizon, Soroban RPC and SEP-1 clients; pool verification | Rust |
+| `crates/orbit-cli` | `orbit measure` | Rust |
+| `crates/orbit-api` | Scheduled measurement, snapshot store, read-only HTTP API | Rust (axum) |
+| `crates/orbit-publisher` | Publishes the windowed minimum to the oracle | Rust |
 | `contracts/depth-oracle` | On-chain depth oracle with SEP-40-style reads | Rust / Soroban |
 | `contracts/demo-lender` | Demo pool that caps collateral by the depth oracle (local only) | Rust / Soroban |
 | `web/` | Dashboard over the API | TypeScript / Next.js |
@@ -117,8 +117,8 @@ rejected.
 ### Run the service and dashboard
 
 ```bash
-cargo run --release -p pocky-api -- --once   # seed the store with one live run
-cargo run --release -p pocky-api             # measure every 30 min, serve 127.0.0.1:8080
+cargo run --release -p orbit-api -- --once   # seed the store with one live run
+cargo run --release -p orbit-api             # measure every 30 min, serve 127.0.0.1:8080
 cd web && npm install && npm run dev         # dashboard on http://localhost:3100
 ```
 
@@ -144,9 +144,9 @@ Depth math, live ingestion (SDEX books and Soroban AMM pools, with SEP-1 issuer 
 on-chain pool verification) and the on-chain oracle are complete:
 
 ```bash
-cargo run --release -p pocky-cli -- measure          # table
-cargo run --release -p pocky-cli -- measure --json   # JSON
-cargo run --release -p pocky-cli -- measure --no-amm # SDEX order books only
+cargo run --release -p orbit-cli -- measure          # table
+cargo run --release -p orbit-cli -- measure --json   # JSON
+cargo run --release -p orbit-cli -- measure --no-amm # SDEX order books only
 ```
 
 Pools are read from Soroban RPC by simulation only. The API service and dashboard run

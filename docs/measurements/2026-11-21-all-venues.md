@@ -1,6 +1,6 @@
 # Live run: 21 Nov 2026 (SDEX order books + Soroban AMM pools)
 
-Command: `pocky measure` against `https://horizon.stellar.org` and the Soroban RPC at
+Command: `orbit measure` against `https://horizon.stellar.org` and the Soroban RPC at
 `https://mainnet.sorobanrpc.com`. Read-only: pools are read by simulation, nothing is signed
 or submitted. All issuers passed SEP-1; all nine pinned pools passed on-chain token
 verification. Full JSON: `2026-11-21-all-venues.json`.
@@ -58,7 +58,7 @@ USDY         $1.1380      $28,322     $109,377     $261,382  healthy
 
 ## Reading it
 
-- **Matches the research snapshot (19 Nov), now from Pocky's own code.** At 10%: USTRY
+- **Matches the research snapshot (19 Nov), now from Orbit's own code.** At 10%: USTRY
   $382K (research ~$380K), USDY $109K (~$102K), TESOURO $60K (~$58K). USDY moves from
   "critical" on the SDEX alone ($2.2K) to "healthy": its liquidity is in an Aquarius pool,
   which is why SDEX-only measurement is not enough.

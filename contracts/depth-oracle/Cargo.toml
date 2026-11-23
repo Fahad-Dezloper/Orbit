@@ -1,5 +1,5 @@
 [package]
-name = "pocky-depth-oracle"
+name = "orbit-depth-oracle"
 description = "On-chain exit-liquidity (market depth) oracle for Stellar assets"
 version = "0.1.0"
 edition = "2021"

@@ -6,23 +6,23 @@ it stops protecting them. Research current to 22 Nov 2026; sources in
 
 ## The short answer
 
-There are two ways to "break" Pocky, and they are not equally hard.
+There are two ways to "break" Orbit, and they are not equally hard.
 
-| | Make Pocky lie | Change the market |
+| | Make Orbit lie | Change the market |
 | --- | --- | --- |
-| What the attacker does | Gets Pocky to report depth that does not exist | Creates real depth, lets Pocky measure it honestly, removes it when it matters |
+| What the attacker does | Gets Orbit to report depth that does not exist | Creates real depth, lets Orbit measure it honestly, removes it when it matters |
 | Kind of security | Layered, like MPC: several independent parts must be compromised at once | Economic: the attacker has to pay for it |
 | How hard today | Hard | **Not hard enough on its own.** This is the real risk; the design has to make it expensive |
 
 The MPC comparison fits the first column only. In threshold signing an attacker must break
-most key holders at once. To make Pocky *lie*, an attacker has to beat the SEP-1 issuer
+most key holders at once. To make Orbit *lie*, an attacker has to beat the SEP-1 issuer
 check, the locally derived token ids, the on-chain balance check on every pool, the
 cross-venue reference, several independent RPC providers, the publisher key **and** the
 contract's bounds. The second column is different in kind: nothing is compromised. The market
 really was deep for a day, and then it wasn't. Cryptography cannot fix that; only economics
 can.
 
-## 1. Making Pocky lie (hard)
+## 1. Making Orbit lie (hard)
 
 | Layer | Stops | Breaking it takes |
 | --- | --- | --- |
@@ -74,7 +74,7 @@ exposure and blind to the next hour.
 | Rate-limited cap growth, cap on *borrowed* amount | Exposure grows gradually and is bounded by what can be taken | Lender side (Blend v3 draft adds a 5-hour borrow limiter) |
 
 The honest claim after 5.5–5.7: **not "cannot be gamed", but gaming it costs real, spread
-out capital, parked in public for a week, where anyone can sell into it.** Until then: Pocky
+out capital, parked in public for a week, where anyone can sell into it.** Until then: Orbit
 blocks the YieldBlox class (no depth at all) and timed spoofing, and makes patient attacks
 slow but not yet costly.
 
@@ -122,7 +122,7 @@ The hardest question is not technical.
 | Damper (open source, first mainnet scan 17 Nov 2026) | Manipulation-resistant SEP-40 wrapper for Blend; measures USDC cost to clear the SDEX book | SDEX only (no AMMs), unaudited, not deployed |
 | RedStone (Stellar since Mar 2026; serves Blend, Templar, Centrifuge, XOXNO) | Holds the RWA feeds; pushing Settle (KYC'd liquidators) and Credora ratings | NAV ("fundamental") feeds, no depth feed. But its Oct 2026 report "Next Phase for RWAs on Stellar" measured exit depth once (USTRY/CETES about $260K within 2%, USDY about 10% slippage on $100K, 21.5% of deJAAA in a Sushi pool). **Risk:** the analysis exists and RedStone already prices Templar; turning it into a feed is a short step. Also the natural partner |
 | **sounding** (SCF #46 applicant, $45K; #45 "Depth-Adjusted Blend Collateral Limits" not awarded) | **Direct.** Same question: how much can be sold now, at what cost, where. Live since 25 Oct 2026; every 10 min, 10 assets, 4 sizes; "safe size" within 50 to 500 bps, 1h time-weighted, at most 60% from one venue; refuses when stale. Covers Sushi, Comet and Stellar Broker, which we do not yet. Public CSV history | Reads **venue quote APIs** (Horizon paths, Aquarius path finder, Soroswap aggregator, Stellar Broker) and plans to cross-check them against pool state; we compute depth from verified pool and book state already. Paid per call (x402). General assets (XLM, ETH, EURC, AQUA); no RWA focus. On-chain contract is a future tranche; ours runs on testnet. A 1h average moves with a 1h spoof; we publish the 24h minimum |
-| Assay Guard (SCF #46 applicant, $30K) | Fail-closed `is_healthy` check a lender calls in borrow; plans exit liquidity "within 2% and 5% of mid" on SDEX and AMM pools | Built around **proof of reserves**; depth is two bands on a checklist, not a curve or cap. Could take Pocky as its depth input |
+| Assay Guard (SCF #46 applicant, $30K) | Fail-closed `is_healthy` check a lender calls in borrow; plans exit liquidity "within 2% and 5% of mid" on SDEX and AMM pools | Built around **proof of reserves**; depth is two bands on a checklist, not a curve or cap. Could take Orbit as its depth input |
 | YieldPilot (SCF #46 applicant, $75K) | Grades Blend pools and DeFindex vaults; exit liquidity is one factor; on-chain registry and smart-account gate on testnet | A depositor's grade, not a collateral cap; reads SDEX books only (for USDY that is about 2% of the exit). A possible consumer |
 | Chainlink (live on Stellar Sep/Oct 2026) | "Liquidity Indicators" (±2% depth, 2023 R&D) and State Pricing (depth-weighted DEX prices) exist elsewhere | Not offered on Stellar today; the largest latent substitute |
 | Chaos Labs Edge | Dynamic caps driven by liquidity depth, live on Aave since 2025 | Not on Stellar; left Aave in Apr 2026 |
@@ -137,7 +137,7 @@ published on-chain and free to read, with an append-only history that cannot be 
 later. It needs **no outside market**: the
 reference comes from Stellar venues themselves, so it works for RWA tokens that trade on no
 CEX (every Etherfuse token), which a CEX-referenced check like Oracle Shield cannot validate
-today. The two are complementary: Oracle Shield asks "is this price trustworthy?", Pocky asks
+today. The two are complementary: Oracle Shield asks "is this price trustworthy?", Orbit asks
 "how much could actually be sold at it?"
 
 ## 6. Things that would make it obsolete
@@ -159,7 +159,7 @@ lives on other chains (Etherfuse also trades on Solana).
 
 ## 7. What we will not claim
 
-- That Pocky prevents price manipulation. It limits how much a lender can lose to a market
+- That Orbit prevents price manipulation. It limits how much a lender can lose to a market
   that cannot absorb a liquidation.
 - That a figure is safe on its own. It is one input to a cap, with a margin, a rate limit and
   a borrow limit.

@@ -3,7 +3,7 @@
 #
 # Read-only against mainnet (Horizon GETs and Soroban simulations). The only write is to the
 # Stellar *testnet* oracle, signed with a testnet-only key held as a repository secret
-# (POCKY_TESTNET_PUBLISHER_SECRET). No mainnet key ever reaches CI.
+# (ORBIT_TESTNET_PUBLISHER_SECRET). No mainnet key ever reaches CI.
 
 name: measure
 
@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      HAS_PUBLISHER_KEY: ${{ secrets.POCKY_TESTNET_PUBLISHER_SECRET != '' }}
+      HAS_PUBLISHER_KEY: ${{ secrets.ORBIT_TESTNET_PUBLISHER_SECRET != '' }}
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
@@ -45,8 +45,8 @@ jobs:
 
       - name: Check out history
         run: |
-          git config user.name "pocky-measure"
-          git config user.email "pocky-measure@users.noreply.github.com"
+          git config user.name "orbit-measure"
+          git config user.email "orbit-measure@users.noreply.github.com"
           if git fetch --depth=1 origin data; then
             git worktree add history FETCH_HEAD
             git -C history switch -c data
@@ -58,13 +58,13 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Build
-        run: cargo build --release --locked -p pocky-api -p pocky-publisher
+        run: cargo build --release --locked -p orbit-api -p orbit-publisher
 
       - name: Measure and export
         id: measure
         continue-on-error: true
         run: |
-          ./target/release/pocky-api --once --registry assets.toml \
+          ./target/release/orbit-api --once --registry assets.toml \
             --data-dir history/snapshots --export-dir site
 
       - name: Save history
@@ -72,14 +72,14 @@ jobs:
           cd history
           git add snapshots
           if ! git diff --cached --quiet; then
-            git -c user.name=pocky-measure -c user.email=pocky-measure@users.noreply.github.com \
+            git -c user.name=orbit-measure -c user.email=orbit-measure@users.noreply.github.com \
               commit -q -m "Measurement $(date -u +%Y-%m-%dT%H:%MZ)"
             git push -q origin data
           fi
 
       - name: Publish to the testnet oracle
         env:
-          SECRET: ${{ secrets.POCKY_TESTNET_PUBLISHER_SECRET }}
+          SECRET: ${{ secrets.ORBIT_TESTNET_PUBLISHER_SECRET }}
         if: env.HAS_PUBLISHER_KEY == 'true'
         continue-on-error: true
         run: |
@@ -90,17 +90,17 @@ jobs:
           export PATH="$HOME/.local/bin:$PATH"
           mkdir -p "$HOME/.config/stellar/identity"
           umask 077
-          printf 'secret_key = "%s"\n' "$SECRET" > "$HOME/.config/stellar/identity/pocky-testnet-publisher.toml"
+          printf 'secret_key = "%s"\n' "$SECRET" > "$HOME/.config/stellar/identity/orbit-testnet-publisher.toml"
           # The secret must be the key the oracle accepts as publisher.
-          got="$(stellar keys address pocky-testnet-publisher)"
+          got="$(stellar keys address orbit-testnet-publisher)"
           if [ "$got" != "$PUBLISHER" ]; then
             echo "publisher secret is for $got, expected $PUBLISHER"
-            rm -f "$HOME/.config/stellar/identity/pocky-testnet-publisher.toml"
+            rm -f "$HOME/.config/stellar/identity/orbit-testnet-publisher.toml"
             exit 1
           fi
-          ./target/release/pocky-publish --network testnet --oracle "$ORACLE" \
-            --source pocky-testnet-publisher --registry assets.toml --data-dir history/snapshots
-          rm -f "$HOME/.config/stellar/identity/pocky-testnet-publisher.toml"
+          ./target/release/orbit-publish --network testnet --oracle "$ORACLE" \
+            --source orbit-testnet-publisher --registry assets.toml --data-dir history/snapshots
+          rm -f "$HOME/.config/stellar/identity/orbit-testnet-publisher.toml"
 
       - uses: actions/setup-node@v7
         with:
@@ -111,7 +111,7 @@ jobs:
       - name: Build dashboard
         working-directory: web
         env:
-          POCKY_STATIC_DIR: ${{ github.workspace }}/site
+          ORBIT_STATIC_DIR: ${{ github.workspace }}/site
           NEXT_BASE_PATH: /${{ github.event.repository.name }}
         run: |
           npm ci

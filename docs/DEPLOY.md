@@ -4,20 +4,20 @@ Three pieces run in production. Only the publisher holds a key.
 
 | Piece | Runs where | Holds keys | Talks to |
 | --- | --- | --- | --- |
-| `pocky-api` | any small server or container host | no | Horizon, Soroban RPC (read-only) |
-| `pocky-publish` | a machine with a `stellar` CLI keystore | the publisher key only | the snapshot store, the oracle |
-| `web/` | any Node host | no | `pocky-api` |
+| `orbit-api` | any small server or container host | no | Horizon, Soroban RPC (read-only) |
+| `orbit-publish` | a machine with a `stellar` CLI keystore | the publisher key only | the snapshot store, the oracle |
+| `web/` | any Node host | no | `orbit-api` |
 
 ## 0. The public deployment (GitHub Actions and Pages)
 
 The live instance runs from `.github/workflows/measure.yml`, with no server:
 
 - Every half hour (plus a random delay of up to 7 minutes) a workflow runs
-  `pocky-api --once --export-dir site`.
+  `orbit-api --once --export-dir site`.
 - Each run is appended to the history on the `data` branch, one JSONL file per UTC day,
   append-only.
 - The windowed figures go to the **testnet** oracle. The key is the repository secret
-  `POCKY_TESTNET_PUBLISHER_SECRET`: testnet only, written to a temporary keystore file and
+  `ORBIT_TESTNET_PUBLISHER_SECRET`: testnet only, written to a temporary keystore file and
   deleted after use. A mainnet key never reaches CI.
 - The dashboard is built statically from the exported files and deployed with the static
   API to https://fahad-dezloper.github.io/Orbit/.
@@ -34,29 +34,29 @@ invalidates the 24h window and publishing stops until it clears (fail closed).
 To set the publisher secret from your local keystore (the value is never printed):
 
 ```bash
-stellar keys show pocky-testnet-publisher | gh secret set POCKY_TESTNET_PUBLISHER_SECRET -R Fahad-Dezloper/Orbit
+stellar keys show orbit-testnet-publisher | gh secret set ORBIT_TESTNET_PUBLISHER_SECRET -R Fahad-Dezloper/Orbit
 ```
 
 ## 1. API (measurement + history)
 
 ```bash
-docker build -t pocky-api .
-docker run -d --name pocky-api -p 8080:8080 -v pocky-data:/data pocky-api
+docker build -t orbit-api .
+docker run -d --name orbit-api -p 8080:8080 -v orbit-data:/data orbit-api
 ```
 
 - Measures every 30 minutes into `/data` and serves `GET /v1/...`. Keep the volume: the 24h
   windowed minimum needs at least 12 samples, so a fresh store takes about 6 hours to fill.
 - Put it behind HTTPS and a reverse proxy with rate limits (the host's TLS, Caddy or nginx).
   The API is GET-only and public, and has no rate limiting of its own.
-- `docker run ... pocky-api --once` takes a single measurement, useful to check egress.
+- `docker run ... orbit-api --once` takes a single measurement, useful to check egress.
 
 ## 2. Publisher
 
 Runs next to the snapshot store (same machine or a shared volume).
 
 ```bash
-stellar keys generate pocky-testnet-publisher --network testnet --fund
-pocky-publish --network testnet --oracle <ORACLE_ID> --source pocky-testnet-publisher \
+stellar keys generate orbit-testnet-publisher --network testnet --fund
+orbit-publish --network testnet --oracle <ORACLE_ID> --source orbit-testnet-publisher \
   --data-dir /data --every-secs 1800
 ```
 
@@ -75,15 +75,15 @@ pocky-publish --network testnet --oracle <ORACLE_ID> --source pocky-testnet-publ
 
 ```bash
 cd web && npm ci && npm run build
-POCKY_API_URL=https://<your-api-host> npm start
+ORBIT_API_URL=https://<your-api-host> npm start
 ```
 
 ## Rotating the publisher key
 
 ```bash
-stellar keys generate pocky-testnet-publisher-2 --network testnet --fund
+stellar keys generate orbit-testnet-publisher-2 --network testnet --fund
 stellar contract invoke --id <ORACLE_ID> --source <admin-identity> --network testnet \
-  -- set_publisher --publisher "$(stellar keys address pocky-testnet-publisher-2)"
+  -- set_publisher --publisher "$(stellar keys address orbit-testnet-publisher-2)"
 ```
 
 The old key stops working immediately; only the admin can rotate.

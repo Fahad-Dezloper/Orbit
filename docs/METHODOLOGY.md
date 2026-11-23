@@ -1,8 +1,8 @@
 # Methodology
 
-How Pocky turns public Stellar market data into one depth figure per asset, written so a
-protocol risk team can check each step. Every rule here is implemented in `pocky-core`
-(pure, no I/O) or `pocky-ingest` (reads and verification), and every figure can be
+How Orbit turns public Stellar market data into one depth figure per asset, written so a
+protocol risk team can check each step. Every rule here is implemented in `orbit-core`
+(pure, no I/O) or `orbit-ingest` (reads and verification), and every figure can be
 recomputed from a stored snapshot.
 
 ## 1. The question
@@ -111,7 +111,7 @@ can be liquidated on Stellar at that bonus. The curve samples that exit at 12 ba
 
 ### 8.1 What lenders hold
 
-To show the cap beside real exposure, Pocky reads how much of each measured asset sits in
+To show the cap beside real exposure, Orbit reads how much of each measured asset sits in
 pinned Blend v2 pools (`[[lender]]` in `assets.toml`):
 
 - A pool is read only if the pinned Blend v2 pool factory confirms it deployed it

@@ -1,8 +1,8 @@
-//! # Pocky depth oracle
+//! # Orbit depth oracle
 //!
 //! Publishes, per asset and slippage band, the USD that could be raised selling the asset
 //! on Stellar before the average price drops more than the band. Figures are produced
-//! off-chain by `pocky-core` (windowed minimum over 24h) and written here by a single
+//! off-chain by `orbit-core` (windowed minimum over 24h) and written here by a single
 //! publisher key.
 //!
 //! The read interface follows SEP-40 conventions (`base`, `decimals`, `assets`,
