@@ -123,6 +123,7 @@ cd web && npm install && npm run dev         # dashboard on http://localhost:310
 | `GET /v1/assets/{code}` | latest report plus the 24h windowed minimum per band |
 | `GET /v1/assets/{code}/history?band=1000&hours=24` | exit series for one band |
 | `GET /v1/assets/{code}/cap?bonus_bps=500&safety_bps=5000` | collateral liquidatable at a liquidation bonus, and a recommended cap |
+| `GET /v1/lenders?bonus_bps=500` | measured assets held by pinned Blend pools, beside the exit at the bonus |
 | `GET /health` | measurement loop status |
 
 ### On testnet

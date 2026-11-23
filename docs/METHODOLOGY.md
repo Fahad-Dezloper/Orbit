@@ -109,6 +109,25 @@ can be liquidated on Stellar at that bonus. The curve samples that exit at 12 ba
 - Recommended cap: the 24h minimum of that value × (1 − safety margin), default margin 50%.
   No recommendation without a full window.
 
+### 8.1 What lenders hold
+
+To show the cap beside real exposure, Pocky reads how much of each measured asset sits in
+pinned Blend v2 pools (`[[lender]]` in `assets.toml`):
+
+- A pool is read only if the pinned Blend v2 pool factory confirms it deployed it
+  (`is_pool`), so the pool runs Blend's own code.
+- A reserve is matched to an asset by its locally derived SAC address, never by code.
+- Supplied = `b_supply × b_rate / 10^12`, borrowed = `d_supply × d_rate / 10^12`, both
+  rounded down. Supplied counts collateral and plain lending together, so it is an upper
+  bound on collateral.
+- The reserve's cash (supplied minus borrowed) must not exceed what the token contract says
+  the pool holds, within 10 bps; otherwise the pool is skipped and noted.
+- Valued at the same run's reference price. Borrowable = supplied × the reserve's collateral
+  factor. A reserve whose supplied value exceeds the exit at the bonus is flagged: a full
+  liquidation of it would not clear on Stellar.
+
+Only Blend is read. Templar and other lenders are not yet.
+
 ## 9. Arithmetic
 
 Fixed-point with 7 decimals (`i128`), the same scale as Stellar amounts. No floating point.
@@ -135,3 +154,5 @@ first).
   reference moves with them; the 24h minimum limits how long that can inflate depth, but it
   cannot detect a market that is wrong everywhere at once.
 - The contract and publisher have not had an external audit.
+- Lender holdings cover pinned Blend v2 pools only; Templar, where most Stellar RWA
+  borrowing sits, is not read.

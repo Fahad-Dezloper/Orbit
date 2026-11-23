@@ -47,8 +47,9 @@ with passing checks. Nothing in this plan writes to mainnet.
 - [x] 4.2 History and windowed-minimum endpoint per asset (fails closed on thin coverage)
 - [x] 4.3 `web/`: asset table, venue breakdown, price-gap flags, liquidation curve, 24h
   history chart and methodology page
-- [~] 4.4 Collateral view: liquidatable at a bonus and recommended cap done (API and
-  dashboard); live borrowed amounts per lender next
+- [x] 4.4 Collateral view: liquidatable at a bonus and recommended cap; RWA holdings of
+  pinned Blend v2 pools (factory-verified) beside the exit (`/v1/lenders`, CLI, dashboard)
+- [ ] 4.4b Templar markets (where most Stellar RWA borrowing sits)
 - [x] 4.5 `pocky-publisher`: windowed minimum to oracle batches; no replays, fails closed,
   mainnet refused; end-to-end local demo (`scripts/local-publish-demo.sh`)
 - [x] 4.6 Container image and deployment guide (`Dockerfile`, `docs/DEPLOY.md`)
