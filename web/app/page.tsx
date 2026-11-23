@@ -18,7 +18,6 @@ import {
   venueName,
 } from "@/lib/api";
 
-export const dynamic = "force-dynamic";
 
 const BANDS = [200, 1000, 2500] as const;
 /** Liquidation bonus used for the lender column. Blend-style pools pay 5% to 10%. */

@@ -3,6 +3,16 @@
 
 export const API_URL = process.env.POCKY_API_URL ?? "http://127.0.0.1:8080";
 
+// Static build (GitHub Pages): read the files `pocky-api --export-dir` wrote, at build time.
+const STATIC_DIR = process.env.POCKY_STATIC_DIR;
+
+/** `/v1/assets/X/history?band=1000&hours=24` -> `v1/assets/X/history.json`. Default
+ *  parameters only, as exported. */
+function staticFile(path: string): string {
+  const bare = path.split("?")[0].replace(/^\/+/, "");
+  return `${bare}.json`;
+}
+
 export type Verdict = "dead" | "critical" | "shallow" | "healthy";
 
 export type Venue =
@@ -77,6 +87,20 @@ export interface AssetDetail {
 export type Result<T> = { ok: true; data: T } | { ok: false; error: string };
 
 async function get<T>(path: string): Promise<Result<T>> {
+  if (STATIC_DIR) {
+    try {
+      const { readFile } = await import("node:fs/promises");
+      const { join } = await import("node:path");
+      const body = JSON.parse(await readFile(join(STATIC_DIR, staticFile(path)), "utf8"));
+      // A static file cannot carry an HTTP status; error responses keep their body.
+      if (body && typeof body === "object" && "error" in body) {
+        return { ok: false, error: String(body.error) };
+      }
+      return { ok: true, data: body as T };
+    } catch (e) {
+      return { ok: false, error: `no exported file for ${path}` };
+    }
+  }
   try {
     const res = await fetch(`${API_URL}${path}`, { cache: "no-store" });
     const body = await res.json();
