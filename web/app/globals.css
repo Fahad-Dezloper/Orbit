@@ -438,3 +438,16 @@ code {
     align-items: flex-start;
   }
 }
+
+.panel-title {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0;
+  padding: 12px 14px 4px;
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+}
+.panel-foot {
+  padding: 10px 14px 12px;
+}

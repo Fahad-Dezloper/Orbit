@@ -7,7 +7,9 @@ import {
   type Verdict,
   type Windowed,
   type History,
+  type Lenders,
   getAsset,
+  getLenders,
   getHistory,
   getLatest,
   liquidatableAt,
@@ -197,6 +199,8 @@ export default async function Page() {
     ),
   );
 
+  const lenders = await getLenders(BONUS_BPS);
+
   const at10 = run.reports.map((r) => exitAt(r, 1000));
   const total10 = at10.reduce((s, d) => s + Number(d?.total_usd ?? 0), 0);
   const dead = at10.filter((d) => d?.verdict === "dead").length;
@@ -312,6 +316,8 @@ export default async function Page() {
         </table>
       </section>
 
+      {lenders.ok && <LenderPanel l={lenders.data} />}
+
       <footer>
         Exit = USD that could be raised selling the asset across SDEX order books and Soroban
         AMM pools before the <em>average</em> sale price falls more than the band below one
@@ -320,6 +326,63 @@ export default async function Page() {
         every rounding understates depth.
       </footer>
     </main>
+  );
+}
+
+function LenderPanel({ l }: { l: Lenders }) {
+  if (l.exposures.length === 0 && l.skipped.length === 0) return null;
+  const total = l.exposures.reduce((s, e) => s + Number(e.supplied_usd), 0);
+  return (
+    <section className="panel">
+      <h2 className="panel-title">
+        Held by lenders <span className="sub">Blend v2 pools, each confirmed by the Blend factory</span>
+      </h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Pool</th>
+            <th>Status</th>
+            <th>Asset</th>
+            <th className="num">Supplied</th>
+            <th className="num" title="Supplied value times the pool's collateral factor">
+              Borrowable against it
+            </th>
+            <th className="num" title={`What the market could absorb at a ${l.bonus_bps / 100}% bonus`}>
+              Exit @{l.bonus_bps / 100}% bonus
+            </th>
+            <th />
+          </tr>
+        </thead>
+        <tbody>
+          {l.exposures.map((e) => (
+            <tr key={`${e.contract}-${e.code}`}>
+              <td>
+                <div className="code">{e.lender}</div>
+                <div className="sub">{e.contract.slice(0, 4)}…{e.contract.slice(-4)}</div>
+              </td>
+              <td className="sub">{e.status.replace(/_/g, " ")}</td>
+              <td>{e.code}</td>
+              <td className="num">{usd(e.supplied_usd)}</td>
+              <td className="num">{usd(e.borrowable_usd)}</td>
+              <td className="num">{e.exit_usd_at_bonus ? usd(e.exit_usd_at_bonus) : "-"}</td>
+              <td>{e.exceeds_exit && <span className="flag">exceeds exit</span>}</td>
+            </tr>
+          ))}
+          {l.skipped.map((s) => (
+            <tr key={s.code}>
+              <td>{s.code}</td>
+              <td colSpan={6} className="sub">
+                not read: {s.reason}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div className="sub panel-foot">
+        Total supplied across these pools: {usd(String(total))}. Supplied counts collateral and
+        plain lending together.
+      </div>
+    </section>
   );
 }
 

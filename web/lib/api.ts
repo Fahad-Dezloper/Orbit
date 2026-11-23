@@ -98,6 +98,27 @@ export interface History {
   points: { ts: number; exit_usd: string }[];
 }
 
+export interface Exposure {
+  lender: string;
+  contract: string;
+  status: string;
+  code: string;
+  supplied_usd: string;
+  borrowable_usd: string;
+  exit_usd_at_bonus: string | null;
+  exceeds_exit: boolean;
+}
+
+export interface Lenders {
+  measured_at: number;
+  bonus_bps: number;
+  exposures: Exposure[];
+  exceeding_exit: number;
+  skipped: { code: string; reason: string }[];
+}
+
+export const getLenders = (bonusBps = 500) => get<Lenders>(`/v1/lenders?bonus_bps=${bonusBps}`);
+
 export const getHistory = (code: string, band = 1000, hours = 24) =>
   get<History>(
     `/v1/assets/${encodeURIComponent(code)}/history?band=${band}&hours=${hours}`,
