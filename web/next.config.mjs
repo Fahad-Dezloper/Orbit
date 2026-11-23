@@ -8,6 +8,8 @@ const nextConfig = {
   poweredByHeader: false,
   ...(isStatic && {
     output: "export",
+    // Separate from the dev server's .next, so a static build never breaks `npm run dev`.
+    distDir: ".next-static",
     basePath: process.env.NEXT_BASE_PATH || "",
     trailingSlash: true,
     images: { unoptimized: true },
