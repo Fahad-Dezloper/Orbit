@@ -1,170 +1,242 @@
 import Link from "next/link";
 import {
-  type AssetDetail,
   type AssetReport,
-  type Result,
-  type Venue,
-  type Verdict,
-  type Windowed,
-  type History,
+  type Cap,
   type Lenders,
-  getAsset,
-  getLenders,
-  getHistory,
+  type Result,
+  type Verdict,
+  getCap,
   getLatest,
-  liquidatableAt,
-  usd,
-  utc,
-  venueName,
+  getLenders,
 } from "@/lib/api";
 
+/** Plain-English names for the tokens Orbit tracks. */
+const NAMES: Record<string, string> = {
+  USTRY: "US Treasury bonds",
+  CETES: "Mexican government bills",
+  TESOURO: "Brazilian government bonds",
+  USDY: "Ondo US dollar yield",
+  MEX: "Mexican bond token",
+  CETESZ: "Mexican bill token",
+  EUROB: "Euro government bonds",
+  GILTS: "UK government bonds",
+  KTB: "Korean government bonds",
+  MEXe: "Mexican bond token",
+};
 
-const BANDS = [200, 1000, 2500] as const;
-/** Liquidation bonus used for the lender column. Blend-style pools pay 5% to 10%. */
+const STATUS: Record<Verdict, { label: string; tone: string }> = {
+  healthy: { label: "Deep market", tone: "good" },
+  shallow: { label: "Thin market", tone: "warn" },
+  critical: { label: "Very thin", tone: "bad" },
+  dead: { label: "No buyers", tone: "none" },
+};
+
+/** Liquidation bonus a typical lender pays (5%). */
 const BONUS_BPS = 500;
 
-/**
- * Exit at 10% over the last 24 hours, one point per measurement. The dashed line is the
- * lowest value in the window: the figure that gets published.
- */
-function HistoryChart({ h }: { h: History | undefined }) {
-  const pts = h?.points ?? [];
-  if (pts.length < 2) {
-    return (
-      <figure className="hist">
-        <div className="hist-empty">{pts.length} sample{pts.length === 1 ? "" : "s"} · history building</div>
-        <figcaption><span>24h exit @10%</span></figcaption>
-      </figure>
-    );
-  }
-  const W = 200;
-  const H = 54;
-  const vals = pts.map((p) => Number(p.exit_usd));
-  const max = Math.max(...vals);
-  const min = Math.min(...vals);
-  const t0 = pts[0].ts;
-  const t1 = pts[pts.length - 1].ts;
-  const span = Math.max(t1 - t0, 1);
-  const x = (ts: number) => 4 + ((ts - t0) / span) * (W - 8);
-  const y = (v: number) => (max > 0 ? H - 4 - (v / max) * (H - 10) : H - 4);
-  const line = pts
-    .map((p, i) => `${i ? "L" : "M"}${x(p.ts).toFixed(1)},${y(Number(p.exit_usd)).toFixed(1)}`)
-    .join(" ");
+function money(v: string | number | null | undefined): string {
+  const n = Number(v ?? 0);
+  if (!Number.isFinite(n)) return "-";
+  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`;
+  if (n >= 10_000) return `$${Math.round(n / 1000)}K`;
+  if (n >= 1_000) return `$${(n / 1000).toFixed(1)}K`;
+  return n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+}
+
+function price(v: string): string {
+  const n = Number(v);
+  return n >= 1 ? `$${n.toFixed(2)}` : `$${n.toFixed(4)}`;
+}
+
+function when(ts: number): string {
+  const d = new Date(ts * 1000);
   return (
-    <figure className="hist">
-      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label="24 hour exit history">
-        <line x1={4} x2={W - 4} y1={y(min)} y2={y(min)} className="hist-min" />
-        <path d={line} className="hist-line" />
-      </svg>
-      <figcaption>
-        <span>24h exit @10%</span>
-        <span>min {usd(String(min))} · {pts.length} samples</span>
-      </figcaption>
-    </figure>
+    d.toLocaleString("en-GB", {
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: "UTC",
+    }) + " UTC"
   );
-}
-
-/** Liquidation curve: total exit (y) against slippage band (x, evenly spaced samples). */
-function Curve({ r }: { r: AssetReport }) {
-  const pts = r.curve ?? [];
-  const max = Math.max(...pts.map((p) => Number(p.exit_usd)), 0);
-  if (pts.length < 2 || max < 1) return null;
-  const W = 260;
-  const H = 54;
-  const x = (i: number) => 4 + (i / (pts.length - 1)) * (W - 8);
-  const y = (v: number) => H - 4 - (v / max) * (H - 10);
-  const line = pts.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(Number(p.exit_usd)).toFixed(1)}`).join(" ");
-  const bi = pts.findIndex((p) => p.band === BONUS_BPS);
-  return (
-    <figure className="curve">
-      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${r.code} liquidation curve`}>
-        <path d={`${line} L${x(pts.length - 1)},${H - 4} L${x(0)},${H - 4} Z`} className="curve-fill" />
-        <path d={line} className="curve-line" />
-        {bi >= 0 && (
-          <circle cx={x(bi)} cy={y(Number(pts[bi].exit_usd))} r={3} className="curve-dot" />
-        )}
-      </svg>
-      <figcaption>
-        <span>{pts[0].band / 100}%</span>
-        <span>slippage → sellable</span>
-        <span>{pts[pts.length - 1].band / 100}%</span>
-      </figcaption>
-    </figure>
-  );
-}
-
-function venueColor(v: Venue): string {
-  if (v.kind === "sdex") return "var(--sdex)";
-  return v.protocol === "aquarius" ? "var(--aquarius)" : "var(--soroswap)";
-}
-
-function Chip({ v }: { v: Verdict }) {
-  return <span className={`chip v-${v}`}>{v}</span>;
 }
 
 function exitAt(r: AssetReport, band: number) {
   return r.depths.find((d) => d.band === band);
 }
 
-function WindowCell({ w }: { w: Windowed | undefined }) {
-  if (!w) return <span className="sub">-</span>;
-  if (w.status === "insufficient") {
-    return (
-      <span className="sub" title={w.reason}>
-        building window
-      </span>
+/** Split the 10% exit into order book vs AMM pools. */
+function split(r: AssetReport) {
+  let book = 0;
+  let pools = 0;
+  for (const v of exitAt(r, 1000)?.venues ?? []) {
+    if (v.venue.kind === "sdex") book += Number(v.usd);
+    else pools += Number(v.usd);
+  }
+  return { book, pools, total: book + pools };
+}
+
+function TokenCard({ r, cap }: { r: AssetReport; cap?: Cap }) {
+  const d10 = exitAt(r, 1000);
+  const st = STATUS[d10?.verdict ?? "dead"];
+  const { book, pools, total } = split(r);
+  const bookPct = total > 0 ? Math.round((book / total) * 100) : 0;
+  const steps = [
+    { drop: "2%", v: exitAt(r, 200)?.total_usd },
+    { drop: "10%", v: d10?.total_usd },
+    { drop: "25%", v: exitAt(r, 2500)?.total_usd },
+  ];
+  const maxStep = Math.max(...steps.map((s) => Number(s.v ?? 0)), 1);
+
+  let limit: React.ReactNode;
+  if (cap?.recommended_cap_usd) {
+    limit = (
+      <>
+        <span className="limit-label">Safe for lenders to accept</span>
+        <span className="limit-value">up to {money(cap.recommended_cap_usd)}</span>
+      </>
+    );
+  } else {
+    const have =
+      cap && cap.window.status === "insufficient"
+        ? Number(/have (\d+)/.exec(cap.window.reason)?.[1] ?? 0)
+        : 0;
+    limit = (
+      <>
+        <span className="limit-label">Safe limit for lenders</span>
+        <span className="limit-wait">
+          {have > 0
+            ? `Shown after a full day of readings (${Math.min(have, 12)} of 12 so far)`
+            : "Shown after a full day of steady readings"}
+        </span>
+      </>
     );
   }
-  return (
-    <>
-      <div>{usd(w.min_exit_usd)}</div>
-      <div className="sub">{w.samples} samples</div>
-    </>
-  );
-}
 
-/** Where the 10% exit comes from, as a stacked bar plus a legend. */
-function Venues({ r }: { r: AssetReport }) {
-  const d = exitAt(r, 1000);
-  if (!d) return null;
-  const parts = d.venues.filter((v) => Number(v.usd) >= 1);
-  const total = Number(d.total_usd);
-  if (total < 1 || parts.length === 0) return null;
   return (
-    <>
-      <div className="bar" aria-hidden>
-        {parts.map((v, i) => (
-          <div
-            key={i}
-            style={{ width: `${(Number(v.usd) / total) * 100}%`, background: venueColor(v.venue) }}
-          />
-        ))}
-      </div>
-      <div className="legend">
-        {parts.map((v, i) => (
-          <span key={i}>
-            <i className="swatch" style={{ background: venueColor(v.venue) }} />
-            {venueName(v.venue)}
-            <b>{usd(v.usd)}</b>
-          </span>
-        ))}
-      </div>
-    </>
-  );
-}
-
-function Notes({ r }: { r: AssetReport }) {
-  // Price gaps between venues are the signal; one-sided-book notes are context.
-  const gaps = r.notes.filter((n) => n.includes("the reference"));
-  if (gaps.length === 0) return null;
-  return (
-    <>
-      {gaps.map((n, i) => (
-        <div key={i} className={n.includes("too thin") ? "flag muted" : "flag"}>
-          ▲ {n}
+    <article className="token">
+      <header className="token-head">
+        <div>
+          <h3>{r.code}</h3>
+          <p className="token-name">{NAMES[r.code] ?? r.code}</p>
         </div>
-      ))}
-    </>
+        <span className={`badge ${st.tone}`}>{st.label}</span>
+      </header>
+
+      <div className="headline">
+        <div className="big">{money(d10?.total_usd)}</div>
+        <p>can be sold before the price falls 10%</p>
+      </div>
+
+      <div className="split">
+        <div className="split-bar" aria-hidden>
+          <span className="seg book" style={{ width: `${bookPct}%` }} />
+          <span className="seg pools" style={{ width: `${100 - bookPct}%` }} />
+        </div>
+        <div className="split-legend">
+          <span>
+            <i className="dot book" /> Order book <b>{money(book)}</b>
+          </span>
+          <span>
+            <i className="dot pools" /> AMM pools <b>{money(pools)}</b>
+          </span>
+        </div>
+      </div>
+
+      <div className="steps">
+        <p className="steps-title">Sell more and the price falls more</p>
+        {steps.map((s) => (
+          <div className="step" key={s.drop}>
+            <span className="step-drop">Price falls {s.drop}</span>
+            <span className="step-bar">
+              <span style={{ width: `${(Number(s.v ?? 0) / maxStep) * 100}%` }} />
+            </span>
+            <span className="step-v">{money(s.v)}</span>
+          </div>
+        ))}
+      </div>
+
+      <footer className="token-foot">
+        <div className="limit">{limit}</div>
+        <p className="token-meta">Current price {r.reference ? price(r.reference.price_usd) : "unknown"}</p>
+      </footer>
+    </article>
+  );
+}
+
+/** Blend pool states in plain words. */
+function poolStatus(s: string): string {
+  if (s.includes("frozen")) return "frozen";
+  if (s.includes("on_ice")) return "paused";
+  if (s === "setup") return "not open yet";
+  return "open";
+}
+
+function LenderTable({ l }: { l: Lenders }) {
+  if (l.exposures.length === 0) return null;
+  return (
+    <section className="section">
+      <h2>What lenders hold today</h2>
+      <p className="section-sub">
+        How much of each token Blend lending pools hold, next to how much of it could actually be
+        sold.
+      </p>
+      <div className="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Lending pool</th>
+              <th>Token</th>
+              <th className="r">Holds</th>
+              <th className="r">Could be sold</th>
+              <th>Verdict</th>
+            </tr>
+          </thead>
+          <tbody>
+            {l.exposures.map((e) => (
+              <tr key={`${e.contract}-${e.code}`}>
+                <td>
+                  {e.lender}
+                  <span className="muted"> · {poolStatus(e.status)}</span>
+                </td>
+                <td>{e.code}</td>
+                <td className="r">{money(e.supplied_usd)}</td>
+                <td className="r">{e.exit_usd_at_bonus ? money(e.exit_usd_at_bonus) : "-"}</td>
+                <td>
+                  {e.exceeds_exit ? (
+                    <span className="badge bad">Too much to sell</span>
+                  ) : (
+                    <span className="badge good">Can be sold</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+function Top({ measured }: { measured?: number }) {
+  return (
+    <header className="topbar">
+      <Link href="/" className="brand">
+        Orbit
+      </Link>
+      <nav>
+        <Link href="/" className="on">
+          Dashboard
+        </Link>
+        <Link href="/methodology">How it works</Link>
+        <a href="https://github.com/Fahad-Dezloper/Orbit">GitHub</a>
+      </nav>
+      {measured && (
+        <span className="updated">
+          <i className="live" /> Updated {when(measured)}
+        </span>
+      )}
+    </header>
   );
 }
 
@@ -173,241 +245,98 @@ export default async function Page() {
   if (!latest.ok) {
     return (
       <main className="wrap">
-        <Header />
-        <div className="panel empty">
-          No current measurement: {latest.error}.
-          <br />
-          Start the service with <code>orbit-api</code> (or seed it with{" "}
-          <code>orbit-api --once</code>).
+        <Top />
+        <div className="empty">
+          <h2>No fresh reading right now</h2>
+          <p>Orbit measures every 30 minutes. The next reading will appear here shortly.</p>
         </div>
       </main>
     );
   }
   const run = latest.data;
-  const details = new Map<string, Result<AssetDetail>>(
-    await Promise.all(
-      run.reports.map(async (r) => [r.code, await getAsset(r.code)] as const),
-    ),
-  );
-  const histories = new Map<string, History | undefined>(
-    await Promise.all(
-      run.reports.map(async (r) => {
-        const h = await getHistory(r.code);
-        return [r.code, h.ok ? h.data : undefined] as const;
-      }),
-    ),
-  );
+  const lenders: Result<Lenders> = await getLenders(BONUS_BPS);
 
-  const lenders = await getLenders(BONUS_BPS);
+  const verdict = (r: AssetReport) => exitAt(r, 1000)?.verdict ?? "dead";
+  const withMarket = run.reports
+    .filter((r) => verdict(r) !== "dead")
+    .sort((a, b) => Number(exitAt(b, 1000)?.total_usd ?? 0) - Number(exitAt(a, 1000)?.total_usd ?? 0));
+  const noMarket = run.reports.filter((r) => verdict(r) === "dead");
+  const total = withMarket.reduce((s, r) => s + Number(exitAt(r, 1000)?.total_usd ?? 0), 0);
 
-  const at10 = run.reports.map((r) => exitAt(r, 1000));
-  const total10 = at10.reduce((s, d) => s + Number(d?.total_usd ?? 0), 0);
-  const dead = at10.filter((d) => d?.verdict === "dead").length;
-  const healthy = at10.filter((d) => d?.verdict === "healthy").length;
-
-  // Deepest first.
-  const rows = [...run.reports].sort(
-    (a, b) => Number(exitAt(b, 1000)?.total_usd ?? 0) - Number(exitAt(a, 1000)?.total_usd ?? 0),
+  const caps = new Map<string, Cap>();
+  await Promise.all(
+    withMarket.map(async (r) => {
+      const c = await getCap(r.code);
+      if (c.ok) caps.set(r.code, c.data);
+    }),
   );
 
   return (
     <main className="wrap">
-      <Header>
-        <div className="meta">
-          <span>
-            <i className="dot" style={{ background: "var(--healthy)" }} />
-            measured <b>{utc(run.measured_at)}</b>
-          </span>
-          <span>
-            XLM/USD <b className="num">{Number(run.xlm_usd).toFixed(4)}</b>
-          </span>
-          <span>{run.venues}</span>
-          {run.stats && (
-            <span>
-              full scan <b className="num">{(run.stats.duration_ms / 1000).toFixed(1)}s</b> ·{" "}
-              {run.stats.venues} venues
-            </span>
-          )}
+      <Top measured={run.measured_at} />
+
+      <section className="hero">
+        <h1>How much of each Stellar RWA can really be sold?</h1>
+        <p>
+          A price tells you what a token is worth. It doesn’t tell you if anyone will buy it. Orbit
+          checks every market on Stellar every 30 minutes and shows how many dollars a lender
+          could raise by selling, before the price falls too far.
+        </p>
+      </section>
+
+      <section className="summary">
+        <div className="stat">
+          <div className="stat-v">{money(total)}</div>
+          <p>could be sold across all tokens before prices fall 10%</p>
         </div>
-      </Header>
-
-      <section className="kpis five">
-        <Kpi
-          label="Full scan latency"
-          value={run.stats ? `${(run.stats.duration_ms / 1000).toFixed(1)}s` : "-"}
-        />
-        <Kpi label="Assets · venues" value={`${run.reports.length} · ${run.stats?.venues ?? "-"}`} />
-        <Kpi label="Total exit @10%" value={usd(String(total10))} />
-        <Kpi label="Healthy" value={String(healthy)} cls="v-healthy" />
-        <Kpi label="Dead (no market)" value={String(dead)} cls="v-dead" />
+        <div className="stat">
+          <div className="stat-v good">{withMarket.length}</div>
+          <p>tokens have a real market</p>
+        </div>
+        <div className="stat">
+          <div className="stat-v bad">{noMarket.length}</div>
+          <p>tokens have no buyers at all</p>
+        </div>
       </section>
 
-      <section className="panel">
-        <table>
-          <thead>
-            <tr>
-              <th>Asset</th>
-              <th className="num">Reference</th>
-              {BANDS.map((b) => (
-                <th key={b} className="num">
-                  Exit @{b / 100}%
-                </th>
-              ))}
-              <th className="num">24h min @10%</th>
-              <th className="num" title="Collateral that can be liquidated on Stellar right now at a 5% liquidation bonus">
-                Liquidatable @5% bonus
-              </th>
-              <th>Verdict</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => {
-              const det = details.get(r.code);
-              const w10 = det?.ok ? det.data.windowed.find((w) => w.band === 1000) : undefined;
-              const d10 = exitAt(r, 1000);
-              return [
-                <tr key={r.code} className="asset">
-                  <td>
-                    <div className="code">{r.code}</div>
-                    <div className="sub">{r.issuer.slice(0, 4)}…{r.issuer.slice(-4)}</div>
-                  </td>
-                  <td className="num">
-                    {r.reference ? usd(r.reference.price_usd, 4) : <span className="sub">none</span>}
-                  </td>
-                  {BANDS.map((b) => (
-                    <td key={b} className="num">
-                      {usd(exitAt(r, b)?.total_usd ?? "0")}
-                    </td>
-                  ))}
-                  <td className="num">
-                    <WindowCell w={w10} />
-                  </td>
-                  <td className="num">
-                    {(() => {
-                      const v = liquidatableAt(r, BONUS_BPS);
-                      return v === null ? <span className="sub">-</span> : usd(v);
-                    })()}
-                  </td>
-                  <td>{d10 && <Chip v={d10.verdict} />}</td>
-                </tr>,
-                <tr key={`${r.code}-d`} className="detail">
-                  <td />
-                  <td colSpan={7}>
-                    <div className="detail-grid">
-                      <div>
-                        <Venues r={r} />
-                    {!r.reference && (
-                      <div className="flag muted">
-                        No venue holds $100 of depth at its own price, so there is no price to
-                        measure from.
-                      </div>
-                    )}
-                    <Notes r={r} />
-                      </div>
-                      <HistoryChart h={histories.get(r.code)} />
-                      <Curve r={r} />
-                    </div>
-                  </td>
-                </tr>,
-              ];
-            })}
-          </tbody>
-        </table>
+      <section className="section">
+        <h2>Tokens with a market</h2>
+        <p className="section-sub">
+          Largest first. Each card shows where the buyers are and how much they would take.
+        </p>
+        <div className="grid">
+          {withMarket.map((r) => (
+            <TokenCard key={r.code} r={r} cap={caps.get(r.code)} />
+          ))}
+        </div>
       </section>
 
-      {lenders.ok && <LenderPanel l={lenders.data} />}
+      {noMarket.length > 0 && (
+        <section className="section">
+          <h2>Tokens with no buyers</h2>
+          <p className="section-sub">
+            No market on Stellar holds even $100 of buyers for these. A lender could not sell them
+            at all.
+          </p>
+          <div className="chips">
+            {noMarket.map((r) => (
+              <span className="chip" key={r.code}>
+                <b>{r.code}</b>
+                {NAMES[r.code] ?? ""}
+              </span>
+            ))}
+          </div>
+        </section>
+      )}
 
-      <footer>
-        Exit = USD that could be raised selling the asset across SDEX order books and Soroban
-        AMM pools before the <em>average</em> sale price falls more than the band below one
-        reference price. The reference is the median price of venues holding real depth, so no
-        venue sets its own price. The published figure is the minimum over 24 hours. Read-only;
-        every rounding understates depth.
+      {lenders.ok && <LenderTable l={lenders.data} />}
+
+      <footer className="foot">
+        <p>
+          Markets read: SDEX order books, Aquarius pools and Soroswap pools. Every number can be
+          checked: <a href="v1/latest.json">raw data</a> · <Link href="/methodology">how it works</Link>.
+        </p>
       </footer>
     </main>
-  );
-}
-
-function LenderPanel({ l }: { l: Lenders }) {
-  if (l.exposures.length === 0 && l.skipped.length === 0) return null;
-  const total = l.exposures.reduce((s, e) => s + Number(e.supplied_usd), 0);
-  return (
-    <section className="panel">
-      <h2 className="panel-title">
-        Held by lenders <span className="sub">Blend v2 pools, each confirmed by the Blend factory</span>
-      </h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Pool</th>
-            <th>Status</th>
-            <th>Asset</th>
-            <th className="num">Supplied</th>
-            <th className="num" title="Supplied value times the pool's collateral factor">
-              Borrowable against it
-            </th>
-            <th className="num" title={`What the market could absorb at a ${l.bonus_bps / 100}% bonus`}>
-              Exit @{l.bonus_bps / 100}% bonus
-            </th>
-            <th />
-          </tr>
-        </thead>
-        <tbody>
-          {l.exposures.map((e) => (
-            <tr key={`${e.contract}-${e.code}`}>
-              <td>
-                <div className="code">{e.lender}</div>
-                <div className="sub">{e.contract.slice(0, 4)}…{e.contract.slice(-4)}</div>
-              </td>
-              <td className="sub">{e.status.replace(/_/g, " ")}</td>
-              <td>{e.code}</td>
-              <td className="num">{usd(e.supplied_usd)}</td>
-              <td className="num">{usd(e.borrowable_usd)}</td>
-              <td className="num">{e.exit_usd_at_bonus ? usd(e.exit_usd_at_bonus) : "-"}</td>
-              <td>{e.exceeds_exit && <span className="flag">exceeds exit</span>}</td>
-            </tr>
-          ))}
-          {l.skipped.map((s) => (
-            <tr key={s.code}>
-              <td>{s.code}</td>
-              <td colSpan={6} className="sub">
-                not read: {s.reason}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <div className="sub panel-foot">
-        Total supplied across these pools: {usd(String(total))}. Supplied counts collateral and
-        plain lending together.
-      </div>
-    </section>
-  );
-}
-
-function Header({ children }: { children?: React.ReactNode }) {
-  return (
-    <header className="top">
-      <div>
-        <h1>Exit liquidity on Stellar</h1>
-        <p>How much of each real-world asset can actually be sold before the price breaks.</p>
-      </div>
-      <div className="head-right">
-        <nav className="nav">
-          <span aria-current="page">Dashboard</span>
-          <Link href="/methodology">Methodology</Link>
-        </nav>
-        {children}
-      </div>
-    </header>
-  );
-}
-
-function Kpi({ label, value, cls }: { label: string; value: string; cls?: string }) {
-  return (
-    <div className="kpi">
-      <div className="label">{label}</div>
-      <div className={`value ${cls ?? ""}`}>{value}</div>
-    </div>
   );
 }

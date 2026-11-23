@@ -1,142 +1,146 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Methodology · Orbit",
-  description: "How Orbit measures exit liquidity on Stellar, step by step.",
+  title: "How it works · Orbit",
+  description: "How Orbit measures how much of each Stellar RWA can really be sold.",
 };
 
-const STEPS: { n: string; title: string; body: React.ReactNode }[] = [
+const STEPS: { title: string; body: React.ReactNode }[] = [
   {
-    n: "1",
     title: "The question",
     body: (
       <>
-        How many US dollars could be raised selling this asset on Stellar right now before the{" "}
-        <b>average</b> sale price falls more than a band below the reference price? Published at
-        2%, 10% and 25%; the liquidation curve samples 12 bands from 0.5% to 50%.
+        If a lender had to sell a token right now, how many dollars could it raise before the
+        price falls too far? Orbit answers this for a 2%, 10% and 25% price drop, and for 12 steps
+        in between, from 0.5% up to 50%.
       </>
     ),
   },
   {
-    n: "2",
-    title: "Assets",
+    title: "Only real tokens",
     body: (
       <>
-        An asset is code + issuer. It is measured only if the issuer&apos;s own{" "}
-        <code>stellar.toml</code> (SEP-1) lists that exact pair, so impostor tokens with the same
-        code are never counted.
+        Every token issuer lists its official tokens on its own website. Orbit only counts tokens
+        that appear on that list, so look-alike tokens with the same name are ignored.
       </>
     ),
   },
   {
-    n: "3",
-    title: "Venues",
+    title: "Every market on Stellar",
     body: (
       <>
-        SDEX order books against USDC and XLM (Horizon, exact rational prices), constant-product
-        pools (Aquarius, Soroswap) from their reserves, and Aquarius concentrated and stable pools
-        from their own <code>estimate_swap</code> quotes. Every pool&apos;s tokens must equal Stellar
-        Asset Contract ids derived locally from the network id. Everything is read-only.
+        Orbit reads the SDEX order book (Stellar’s built-in exchange) and the AMM pools on
+        Aquarius and Soroswap. For each pool, it checks that the pool really holds the tokens it
+        claims to hold before counting it.
       </>
     ),
   },
   {
-    n: "4",
-    title: "One reference price",
+    title: "One fair price",
     body: (
       <>
-        Each venue reports its own price. Venues with under $100 of depth are ignored; the
-        reference is the upper median of the rest. No venue is its own reference, a thin venue
-        cannot move it, and with no qualifying venue the asset reads <b>zero</b>.
+        Each market shows a slightly different price. Orbit takes the middle price of the markets
+        that hold real money, so one small or fake market can’t set the price for everyone.
       </>
     ),
   },
   {
-    n: "5",
-    title: "Exit on each venue",
+    title: "Adding up the buyers",
     body: (
       <>
-        Order books: walk bids from the best, counting a bid&apos;s amount in the counter asset
-        (Horizon&apos;s convention). Constant-product pools: the closed form{" "}
-        <code>x + dx′ ≤ (1 − f)·y / floor</code>. Quoted pools: the largest sampled sale inside the
-        band, never interpolated. Venues are summed in USD.
+        Starting from that price, Orbit works out how much each market would buy before the
+        average sale price drops 2%, 10% or 25%, then adds the markets together in US dollars.
       </>
     ),
   },
   {
-    n: "6",
-    title: "Time",
+    title: "The worst of the day",
     body: (
       <>
-        Measured every 30 minutes. The published figure is the <b>minimum over 24 hours</b>, and
-        only with at least 12 samples and no gap over 2 hours. Liquidity parked for one
-        measurement can only lower it.
+        Orbit measures about every 30 minutes, at random times. The number it publishes is the
+        lowest one from the last 24 hours. Buyers who appear for a moment and then leave can’t
+        make a token look safer than it is.
       </>
     ),
   },
   {
-    n: "7",
-    title: "Collateral cap",
+    title: "A safe limit for lenders",
     body: (
       <>
-        A liquidator paid a bonus <i>b</i> acts only if it can sell at most <i>b</i> below the
-        price, so the exit at band <i>b</i> is the most collateral that can be liquidated
-        on-chain. The recommended cap is the 24h minimum of that, less a safety margin.
+        When a loan goes bad, the lender gives a small discount (often 5%) to whoever sells the
+        collateral. Orbit shows how much can be sold within that discount, then halves it as a
+        safety margin. That is the most a lender should accept as collateral.
       </>
     ),
   },
   {
-    n: "8",
-    title: "Arithmetic and publication",
+    title: "On the blockchain",
     body: (
       <>
-        7-decimal fixed point, no floats; every rounding lowers depth. The publisher writes the
-        windowed minimum with its timestamp and sample count to the depth oracle, which rejects
-        replays, stale or future data, and any signer but the publisher.
+        The safe limits are written to a contract on Stellar (testnet today), so a lending app can
+        check them automatically before every loan. If data is missing or old, Orbit publishes
+        nothing rather than a wrong number.
       </>
     ),
   },
 ];
 
 const LIMITS = [
-  "Venues that are not pinned, and pools against counters other than USDC and XLM, are not counted (this understates depth).",
-  "Quoted pools are sampled, so exit between samples is not credited.",
-  "Exit on other chains and redemption with the issuer are not counted as exit on Stellar.",
-  "The reference comes from Stellar venues only; the 24h minimum limits, but cannot detect, a market that is wrong everywhere at once.",
-  "The contract and publisher have not had an external audit yet.",
+  "Some newer markets (Curve, Comet, Stellar Broker and Sushi) are not counted yet. Leaving a market out can only make the number lower, never higher.",
+  "Buying back from the issuer, or selling on other blockchains, is not counted. Only Stellar’s own markets are.",
+  "Someone with a lot of money could keep fake buyers in place for a whole day. Planned fixes make that slow and expensive.",
+  "The contract has an internal security review, but no outside audit yet.",
 ];
 
 export default function Methodology() {
   return (
     <main className="wrap">
-      <header className="top">
-        <div>
-          <h1>Methodology</h1>
-          <p>How every figure on the dashboard is produced. Full version: docs/METHODOLOGY.md.</p>
-        </div>
-        <nav className="nav">
+      <header className="topbar">
+        <Link href="/" className="brand">
+          Orbit
+        </Link>
+        <nav>
           <Link href="/">Dashboard</Link>
-          <span aria-current="page">Methodology</span>
+          <Link href="/methodology" className="on">
+            How it works
+          </Link>
+          <a href="https://github.com/Fahad-Dezloper/Orbit">GitHub</a>
         </nav>
       </header>
-      <section className="steps">
-        {STEPS.map((s) => (
-          <article key={s.n} className="step">
-            <div className="step-n">{s.n}</div>
+
+      <section className="doc">
+        <h1>How Orbit works</h1>
+        <p className="lede">
+          Orbit answers one question: how much of each Stellar RWA token can really be sold? Here
+          is how each number on the dashboard is made, step by step.
+        </p>
+
+        {STEPS.map((s, i) => (
+          <article key={s.title} className="doc-step">
+            <div className="doc-n">{i + 1}</div>
             <div>
-              <h2>{s.title}</h2>
+              <h3>{s.title}</h3>
               <p>{s.body}</p>
             </div>
           </article>
         ))}
-      </section>
-      <section className="panel limits">
-        <h2>Known limits</h2>
-        <ul>
-          {LIMITS.map((l) => (
-            <li key={l}>{l}</li>
-          ))}
-        </ul>
+
+        <div className="note-box">
+          <h3>What Orbit doesn’t cover yet</h3>
+          <ul>
+            {LIMITS.map((l) => (
+              <li key={l}>{l}</li>
+            ))}
+          </ul>
+        </div>
+
+        <p className="foot">
+          The full technical method is in{" "}
+          <a href="https://github.com/Fahad-Dezloper/Orbit/blob/main/docs/METHODOLOGY.md">
+            docs/METHODOLOGY.md
+          </a>
+          .
+        </p>
       </section>
     </main>
   );

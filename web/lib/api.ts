@@ -143,6 +143,18 @@ export interface Lenders {
 
 export const getLenders = (bonusBps = 500) => get<Lenders>(`/v1/lenders?bonus_bps=${bonusBps}`);
 
+export interface Cap {
+  code: string;
+  bonus_bps: number;
+  safety_bps: number;
+  measured_at: number;
+  liquidatable_now_usd: string | null;
+  window: { status: "ok"; min_usd: string; samples: number } | { status: "insufficient"; reason: string };
+  recommended_cap_usd: string | null;
+}
+
+export const getCap = (code: string) => get<Cap>(`/v1/assets/${encodeURIComponent(code)}/cap`);
+
 export const getHistory = (code: string, band = 1000, hours = 24) =>
   get<History>(
     `/v1/assets/${encodeURIComponent(code)}/history?band=${band}&hours=${hours}`,
