@@ -24,6 +24,7 @@ concurrency:
 env:
   ORACLE: CCOI2QVXHQIX7ZADUT5LSJPDAQSKPEINUK6HCMCSCZTWLB5BK7W4CBUQ
   STELLAR_CLI_VERSION: 30.0.1
+  PUBLISHER: GCVJPQMM4FRSAB6E6FWAC6BVDDFL6WXQH5WE6AP5674L5EMASNIQ4AZ4
 
 jobs:
   measure:
@@ -90,6 +91,13 @@ jobs:
           mkdir -p "$HOME/.config/stellar/identity"
           umask 077
           printf 'secret_key = "%s"\n' "$SECRET" > "$HOME/.config/stellar/identity/pocky-testnet-publisher.toml"
+          # The secret must be the key the oracle accepts as publisher.
+          got="$(stellar keys address pocky-testnet-publisher)"
+          if [ "$got" != "$PUBLISHER" ]; then
+            echo "publisher secret is for $got, expected $PUBLISHER"
+            rm -f "$HOME/.config/stellar/identity/pocky-testnet-publisher.toml"
+            exit 1
+          fi
           ./target/release/pocky-publish --network testnet --oracle "$ORACLE" \
             --source pocky-testnet-publisher --registry assets.toml --data-dir history/snapshots
           rm -f "$HOME/.config/stellar/identity/pocky-testnet-publisher.toml"
