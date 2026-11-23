@@ -121,14 +121,20 @@ The hardest question is not technical.
 | Sun Zu Lab Oracle Shield (SCF #43, $120K) | Readiness score includes **depth**, spread, divergence; on-chain circuit breaker. Their team (Nov 2026, direct correspondence) already runs a Stellar SDEX feed handler showing market depth (±40 bps buckets) | Purpose is to **validate a price**: SDEX mid against a CEX mid ("SDEX cannot be used as a reference"). A health score, not a USD figure of what can be sold. By their own account: AMM liquidity is not yet a source ("one cannot build a regular orderbook from an AMM; extracted liquidity signals will require a dedicated approach"); the USTRY scenario is hypothetical because no CEX lists it; mid-vs-mid is "only a first step" and sources, signals and formulas are still to be extended. **Risk:** they named AMM liquidity as something they "have to consider", so they could build into our area |
 | Damper (open source, first mainnet scan 17 Nov 2026) | Manipulation-resistant SEP-40 wrapper for Blend; measures USDC cost to clear the SDEX book | SDEX only (no AMMs), unaudited, not deployed |
 | RedStone (Stellar since Mar 2026; serves Blend, Templar, Centrifuge, XOXNO) | Holds the RWA feeds; pushing Settle (KYC'd liquidators) and Credora ratings | NAV ("fundamental") feeds, no depth feed. But its Oct 2026 report "Next Phase for RWAs on Stellar" measured exit depth once (USTRY/CETES about $260K within 2%, USDY about 10% slippage on $100K, 21.5% of deJAAA in a Sushi pool). **Risk:** the analysis exists and RedStone already prices Templar; turning it into a feed is a short step. Also the natural partner |
+| **sounding** (SCF #46 applicant, $45K; #45 "Depth-Adjusted Blend Collateral Limits" not awarded) | **Direct.** Same question: how much can be sold now, at what cost, where. Live since 25 Oct 2026; every 10 min, 10 assets, 4 sizes; "safe size" within 50 to 500 bps, 1h time-weighted, at most 60% from one venue; refuses when stale. Covers Sushi, Comet and Stellar Broker, which we do not yet. Public CSV history | Reads **venue quote APIs** (Horizon paths, Aquarius path finder, Soroswap aggregator, Stellar Broker) and plans to cross-check them against pool state; we compute depth from verified pool and book state already. Paid per call (x402). General assets (XLM, ETH, EURC, AQUA); no RWA focus. On-chain contract is a future tranche; ours runs on testnet. A 1h average moves with a 1h spoof; we publish the 24h minimum |
+| Assay Guard (SCF #46 applicant, $30K) | Fail-closed `is_healthy` check a lender calls in borrow; plans exit liquidity "within 2% and 5% of mid" on SDEX and AMM pools | Built around **proof of reserves**; depth is two bands on a checklist, not a curve or cap. Could take Pocky as its depth input |
+| YieldPilot (SCF #46 applicant, $75K) | Grades Blend pools and DeFindex vaults; exit liquidity is one factor; on-chain registry and smart-account gate on testnet | A depositor's grade, not a collateral cap; reads SDEX books only (for USDY that is about 2% of the exit). A possible consumer |
 | Chainlink (live on Stellar Sep/Oct 2026) | "Liquidity Indicators" (±2% depth, 2023 R&D) and State Pricing (depth-weighted DEX prices) exist elsewhere | Not offered on Stellar today; the largest latent substitute |
 | Chaos Labs Edge | Dynamic caps driven by liquidity depth, live on Aave since 2025 | Not on Stellar; left Aave in Apr 2026 |
 | Pyth Pro, Reflector | Price feeds on Stellar | No depth |
 
-Our ground: the only continuous measure across Stellar's order books and AMM pools (SDEX plus
-Aquarius, including concentrated pools, plus Soroswap; Curve and Sushi not yet) from one manipulation-resistant reference, verified against
-on-chain balances, turned into a USD liquidation curve and cap, published on-chain, with an
-append-only history that cannot be rebuilt later. It needs **no outside market**: the
+Our ground: we are not the only ones measuring exit depth (sounding does it continuously, and
+Assay plans a two-band version). What is ours: depth computed from book and pool state we
+verify ourselves (SDEX plus Aquarius, including concentrated pools, plus Soroswap; Curve,
+Comet, Stellar Broker and Sushi not yet), never from a venue's own quote; one
+manipulation-resistant reference; a USD liquidation curve and a cap for RWA collateral,
+published on-chain and free to read, with an append-only history that cannot be rebuilt
+later. It needs **no outside market**: the
 reference comes from Stellar venues themselves, so it works for RWA tokens that trade on no
 CEX (every Etherfuse token), which a CEX-referenced check like Oracle Shield cannot validate
 today. The two are complementary: Oracle Shield asks "is this price trustworthy?", Pocky asks

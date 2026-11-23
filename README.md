@@ -49,10 +49,13 @@ sold across Stellar's order books and AMM pools before the liquidation bonus is 
 - **Continuous, not a report.** RedStone's October 2026 RWA research measured exit depth for
   USTRY, CETES and USDY once. Pocky measures it every half hour, keeps the history and
   publishes it on-chain.
+- **Computed, not quoted.** Other exit-cost services (sounding, live since Oct 2026) ask each
+  venue's quote API. Pocky reads the books and pool state itself and checks every pool's
+  reserves against its token balances, so a venue cannot report depth it does not hold.
 - **A cap, not a score.** The output is a USD figure per band, a liquidation curve and a
   collateral cap a lender can enforce, published on-chain.
-- **Not yet counted:** Curve (on Stellar since 29 Oct 2026) and Sushi pools (since Sep 2026,
-  including deJAAA). Venues left out can only understate depth; adding them is plan 2.10.
+- **Not yet counted:** Curve (on Stellar since 29 Oct 2026), Comet, Stellar Broker and Sushi
+  pools (since Sep 2026, including deJAAA). Venues left out can only understate depth; adding them is plan 2.10.
 - **Built to be read by others.** The AMM-inclusive depth figure is the input both of the
   above lack; a circuit breaker or a price guard can read it rather than rebuild it.
 
