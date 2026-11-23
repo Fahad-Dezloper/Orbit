@@ -4,6 +4,7 @@
 //! pocky-api                          # measure every 30 min, serve on 127.0.0.1:8080
 //! pocky-api --once                   # one measurement into the store, then exit
 //! pocky-api --serve-only             # serve the existing store, measure nothing
+//! pocky-api --once --export-dir site # measure once, write static JSON copies, exit
 //! ```
 //!
 //! Read-only against Stellar: Horizon GETs and Soroban simulations only.
@@ -16,6 +17,7 @@ use std::sync::{Arc, RwLock};
 use std::time::Duration;
 
 use clap::Parser;
+use pocky_api::export::export;
 use pocky_api::http::{now, router, AppState, Shared, Status};
 use pocky_api::schedule::{jittered, seed};
 use pocky_api::store::Store;
@@ -61,6 +63,10 @@ struct Args {
     /// Serve the existing store without measuring.
     #[arg(long)]
     serve_only: bool,
+    /// With `--once`: after measuring, write static JSON copies of every response here
+    /// (see `pocky_api::export`), even if the measurement failed, then exit.
+    #[arg(long)]
+    export_dir: Option<PathBuf>,
 }
 
 fn measure_once(args: &Args, reg: &Registry) -> Result<pocky_ingest::run::Run, String> {
@@ -128,11 +134,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let result = tokio::task::spawn_blocking(move || measure_once(&a, &r)).await?;
         let failed = result.is_err();
         record(&state, result);
+        if let Some(dir) = &args.export_dir {
+            let codes: Vec<String> = reg.assets.iter().map(|a| a.code.clone()).collect();
+            let n = export(&state, dir, &codes).await?;
+            println!("exported {n} files to {}", dir.display());
+        }
         return if failed {
             Err("measurement failed".into())
         } else {
             Ok(())
         };
+    }
+
+    if args.export_dir.is_some() {
+        return Err("--export-dir needs --once".into());
     }
 
     if !args.serve_only {

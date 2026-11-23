@@ -20,7 +20,5 @@ axum = "0.8"
 clap = { version = "4", features = ["derive"] }
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "net", "signal"] }
 tower-http = { version = "0.6", features = ["cors"] }
-
-[dev-dependencies]
 tower = { version = "0.5", features = ["util"] }
 http-body-util = "0.1"
