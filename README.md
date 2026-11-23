@@ -11,6 +11,11 @@ by what the market can absorb.
 > market depth validation afterwards. Today's checks read the SDEX order book only, and
 > on Stellar much of the RWA market is not there.
 
+**Live:** [dashboard](https://fahad-dezloper.github.io/Orbit/) ·
+[static API](https://fahad-dezloper.github.io/Orbit/v1/latest.json) ·
+[testnet oracle](https://stellar.expert/explorer/testnet/contract/CCOI2QVXHQIX7ZADUT5LSJPDAQSKPEINUK6HCMCSCZTWLB5BK7W4CBUQ),
+measured every half hour ([how](docs/DEPLOY.md)).
+
 ## What it measures
 
 For each asset, at 2%, 10% and 25% bands: the USD that could be raised by selling across

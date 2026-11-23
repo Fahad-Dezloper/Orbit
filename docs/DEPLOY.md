@@ -8,6 +8,35 @@ Three pieces run in production. Only the publisher holds a key.
 | `pocky-publish` | a machine with a `stellar` CLI keystore | the publisher key only | the snapshot store, the oracle |
 | `web/` | any Node host | no | `pocky-api` |
 
+## 0. The public deployment (GitHub Actions and Pages)
+
+The live instance runs from `.github/workflows/measure.yml`, with no server:
+
+- Every half hour (plus a random delay of up to 7 minutes) a workflow runs
+  `pocky-api --once --export-dir site`.
+- Each run is appended to the history on the `data` branch, one JSONL file per UTC day,
+  append-only.
+- The windowed figures go to the **testnet** oracle. The key is the repository secret
+  `POCKY_TESTNET_PUBLISHER_SECRET`: testnet only, written to a temporary keystore file and
+  deleted after use. A mainnet key never reaches CI.
+- The dashboard is built statically from the exported files and deployed with the static
+  API to https://fahad-dezloper.github.io/Orbit/.
+
+Static API: `https://fahad-dezloper.github.io/Orbit/v1/latest.json`, `v1/lenders.json`,
+`v1/assets/{code}.json`, `v1/assets/{code}/history.json` (10% band, 24h) and
+`v1/assets/{code}/cap.json` (5% bonus, 50% margin). `index.json` lists every file with
+the status the live API returned. A static file cannot send a status, so a file may hold
+`{"error": ...}`. Check for it, and check `measured_at`, before using a figure.
+
+Limits: GitHub may delay or skip scheduled runs under load. A gap of more than 2 hours
+invalidates the 24h window and publishing stops until it clears (fail closed).
+
+To set the publisher secret from your local keystore (the value is never printed):
+
+```bash
+stellar keys show pocky-testnet-publisher | gh secret set POCKY_TESTNET_PUBLISHER_SECRET -R Fahad-Dezloper/Orbit
+```
+
 ## 1. API (measurement + history)
 
 ```bash
