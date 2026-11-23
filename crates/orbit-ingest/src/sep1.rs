@@ -66,9 +66,50 @@ pub fn fetch_toml(domain: &str) -> Result<String, String> {
     Ok(body)
 }
 
+/// The `[[CURRENCIES]]` entries of a stellar.toml.
+///
+/// Some issuers publish a file with a syntax error in an unrelated section (WisdomTree's has
+/// an unterminated string in `ACCOUNTS`). Then each `[[CURRENCIES]]` table is parsed on its
+/// own, so a broken section elsewhere cannot hide the issuer's own currency list. Entries that
+/// do not parse are skipped, never guessed at.
+fn currencies(body: &str) -> Result<Vec<Currency>, String> {
+    match toml::from_str::<Toml>(body) {
+        Ok(t) => Ok(t.currencies),
+        Err(e) => {
+            let mut out = Vec::new();
+            let mut section: Option<String> = None;
+            let flush = |sec: &mut Option<String>, out: &mut Vec<Currency>| {
+                if let Some(text) = sec.take() {
+                    if let Ok(t) = toml::from_str::<Toml>(&text) {
+                        out.extend(t.currencies);
+                    }
+                }
+            };
+            for line in body.lines() {
+                let l = line.trim_start();
+                if l.starts_with('[') {
+                    flush(&mut section, &mut out);
+                    if l.starts_with("[[CURRENCIES]]") {
+                        section = Some(String::from("[[CURRENCIES]]\n"));
+                    }
+                } else if let Some(sec) = section.as_mut() {
+                    sec.push_str(line);
+                    sec.push('\n');
+                }
+            }
+            flush(&mut section, &mut out);
+            if out.is_empty() {
+                Err(format!("unparseable stellar.toml: {e}"))
+            } else {
+                Ok(out)
+            }
+        }
+    }
+}
+
 pub fn check_toml(asset: &Asset, body: &str) -> Result<(), String> {
-    let t: Toml = toml::from_str(body).map_err(|e| format!("unparseable stellar.toml: {e}"))?;
-    let found = t.currencies.iter().any(|c| {
+    let currencies = currencies(body)?;
+    let found = currencies.iter().any(|c| {
         c.code.as_deref() == Some(asset.code.as_str())
             && c.issuer.as_deref() == Some(asset.issuer.as_str())
     });
@@ -111,6 +152,29 @@ mod tests {
     #[test]
     fn rejects_impostor_issuer_with_same_code() {
         assert!(check_toml(&asset("USTRY", FAKE), BODY).is_err());
+    }
+
+    #[test]
+    fn reads_currencies_past_a_broken_section() {
+        // An unterminated string elsewhere in the file (as in WisdomTree's stellar.toml).
+        let broken = r#"
+            ACCOUNTS = [
+            "GAAA",
+            "GBBB
+            ]
+            [[CURRENCIES]]
+            code = "WTSY"
+            issuer = "GB3ZUC7FGDEEBXY3BDEJWMPNGBFA66YRI4QQT6PBO3ZT6F33S7RL36VF"
+            [[CURRENCIES]]
+            code = "BAD
+            issuer = "GXXX"
+        "#;
+        let wtsy = asset(
+            "WTSY",
+            "GB3ZUC7FGDEEBXY3BDEJWMPNGBFA66YRI4QQT6PBO3ZT6F33S7RL36VF",
+        );
+        assert!(check_toml(&wtsy, broken).is_ok());
+        assert!(check_toml(&asset("WTSY", REAL), broken).is_err());
     }
 
     #[test]

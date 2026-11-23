@@ -22,7 +22,33 @@ const NAMES: Record<string, string> = {
   GILTS: "UK government bonds",
   KTB: "Korean government bonds",
   MEXe: "Mexican bond token",
+  BENJI: "Franklin US government money fund",
+  gBENJI: "Franklin US government money fund",
+  grBENJI: "Franklin US government money fund",
+  sgBENJI: "Franklin US dollar money market fund",
+  WTGX: "WisdomTree government money market",
+  WTSY: "WisdomTree short-term Treasuries",
+  WTTS: "WisdomTree 3–7 year Treasuries",
+  WTST: "WisdomTree 7–10 year Treasuries",
+  FLTT: "WisdomTree floating-rate Treasuries",
+  WTLG: "WisdomTree long-term Treasuries",
+  WTSI: "WisdomTree short-duration income",
+  TIPS: "WisdomTree inflation-protected bonds",
+  GOLD: "WisdomTree gold",
+  CRDT: "WisdomTree private credit",
+  SPXU: "WisdomTree 500 equity fund",
+  TECH: "WisdomTree technology fund",
+  EQTY: "WisdomTree global equity fund",
+  LNGV: "WisdomTree longevity fund",
+  MODR: "WisdomTree moderate fund",
 };
+
+/** Funds whose issuers only let approved holders own them, so no open market can exist. */
+const RESTRICTED = new Set([
+  "BENJI", "gBENJI", "grBENJI", "sgBENJI",
+  "WTGX", "WTSY", "WTTS", "WTST", "FLTT", "WTLG", "WTSI", "TIPS",
+  "GOLD", "CRDT", "SPXU", "TECH", "EQTY", "LNGV", "MODR",
+]);
 
 const STATUS: Record<Verdict, { label: string; tone: string }> = {
   healthy: { label: "Deep market", tone: "good" },
@@ -261,6 +287,8 @@ export default async function Page() {
     .filter((r) => verdict(r) !== "dead")
     .sort((a, b) => Number(exitAt(b, 1000)?.total_usd ?? 0) - Number(exitAt(a, 1000)?.total_usd ?? 0));
   const noMarket = run.reports.filter((r) => verdict(r) === "dead");
+  const restricted = noMarket.filter((r) => RESTRICTED.has(r.code));
+  const openEmpty = noMarket.filter((r) => !RESTRICTED.has(r.code));
   const total = withMarket.reduce((s, r) => s + Number(exitAt(r, 1000)?.total_usd ?? 0), 0);
 
   const caps = new Map<string, Cap>();
@@ -294,7 +322,7 @@ export default async function Page() {
         </div>
         <div className="stat">
           <div className="stat-v bad">{noMarket.length}</div>
-          <p>tokens have no buyers at all</p>
+          <p>tokens can’t be sold on Stellar today</p>
         </div>
       </section>
 
@@ -310,15 +338,34 @@ export default async function Page() {
         </div>
       </section>
 
-      {noMarket.length > 0 && (
+      {openEmpty.length > 0 && (
         <section className="section">
-          <h2>Tokens with no buyers</h2>
+          <h2>Open to anyone, but nobody is buying</h2>
           <p className="section-sub">
-            No market on Stellar holds even $100 of buyers for these. A lender could not sell them
-            at all.
+            Anyone can hold and trade these, but no market on Stellar has even $100 of buyers. A
+            lender could not sell them.
           </p>
           <div className="chips">
-            {noMarket.map((r) => (
+            {openEmpty.map((r) => (
+              <span className="chip" key={r.code}>
+                <b>{r.code}</b>
+                {NAMES[r.code] ?? ""}
+              </span>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {restricted.length > 0 && (
+        <section className="section">
+          <h2>Only approved holders can trade these</h2>
+          <p className="section-sub">
+            Franklin Templeton and WisdomTree funds on Stellar. Their issuers restrict who can own
+            them, so there is no open market to sell into. Buying and selling happens through
+            the issuer.
+          </p>
+          <div className="chips">
+            {restricted.map((r) => (
               <span className="chip" key={r.code}>
                 <b>{r.code}</b>
                 {NAMES[r.code] ?? ""}

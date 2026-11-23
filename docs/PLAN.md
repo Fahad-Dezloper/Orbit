@@ -34,6 +34,10 @@ with passing checks. Nothing in this plan writes to mainnet.
 - [x] 2.9 Liquidation curve (0.5% to 50%) and collateral cap for a liquidation bonus
 - [ ] 2.10 New venues: Curve (on Stellar since 29 Oct 2026), Comet, Stellar Broker and Sushi pools (since Sep 2026,
   including deJAAA); a check that flags new pools for pinned assets
+- [x] 2.11 More issuers: Franklin Templeton (BENJI family) and WisdomTree funds, 29 tokens in
+  all; issuer files with a broken unrelated section are read entry by entry
+- [ ] 2.12 Soroban-only RWA tokens (Centrifuge deJAAA, deJTRSY, JTRSY, JAAA, HYB): read
+  them as SEP-41 contracts rather than classic assets
 
 ## Phase 3: On-chain oracle (`contracts/depth-oracle`)
 - [x] 3.1 Storage layout, admin and publisher roles, TTL extension

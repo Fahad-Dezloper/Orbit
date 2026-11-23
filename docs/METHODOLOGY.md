@@ -154,5 +154,8 @@ first).
   reference moves with them; the 24h minimum limits how long that can inflate depth, but it
   cannot detect a market that is wrong everywhere at once.
 - The contract and publisher have not had an external audit.
+- Tokens that exist only as Soroban contracts (Centrifuge's deJAAA and others) are not
+  measured yet, and tokens whose issuer file cannot be fetched (such as Matrixdock's XAUM)
+  are left out on purpose.
 - Lender holdings cover pinned Blend v2 pools only; Templar, where most Stellar RWA
   borrowing sits, is not read.
