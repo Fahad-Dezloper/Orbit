@@ -130,8 +130,7 @@ h3 {
 
 /* Hero */
 .hero {
-  padding: 56px 0 36px;
-  max-width: 780px;
+  padding: 52px 0 32px;
 }
 
 .hero h1 {
@@ -141,8 +140,9 @@ h3 {
 
 .hero p {
   font-size: 19px;
-  margin: 18px 0 0;
-  color: var(--body);
+  margin: 12px 0 0;
+  max-width: 720px;
+  color: var(--muted);
 }
 
 /* Summary */

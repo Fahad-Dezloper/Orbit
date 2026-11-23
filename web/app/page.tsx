@@ -276,11 +276,10 @@ export default async function Page() {
       <Top measured={run.measured_at} />
 
       <section className="hero">
-        <h1>How much of each Stellar RWA can really be sold?</h1>
+        <h1>Live market depth for Stellar RWAs</h1>
         <p>
-          A price tells you what a token is worth. It doesn’t tell you if anyone will buy it. Orbit
-          checks every market on Stellar every 30 minutes and shows how many dollars a lender
-          could raise by selling, before the price falls too far.
+          How many dollars of each token a lender could really sell right now, checked across
+          every Stellar market every 30 minutes.
         </p>
       </section>
 
