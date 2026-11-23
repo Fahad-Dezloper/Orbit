@@ -15,6 +15,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::error::IngestError;
 use crate::horizon::Horizon;
+use crate::lenders::{read_lender, LenderReserve};
 use crate::measure::{measure_asset, xlm_usd, AssetReport, MeasureConfig};
 use crate::registry::{Asset, Registry};
 use crate::sep1;
@@ -53,6 +54,12 @@ pub struct Run {
     /// Absent in runs stored before stats were recorded.
     #[serde(default)]
     pub stats: RunStats,
+    /// Measured assets held by pinned lending pools. Absent in older runs.
+    #[serde(default)]
+    pub lenders: Vec<LenderReserve>,
+    /// Lending pools that could not be read or verified, and why.
+    #[serde(default)]
+    pub lenders_skipped: Vec<Skipped>,
 }
 
 /// Options for a run.
@@ -152,6 +159,13 @@ pub fn measure_all(
             Err(reason) => skipped.push(Skipped { code, reason }),
         }
     }
+    let (lenders, lenders_skipped) = match (rpc, reg.blend_factory.as_deref()) {
+        (Some(rpc), Some(factory)) if !reg.lenders.is_empty() => {
+            let assets: Vec<Asset> = selected.iter().map(|&a| a.clone()).collect();
+            read_lenders(rpc, factory, reg, &assets)
+        }
+        _ => (Vec::new(), Vec::new()),
+    };
     let measured_at = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map(|d| d.as_secs())
@@ -176,5 +190,45 @@ pub fn measure_all(
         reports,
         skipped,
         stats,
+        lenders,
+        lenders_skipped,
     })
+}
+
+/// Reads every pinned lending pool in parallel. A pool that fails is skipped, not fatal.
+fn read_lenders(
+    rpc: &SorobanRpc,
+    factory: &str,
+    reg: &Registry,
+    assets: &[Asset],
+) -> (Vec<LenderReserve>, Vec<Skipped>) {
+    let outcomes: Vec<(String, Result<Vec<LenderReserve>, String>)> = thread::scope(|s| {
+        let handles: Vec<_> = reg
+            .lenders
+            .iter()
+            .map(|l| {
+                let h = s
+                    .spawn(move || read_lender(rpc, factory, l, assets).map_err(|e| e.to_string()));
+                (l.name.clone(), h)
+            })
+            .collect();
+        handles
+            .into_iter()
+            .map(|(name, h)| {
+                let r = h
+                    .join()
+                    .unwrap_or_else(|_| Err("lender read panicked".into()));
+                (name, r)
+            })
+            .collect()
+    });
+    let mut out = Vec::new();
+    let mut skipped = Vec::new();
+    for (name, r) in outcomes {
+        match r {
+            Ok(mut v) => out.append(&mut v),
+            Err(reason) => skipped.push(Skipped { code: name, reason }),
+        }
+    }
+    (out, skipped)
 }

@@ -12,6 +12,7 @@
 
 pub mod error;
 pub mod horizon;
+pub mod lenders;
 pub mod measure;
 pub mod pools;
 pub mod registry;

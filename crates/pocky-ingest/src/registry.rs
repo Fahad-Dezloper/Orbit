@@ -3,6 +3,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::error::IngestError;
+use crate::lenders::LenderSpec;
 use crate::pools::PoolSpec;
 
 /// A Stellar classic asset. Identity is the pair (code, issuer), never the code alone.
@@ -59,6 +60,13 @@ pub struct Registry {
     /// Soroban AMM pools, pinned and verified on-chain before use.
     #[serde(default, rename = "pool")]
     pub pools: Vec<PoolSpec>,
+    /// Blend pools whose holdings of measured assets are read, each confirmed by
+    /// `blend_factory` before use.
+    #[serde(default, rename = "lender")]
+    pub lenders: Vec<LenderSpec>,
+    /// The Blend v2 pool factory. Required when lenders are listed.
+    #[serde(default)]
+    pub blend_factory: Option<String>,
 }
 
 impl Registry {
@@ -76,6 +84,15 @@ impl Registry {
                     p.contract, p.asset
                 )));
             }
+        }
+        if !r.lenders.is_empty() {
+            let f = r.blend_factory.as_deref().ok_or_else(|| {
+                IngestError::Registry("lenders are listed but blend_factory is not".into())
+            })?;
+            crate::soroban::parse_contract(f)?;
+        }
+        for l in &r.lenders {
+            crate::soroban::parse_contract(&l.contract)?;
         }
         Ok(r)
     }

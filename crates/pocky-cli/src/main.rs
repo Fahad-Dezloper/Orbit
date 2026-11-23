@@ -16,6 +16,7 @@ use std::process::ExitCode;
 
 use clap::{Parser, Subcommand};
 use pocky_core::{Band, Fx};
+use pocky_ingest::lenders::exposure;
 use pocky_ingest::run::{measure_all, Run, RunOptions};
 use pocky_ingest::soroban::{SorobanRpc, DEFAULT_MAINNET_RPC};
 use pocky_ingest::{Horizon, MeasureConfig, Registry};
@@ -167,5 +168,48 @@ fn print_table(out: &Run) {
     }
     for s in &out.skipped {
         println!("{:<9} skipped: {}", s.code, s.reason);
+    }
+    print_lenders(out);
+}
+
+/// Liquidation bonus the lender table compares against (5%).
+const LENDER_BONUS_BPS: u32 = 500;
+
+fn print_lenders(out: &Run) {
+    if out.lenders.is_empty() && out.lenders_skipped.is_empty() {
+        return;
+    }
+    println!(
+        "\n{:<11} {:<9} {:<13} {:<8} {:>10} {:>12} {:>10}",
+        "LENDER", "POOL", "STATUS", "ASSET", "SUPPLIED", "BORROWABLE", "EXIT @5%"
+    );
+    for l in &out.lenders {
+        let Some(report) = out.reports.iter().find(|r| r.code == l.code) else {
+            continue;
+        };
+        let Some(e) = exposure(l, report, LENDER_BONUS_BPS) else {
+            println!(
+                "{:<11} {:<9} {:<13} {:<8} no reference price",
+                l.lender,
+                l.contract.get(..8).unwrap_or(&l.contract),
+                l.status,
+                l.code
+            );
+            continue;
+        };
+        println!(
+            "{:<11} {:<9} {:<13} {:<8} {:>10} {:>12} {:>10}{}",
+            e.lender,
+            e.contract.get(..8).unwrap_or(&e.contract),
+            e.status,
+            e.code,
+            usd(e.supplied_usd),
+            usd(e.borrowable_usd),
+            e.exit_usd_at_bonus.map(usd).unwrap_or_else(|| "-".into()),
+            if e.exceeds_exit { "  exceeds exit" } else { "" }
+        );
+    }
+    for s in &out.lenders_skipped {
+        println!("{:<11} skipped: {}", s.code, s.reason);
     }
 }

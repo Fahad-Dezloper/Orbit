@@ -201,7 +201,7 @@ fn read_metadata(rpc: &SorobanRpc, spec: &PoolSpec) -> Result<(Vec<String>, u32)
 
 /// How much of `token` the token contract itself says `holder` owns. The pool cannot
 /// influence this answer.
-fn held_balance(rpc: &SorobanRpc, token: &str, holder: &str) -> Result<Fx, IngestError> {
+pub(crate) fn held_balance(rpc: &SorobanRpc, token: &str, holder: &str) -> Result<Fx, IngestError> {
     let id = soroban::parse_contract(holder)?;
     let v = rpc.read(
         token,

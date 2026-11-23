@@ -2,6 +2,10 @@
 # issuer's own stellar.toml (SEP-1) at `home_domain`. Never add an issuer taken from
 # Horizon's asset list alone: it contains impostor tokens with the same codes.
 
+# Blend v2 pool factory. A pinned lender below is read only if this factory confirms it
+# deployed the pool (is_pool), so it runs Blend's own code.
+blend_factory = "CDSYOAVXFY7SM5S64IZPPPYB4GVGGLMQVFREPSQQEZVIWXX5R23G4QSU"
+
 [[asset]]
 code = "USTRY"
 issuer = "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC"
@@ -137,3 +141,22 @@ counter = "USDC"
 protocol = "aquarius"
 kind = "quoted"
 contract = "CCV2X5THRWCT7HCGJU42DMOVYLAARVIPEDG2LQOVVA2WGONF2MZY2OX6"
+
+# Blend v2 pools holding measured assets (from the Blend v2 factory; checked Nov 2026).
+# Reserves are matched to assets by locally derived SAC address, never by code.
+
+[[lender]]
+name = "YieldBlox"
+contract = "CCCCIQSDILITHMM7PBSLVDT5MISSY7R26MNZXCX4H7J5JQ5FPIYOGYFS"
+
+[[lender]]
+name = "Etherfuse"
+contract = "CDMAVJPFXPADND3YRL4BSM3AKZWCTFMX27GLLXCML3PD62HEQS5FPVAI"
+
+[[lender]]
+name = "Orbit"
+contract = "CAE7QVOMBLZ53CDRGK3UNRRHG5EZ5NQA7HHTFASEMYBWHG6MDFZTYHXC"
+
+[[lender]]
+name = "New Fixed"
+contract = "CAIYBZSBI6XXI3W7EDXDRWLUBK3RCAPHTK4DNX74DZGWE53KYWBHE236"

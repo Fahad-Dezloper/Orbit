@@ -186,6 +186,8 @@ mod tests {
             }],
             skipped: vec![],
             stats: Default::default(),
+            lenders: Vec::new(),
+            lenders_skipped: Vec::new(),
         }
     }
 

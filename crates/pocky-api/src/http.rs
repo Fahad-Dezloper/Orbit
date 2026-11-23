@@ -7,6 +7,7 @@
 //! | `GET /v1/assets/{code}` | latest report for one asset plus its windowed minimum per band |
 //! | `GET /v1/assets/{code}/history?band=1000&hours=24` | exit series for one band |
 //! | `GET /v1/assets/{code}/cap?bonus_bps=500&safety_bps=5000` | liquidatable collateral at a liquidation bonus, and a recommended cap |
+//! | `GET /v1/lenders?bonus_bps=500` | measured assets held by pinned Blend pools, against the exit at the bonus |
 //!
 //! Fails closed: if the latest run is older than `max_staleness_secs`, `/v1/latest` returns
 //! 503 instead of serving an old figure as if it were current, and a window without enough
@@ -23,6 +24,7 @@ use axum::{Json, Router};
 use pocky_core::{
     liquidatable_at, safe_cap, windowed_min, Band, Fx, Sample, Thresholds, Verdict, WindowPolicy,
 };
+use pocky_ingest::lenders::exposure;
 use pocky_ingest::run::Run;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -61,6 +63,7 @@ pub fn router(state: Shared) -> Router {
         .route("/v1/assets/{code}", get(asset))
         .route("/v1/assets/{code}/history", get(history))
         .route("/v1/assets/{code}/cap", get(cap))
+        .route("/v1/lenders", get(lenders))
         .layer(cors)
         .with_state(state)
 }
@@ -255,6 +258,8 @@ mod tests {
             }],
             skipped: vec![],
             stats: Default::default(),
+            lenders: Vec::new(),
+            lenders_skipped: Vec::new(),
         }
     }
 
@@ -301,6 +306,45 @@ mod tests {
         let (code, body) = get(&s, "/v1/assets/USTRY/history?band=1000&hours=24").await;
         assert_eq!(code, StatusCode::OK);
         assert_eq!(body["points"].as_array().unwrap().len(), 13);
+    }
+
+    #[tokio::test]
+    async fn lenders_are_valued_against_the_exit() {
+        let s = state("lenders");
+        let mut r = run(now(), "1000");
+        r.reports[0].reference = Some(pocky_core::Reference {
+            price_usd: "2".parse().unwrap(),
+            qualifying: vec![],
+        });
+        r.reports[0].curve = vec![pocky_core::CurvePoint {
+            band: Band::new(500).unwrap(),
+            exit_usd: "1000".parse().unwrap(),
+        }];
+        let row = |supplied: &str| pocky_ingest::lenders::LenderReserve {
+            lender: "Test".into(),
+            contract: "C".into(),
+            status: "active".into(),
+            code: "USTRY".into(),
+            supplied: supplied.parse().unwrap(),
+            borrowed: Fx::ZERO,
+            c_factor_bps: 8_000,
+            held: supplied.parse().unwrap(),
+        };
+        // 400 tokens at $2 fit inside $1,000 of exit; 600 tokens at $2 do not.
+        r.lenders = vec![row("400"), row("600")];
+        s.store.append(&r).unwrap();
+        let (code, body) = get(&s, "/v1/lenders").await;
+        assert_eq!(code, StatusCode::OK);
+        let rows = body["exposures"].as_array().unwrap();
+        assert_eq!(rows[0]["supplied_usd"], "800.0000000");
+        assert_eq!(rows[0]["borrowable_usd"], "640.0000000");
+        assert_eq!(rows[0]["exceeds_exit"], false);
+        assert_eq!(rows[1]["exceeds_exit"], true);
+        assert_eq!(body["exceeding_exit"], 1);
+        assert_eq!(
+            get(&s, "/v1/lenders?bonus_bps=0").await.0,
+            StatusCode::BAD_REQUEST
+        );
     }
 
     #[tokio::test]
@@ -352,6 +396,44 @@ mod tests {
         let (code, _) = get(&s, "/v1/assets/USTRY/history?band=0").await;
         assert_eq!(code, StatusCode::BAD_REQUEST);
     }
+}
+
+#[derive(Deserialize)]
+struct LendersQuery {
+    bonus_bps: Option<u32>,
+}
+
+/// Every measured asset held by a pinned lending pool in the latest run, valued at the
+/// run's reference price, beside what the market could absorb at the bonus.
+async fn lenders(State(s): State<Shared>, Query(q): Query<LendersQuery>) -> Response {
+    let bonus = q.bonus_bps.unwrap_or(500);
+    if bonus == 0 || bonus >= 10_000 {
+        return error(StatusCode::BAD_REQUEST, "bonus_bps must be 1..9999");
+    }
+    let run = match latest_run(&s) {
+        Ok(r) => r,
+        Err(resp) => return *resp,
+    };
+    let rows: Vec<_> = run
+        .lenders
+        .iter()
+        .filter_map(|l| {
+            let report = run.reports.iter().find(|r| r.code == l.code)?;
+            exposure(l, report, bonus)
+        })
+        .collect();
+    let at_risk = rows.iter().filter(|e| e.exceeds_exit).count();
+    Json(json!({
+        "measured_at": run.measured_at,
+        "bonus_bps": bonus,
+        "exposures": rows,
+        "exceeding_exit": at_risk,
+        "skipped": run.lenders_skipped,
+        "meaning": "supplied_usd is every token of the asset supplied to the pool (collateral and \
+                    lending together) at the reference price. exceeds_exit is true when that is \
+                    more than could be sold across Stellar venues before the bonus is gone.",
+    }))
+    .into_response()
 }
 
 #[derive(Deserialize)]
