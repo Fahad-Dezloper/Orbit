@@ -184,6 +184,53 @@ issuer = "GANULT25TFO6V6BFWSEG4VSCR4QXBNHV5T344R2AFZEPE6B324LVLOOJ"
 home_domain = "stellar.wisdomtree.com"
 name = "WisdomTree Siegel Moderate Digital Fund"
 
+# Centrifuge tokens. These exist only as Soroban contracts (SEP-41), so they have no SDEX
+# order book and are identified by contract, confirmed in centrifuge.io's stellar.toml.
+# deJAAA and deJTRSY are freely transferable wrappers; JAAA, JTRSY, HYB and JQQQ are
+# allowlist-only; deHYB can be paused or block addresses.
+
+[[asset]]
+code = "deJAAA"
+contract = "CC64WBDGS6QQP22QTTIACYIXT3WF7BBQEYOQPLTP7GTKYY7PZ74QYGSL"
+home_domain = "centrifuge.io"
+name = "Centrifuge deJAAA (Janus Henderson AAA CLO fund)"
+
+[[asset]]
+code = "deJTRSY"
+contract = "CBI7UCH5KGSVQRO5H4SUCZUTZABCITZLRHQQZTWL2TK4RZ72TAR6IHRV"
+home_domain = "centrifuge.io"
+name = "Centrifuge deJTRSY (Janus Henderson Treasury fund)"
+
+[[asset]]
+code = "deHYB"
+contract = "CCRTH4IJKVIBU6VQLRHFKDQYWXBEBJJXKDFNWVETLKUJJ7U62HBAZOIH"
+home_domain = "centrifuge.io"
+name = "Centrifuge deHYB (NYLIM US high-yield bond fund)"
+
+[[asset]]
+code = "JAAA"
+contract = "CDV6U7OEVY6KUEJ4WNS63AYB6RFU3BAE7AZJOQ7LPH447C6NWUXEZZSO"
+home_domain = "centrifuge.io"
+name = "Janus Henderson Anemoy AAA CLO fund"
+
+[[asset]]
+code = "JTRSY"
+contract = "CBHOEKLWTB6HR2A3IXHIIMQG5FOXWXS6EG4Q5YJDRPMXPCX7M24CYR2O"
+home_domain = "centrifuge.io"
+name = "Janus Henderson Anemoy Treasury fund"
+
+[[asset]]
+code = "HYB"
+contract = "CBNT35PZXQBXKCNKPA6AL6TXHANGLAZMPE35TJUPI2BCO7OGHVKW3WYA"
+home_domain = "centrifuge.io"
+name = "NYLIM US high-yield bond fund"
+
+[[asset]]
+code = "JQQQ"
+contract = "CAQYPRTX2E6H6BM57QRBYZWP667FPDYDUHMOQXGXM2HA64KO6AISRFEK"
+home_domain = "centrifuge.io"
+name = "Janus Henderson NASDAQ-100 index fund"
+
 # Counter assets used for USD conversion.
 [usdc]
 code = "USDC"
@@ -278,3 +325,20 @@ contract = "CAE7QVOMBLZ53CDRGK3UNRRHG5EZ5NQA7HHTFASEMYBWHG6MDFZTYHXC"
 [[lender]]
 name = "New Fixed"
 contract = "CAIYBZSBI6XXI3W7EDXDRWLUBK3RCAPHTK4DNX74DZGWE53KYWBHE236"
+
+# Sushi v3 pools (concentrated liquidity), read from the pool's own quote_exact_input.
+# Found through Sushi's pool lens; the only on-chain markets for these tokens (Nov 2026).
+
+[[pool]]
+asset = "deJAAA"
+counter = "USDC"
+protocol = "sushi"
+kind = "quoted"
+contract = "CD7ZJUQEJODTJXWJMDJRV7UHCANOBX3FC6KXJV3DMIFX3JXUWMF3U3T5"
+
+[[pool]]
+asset = "deJTRSY"
+counter = "USDC"
+protocol = "sushi"
+kind = "quoted"
+contract = "CDMJRRH5MAJLB7T5SQAWQOOL7UJ3BABGTURSVKIE6AEDSXESDDJIBVCT"

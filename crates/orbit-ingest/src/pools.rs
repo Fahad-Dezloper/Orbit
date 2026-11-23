@@ -51,6 +51,8 @@ pub enum Protocol {
     Aquarius,
     /// Soroswap pair (constant-product, Uniswap v2 style).
     Soroswap,
+    /// Sushi v3 pool (concentrated liquidity, Uniswap v3 style). Always quoted.
+    Sushi,
 }
 
 impl Protocol {
@@ -58,6 +60,7 @@ impl Protocol {
         match self {
             Protocol::Aquarius => "aquarius",
             Protocol::Soroswap => "soroswap",
+            Protocol::Sushi => "sushi",
         }
     }
 }
@@ -114,9 +117,15 @@ pub enum PoolState {
 impl PoolSpec {
     pub fn validate(&self) -> Result<(), IngestError> {
         soroban::parse_contract(&self.contract)?;
-        if self.kind == PoolKind::Quoted && self.protocol != Protocol::Aquarius {
+        if self.kind == PoolKind::Quoted && self.protocol == Protocol::Soroswap {
             return Err(IngestError::Registry(format!(
-                "pool {}: only Aquarius pools can be quoted",
+                "pool {}: Soroswap pools are constant-product, not quoted",
+                self.contract
+            )));
+        }
+        if self.protocol == Protocol::Sushi && self.kind != PoolKind::Quoted {
+            return Err(IngestError::Registry(format!(
+                "pool {}: Sushi pools must be pinned with kind = \"quoted\"",
                 self.contract
             )));
         }
@@ -136,7 +145,7 @@ pub fn read_pool(
     asset: &Asset,
     usdc: &Asset,
 ) -> Result<CpPool, IngestError> {
-    let want_asset = soroban::sac_address(Token::Credit(asset), rpc.passphrase())?;
+    let want_asset = asset.token_address(rpc.passphrase())?;
     let want_counter = match spec.counter {
         Counter::Usdc => soroban::sac_address(Token::Credit(usdc), rpc.passphrase())?,
         Counter::Xlm => soroban::sac_address(Token::Native, rpc.passphrase())?,
@@ -190,6 +199,9 @@ fn read_metadata(rpc: &SorobanRpc, spec: &PoolSpec) -> Result<(Vec<String>, u32)
             let tokens = soroban::contract_addresses(&rpc.read(c, "get_tokens", vec![])?)?;
             let fee = soroban::as_u32(&rpc.read(c, "get_fee_fraction", vec![])?)?;
             (tokens, fee)
+        }
+        Protocol::Sushi => {
+            return Err(reject(spec, "Sushi pools are read from their quotes"));
         }
         Protocol::Soroswap => {
             let t0 = soroban::contract_address(&rpc.read(c, "token_0", vec![])?)?;
@@ -301,6 +313,9 @@ pub fn read_pool_state(
         PoolKind::ConstantProduct => {
             read_pool(rpc, spec, asset, usdc).map(PoolState::ConstantProduct)
         }
+        PoolKind::Quoted if spec.protocol == Protocol::Sushi => {
+            read_sushi_pool(rpc, spec, asset, usdc).map(PoolState::Quoted)
+        }
         PoolKind::Quoted => read_quoted_pool(rpc, spec, asset, usdc).map(PoolState::Quoted),
     }
 }
@@ -358,7 +373,7 @@ pub fn read_quoted_pool(
     asset: &Asset,
     usdc: &Asset,
 ) -> Result<QuotedPool, IngestError> {
-    let want_asset = soroban::sac_address(Token::Credit(asset), rpc.passphrase())?;
+    let want_asset = asset.token_address(rpc.passphrase())?;
     let want_counter = match spec.counter {
         Counter::Usdc => soroban::sac_address(Token::Credit(usdc), rpc.passphrase())?,
         Counter::Xlm => soroban::sac_address(Token::Native, rpc.passphrase())?,
@@ -443,9 +458,225 @@ pub fn read_quoted_pool(
     QuotedPool::new(samples).map_err(|e| reject(spec, format!("inconsistent quotes: {e}")))
 }
 
+// ------------------------------------------------------------------ Sushi v3
+
+/// Lowest and highest sqrt prices a Uniswap-v3-style swap accepts (MIN + 1, MAX - 1).
+const MIN_SQRT_RATIO_PLUS_1: u128 = 4_295_128_740;
+const MAX_SQRT_RATIO_MINUS_1: &str = "1461446703485210103287273052203988822378723970341";
+
+fn u256_val(n: &str) -> Result<stellar_xdr::ScVal, IngestError> {
+    // Parse a decimal string into four big-endian u64 limbs.
+    let mut limbs = [0u64; 4];
+    for ch in n.bytes() {
+        let d = u64::from(
+            ch.checked_sub(b'0')
+                .filter(|d| *d <= 9)
+                .ok_or_else(|| IngestError::Registry(format!("bad u256 {n}")))?,
+        );
+        let mut carry = d as u128;
+        for limb in limbs.iter_mut().rev() {
+            let v = (*limb as u128) * 10 + carry;
+            *limb = v as u64;
+            carry = v >> 64;
+        }
+        if carry != 0 {
+            return Err(IngestError::Registry(format!("u256 overflow {n}")));
+        }
+    }
+    Ok(stellar_xdr::ScVal::U256(stellar_xdr::UInt256Parts {
+        hi_hi: limbs[0],
+        hi_lo: limbs[1],
+        lo_hi: limbs[2],
+        lo_lo: limbs[3],
+    }))
+}
+
+fn i128_of(v: &stellar_xdr::ScVal) -> Option<i128> {
+    match v {
+        stellar_xdr::ScVal::I128(p) => Some((i128::from(p.hi) << 64) | i128::from(p.lo)),
+        _ => None,
+    }
+}
+
+fn map_field<'a>(v: &'a stellar_xdr::ScVal, key: &str) -> Option<&'a stellar_xdr::ScVal> {
+    let stellar_xdr::ScVal::Map(Some(m)) = v else {
+        return None;
+    };
+    m.iter()
+        .find(|e| matches!(&e.key, stellar_xdr::ScVal::Symbol(s) if s.to_string() == key))
+        .map(|e| &e.val)
+}
+
+/// `10^(decimals - 7)`: how many of the token's smallest units make one [`Fx`] raw unit.
+/// Tokens with fewer than 7 decimals are refused rather than rounded.
+pub fn unit_scale(decimals: u32) -> Result<i128, IngestError> {
+    if !(7..=30).contains(&decimals) {
+        return Err(IngestError::Registry(format!(
+            "unsupported token decimals {decimals}"
+        )));
+    }
+    Ok(10i128.pow(decimals - 7))
+}
+
+/// The counter amount the pool pays out for selling `amount_in` (token units) of the asset.
+/// Uniswap-v3 convention: the amount leaving the pool is negative.
+pub fn sushi_out(result: &stellar_xdr::ScVal, zero_for_one: bool) -> Result<i128, IngestError> {
+    let key = if zero_for_one { "amount1" } else { "amount0" };
+    let out = map_field(result, key)
+        .and_then(i128_of)
+        .ok_or_else(|| IngestError::Registry(format!("quote has no {key}")))?;
+    if out > 0 {
+        return Err(IngestError::Registry(
+            "quote pays a positive amount in".into(),
+        ));
+    }
+    Ok(-out)
+}
+
+/// Samples a Sushi v3 pool's own `quote_exact_input` for selling `asset`, after checking it
+/// holds exactly `asset` and the counter. Token amounts are converted from the token's own
+/// decimals. A sale too large to quote (the simulation runs out of budget) ends the samples
+/// there, which can only understate depth.
+pub fn read_sushi_pool(
+    rpc: &SorobanRpc,
+    spec: &PoolSpec,
+    asset: &Asset,
+    usdc: &Asset,
+) -> Result<QuotedPool, IngestError> {
+    let want_asset = asset.token_address(rpc.passphrase())?;
+    let want_counter = match spec.counter {
+        Counter::Usdc => soroban::sac_address(Token::Credit(usdc), rpc.passphrase())?,
+        Counter::Xlm => soroban::sac_address(Token::Native, rpc.passphrase())?,
+    };
+    let c = &spec.contract;
+    let t0 = soroban::contract_address(&rpc.read(c, "token0", vec![])?)?;
+    let t1 = soroban::contract_address(&rpc.read(c, "token1", vec![])?)?;
+    let zero_for_one = if t0 == want_asset && t1 == want_counter {
+        true
+    } else if t1 == want_asset && t0 == want_counter {
+        false
+    } else {
+        return Err(reject(
+            spec,
+            format!("holds [{t0}, {t1}], expected {want_asset} and {want_counter}"),
+        ));
+    };
+    let decimals = soroban::as_u32(&rpc.read(&want_asset, "decimals", vec![])?)?;
+    let scale = unit_scale(decimals)?;
+    let limit = if zero_for_one {
+        u256_val(&MIN_SQRT_RATIO_PLUS_1.to_string())?
+    } else {
+        u256_val(MAX_SQRT_RATIO_MINUS_1)?
+    };
+    let quote_at = |base_in: Fx| -> Result<Fx, IngestError> {
+        let amount_in = base_in
+            .raw()
+            .checked_mul(scale)
+            .ok_or_else(|| reject(spec, "sale size overflows"))?;
+        let v = rpc.read(
+            c,
+            "quote_exact_input",
+            vec![
+                stellar_xdr::ScVal::Bool(zero_for_one),
+                stellar_xdr::ScVal::I128(stellar_xdr::Int128Parts {
+                    hi: (amount_in >> 64) as i64,
+                    lo: amount_in as u64,
+                }),
+                limit.clone(),
+            ],
+        )?;
+        Fx::from_raw(sushi_out(&v, zero_for_one)?).map_err(IngestError::from)
+    };
+
+    let held_counter = held_balance(rpc, &want_counter, c)?;
+    if held_counter.is_zero() {
+        return QuotedPool::new(vec![]).map_err(IngestError::from);
+    }
+    let one = Fx::ONE;
+    let probe_out = quote_at(one)?;
+    if probe_out.is_zero() {
+        return QuotedPool::new(vec![]).map_err(IngestError::from);
+    }
+    let sizes: Vec<Fx> = QUOTE_FRACTIONS_BPS
+        .iter()
+        .map(|&f| held_counter.mul_bps_down(f)?.div_down(probe_out))
+        .collect::<Result<_, _>>()?;
+    let outs: Vec<Result<Fx, IngestError>> = std::thread::scope(|s| {
+        let handles: Vec<_> = sizes
+            .iter()
+            .map(|&size| s.spawn(move || quote_at(size)))
+            .collect();
+        handles
+            .into_iter()
+            .map(|h| {
+                h.join()
+                    .unwrap_or_else(|_| Err(IngestError::Registry("quote panicked".into())))
+            })
+            .collect()
+    });
+    let mut samples = vec![QuoteSample {
+        base_in: one,
+        counter_out: probe_out,
+    }];
+    for (size, out) in sizes.into_iter().zip(outs) {
+        if size <= one {
+            continue;
+        }
+        match out {
+            Ok(out) => samples.push(QuoteSample {
+                base_in: size,
+                counter_out: out,
+            }),
+            // Too large to quote: stop here rather than guess.
+            Err(_) => break,
+        }
+    }
+    if let Some(s) = samples.iter().find(|s| s.counter_out > held_counter) {
+        return Err(reject(
+            spec,
+            format!(
+                "quotes {} of the counter but holds {held_counter}",
+                s.counter_out
+            ),
+        ));
+    }
+    QuotedPool::new(samples).map_err(|e| reject(spec, format!("inconsistent quotes: {e}")))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn sushi_amounts_and_decimals() {
+        use stellar_xdr::{Int128Parts, ScMap, ScMapEntry, ScSymbol, ScVal};
+        let i = |n: i128| {
+            ScVal::I128(Int128Parts {
+                hi: (n >> 64) as i64,
+                lo: n as u64,
+            })
+        };
+        let entry = |k: &str, v: ScVal| ScMapEntry {
+            key: ScVal::Symbol(ScSymbol(k.try_into().unwrap())),
+            val: v,
+        };
+        // Selling 1 deJAAA (token1, 18 decimals) for 1.0494 USDC (token0, 7 decimals).
+        let r = ScVal::Map(Some(ScMap(
+            vec![
+                entry("amount0", i(-10_494_000)),
+                entry("amount1", i(10i128.pow(18))),
+            ]
+            .try_into()
+            .unwrap(),
+        )));
+        assert_eq!(sushi_out(&r, false).unwrap(), 10_494_000);
+        assert!(sushi_out(&r, true).is_err(), "amount1 is paid in, not out");
+        assert_eq!(unit_scale(18).unwrap(), 10i128.pow(11));
+        assert_eq!(unit_scale(7).unwrap(), 1);
+        assert!(unit_scale(6).is_err());
+        assert!(u256_val(MAX_SQRT_RATIO_MINUS_1).is_ok());
+        assert!(u256_val("1").is_ok());
+    }
 
     const USTRY: &str = "CBLV4ATSIWU67CFSQU2NVRKINQIKUZ2ODSZBUJTJ43VJVRSBTZYOPNUR";
     const USDC: &str = "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75";

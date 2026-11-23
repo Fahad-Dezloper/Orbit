@@ -412,6 +412,7 @@ mod tests {
             issuer: issuer.into(),
             home_domain: "example.com".into(),
             name: String::new(),
+            contract: None,
         }
     }
 

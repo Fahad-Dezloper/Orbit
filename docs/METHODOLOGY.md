@@ -146,7 +146,7 @@ first).
 ## 11. Known limits
 
 - Venues not pinned (new pools, pools against counters other than USDC and XLM, and as of
-  Nov 2026 Curve and Sushi pools) are not counted. This understates depth.
+  Nov 2026 Curve, Comet and Stellar Broker) are not counted. This understates depth.
 - Quoted pools are sampled, not solved: exit between samples is not credited.
 - Depth on other chains, and redemption with the issuer, are not exit on Stellar and are not
   counted.
@@ -154,8 +154,8 @@ first).
   reference moves with them; the 24h minimum limits how long that can inflate depth, but it
   cannot detect a market that is wrong everywhere at once.
 - The contract and publisher have not had an external audit.
-- Tokens that exist only as Soroban contracts (Centrifuge's deJAAA and others) are not
-  measured yet, and tokens whose issuer file cannot be fetched (such as Matrixdock's XAUM)
-  are left out on purpose.
+- Tokens whose issuer file cannot be fetched (such as Matrixdock's XAUM) are left out on
+  purpose.
+- Sushi v3 quotes are sampled up to 80% of the pool's USDC; exit beyond that is not credited.
 - Lender holdings cover pinned Blend v2 pools only; Templar, where most Stellar RWA
   borrowing sits, is not read.

@@ -30,7 +30,7 @@ const STEPS: { title: string; body: React.ReactNode }[] = [
     body: (
       <>
         Orbit reads the SDEX order book (Stellar’s built-in exchange) and the AMM pools on
-        Aquarius and Soroswap. For each pool, it checks that the pool really holds the tokens it
+        Aquarius, Soroswap and Sushi. For each pool, it checks that the pool really holds the tokens it
         claims to hold before counting it.
       </>
     ),
@@ -86,7 +86,7 @@ const STEPS: { title: string; body: React.ReactNode }[] = [
 ];
 
 const LIMITS = [
-  "Some newer markets (Curve, Comet, Stellar Broker and Sushi) are not counted yet. Leaving a market out can only make the number lower, never higher.",
+  "Some newer markets (Curve, Comet and Stellar Broker) are not counted yet. Leaving a market out can only make the number lower, never higher.",
   "Buying back from the issuer, or selling on other blockchains, is not counted. Only Stellar’s own markets are.",
   "Someone with a lot of money could keep fake buyers in place for a whole day. Planned fixes make that slow and expensive.",
   "The contract has an internal security review, but no outside audit yet.",

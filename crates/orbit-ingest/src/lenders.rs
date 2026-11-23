@@ -19,7 +19,7 @@ use crate::error::IngestError;
 use crate::measure::AssetReport;
 use crate::pools::held_balance;
 use crate::registry::Asset;
-use crate::soroban::{self, SorobanRpc, Token};
+use crate::soroban::{self, SorobanRpc};
 
 /// Blend v2 keeps interest rates with 12 decimals.
 const RATE_SCALE: i128 = 1_000_000_000_000;
@@ -185,7 +185,7 @@ pub fn read_lender(
     let listed = soroban::contract_addresses(&rpc.read(c, "get_reserve_list", vec![])?)?;
     let mut out = Vec::new();
     for a in assets {
-        let sac = soroban::sac_address(Token::Credit(a), rpc.passphrase())?;
+        let sac = a.token_address(rpc.passphrase())?;
         if !listed.contains(&sac) {
             continue;
         }

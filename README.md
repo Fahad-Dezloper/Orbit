@@ -59,8 +59,10 @@ sold across Stellar's order books and AMM pools before the liquidation bonus is 
   reserves against its token balances, so a venue cannot report depth it does not hold.
 - **A cap, not a score.** The output is a USD figure per band, a liquidation curve and a
   collateral cap a lender can enforce, published on-chain.
-- **Not yet counted:** Curve (on Stellar since 29 Oct 2026), Comet, Stellar Broker and Sushi
-  pools (since Sep 2026, including deJAAA). Venues left out can only understate depth; adding them is plan 2.10.
+- **Sushi included:** Centrifuge's deJAAA and deJTRSY trade only in Sushi v3 pools (about
+  $1.5M each sellable within 10%), and Orbit reads them.
+- **Not yet counted:** Curve (on Stellar since 29 Oct 2026), Comet and Stellar Broker. Venues
+  left out can only understate depth; adding them is plan 2.10.
 - **Built to be read by others.** The AMM-inclusive depth figure is the input both of the
   above lack; a circuit breaker or a price guard can read it rather than rebuild it.
 

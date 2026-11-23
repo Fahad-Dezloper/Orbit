@@ -41,6 +41,13 @@ const NAMES: Record<string, string> = {
   EQTY: "WisdomTree global equity fund",
   LNGV: "WisdomTree longevity fund",
   MODR: "WisdomTree moderate fund",
+  deJAAA: "Centrifuge AAA loan fund",
+  deJTRSY: "Centrifuge Treasury fund",
+  deHYB: "Centrifuge high-yield bond fund",
+  JAAA: "Janus Henderson AAA loan fund",
+  JTRSY: "Janus Henderson Treasury fund",
+  HYB: "NYLIM high-yield bond fund",
+  JQQQ: "Janus Henderson NASDAQ-100 fund",
 };
 
 /** Funds whose issuers only let approved holders own them, so no open market can exist. */
@@ -48,6 +55,7 @@ const RESTRICTED = new Set([
   "BENJI", "gBENJI", "grBENJI", "sgBENJI",
   "WTGX", "WTSY", "WTTS", "WTST", "FLTT", "WTLG", "WTSI", "TIPS",
   "GOLD", "CRDT", "SPXU", "TECH", "EQTY", "LNGV", "MODR",
+  "JAAA", "JTRSY", "HYB", "JQQQ",
 ]);
 
 const STATUS: Record<Verdict, { label: string; tone: string }> = {
@@ -360,8 +368,8 @@ export default async function Page() {
         <section className="section">
           <h2>Only approved holders can trade these</h2>
           <p className="section-sub">
-            Franklin Templeton and WisdomTree funds on Stellar. Their issuers restrict who can own
-            them, so there is no open market to sell into. Buying and selling happens through
+            Franklin Templeton, WisdomTree and Centrifuge funds on Stellar. Their issuers restrict
+            who can own them, so there is no open market to sell into. Buying and selling happens through
             the issuer.
           </p>
           <div className="chips">
@@ -379,7 +387,7 @@ export default async function Page() {
 
       <footer className="foot">
         <p>
-          Markets read: SDEX order books, Aquarius pools and Soroswap pools. Every number can be
+          Markets read: SDEX order books and AMM pools on Aquarius, Soroswap and Sushi. Every number can be
           checked: <a href="v1/latest.json">raw data</a> · <Link href="/methodology">how it works</Link>.
         </p>
       </footer>

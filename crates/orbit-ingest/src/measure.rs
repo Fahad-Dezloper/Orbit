@@ -126,8 +126,18 @@ pub fn measure_asset(
     };
     // Both books and every pool are fetched at the same time.
     let (usdc_book, xlm_book, pool_reads) = std::thread::scope(|s| {
-        let usdc_book = s.spawn(|| h.order_book(asset, &Side::Credit(usdc)));
-        let xlm_book = s.spawn(|| h.order_book(asset, &Side::Native));
+        // A contract-only token has no SDEX order book.
+        let classic = !asset.is_contract();
+        let usdc_book = s.spawn(move || {
+            classic
+                .then(|| h.order_book(asset, &Side::Credit(usdc)))
+                .transpose()
+        });
+        let xlm_book = s.spawn(move || {
+            classic
+                .then(|| h.order_book(asset, &Side::Native))
+                .transpose()
+        });
         let pool_handles: Vec<_> = mine
             .iter()
             .map(|&spec| {
@@ -147,24 +157,27 @@ pub fn measure_asset(
                 .collect::<Vec<_>>(),
         )
     });
-    let mut legs = vec![
-        Leg {
+    let mut legs = Vec::new();
+    if let Some(book) = usdc_book? {
+        legs.push(Leg {
             venue: Venue::Sdex {
                 counter: "USDC".into(),
             },
             label: "SDEX/USDC".into(),
             usd_per_counter: Fx::ONE,
-            source: Source::Book(usdc_book?),
-        },
-        Leg {
+            source: Source::Book(book),
+        });
+    }
+    if let Some(book) = xlm_book? {
+        legs.push(Leg {
             venue: Venue::Sdex {
                 counter: "XLM".into(),
             },
             label: "SDEX/XLM".into(),
             usd_per_counter: xlm_usd,
-            source: Source::Book(xlm_book?),
-        },
-    ];
+            source: Source::Book(book),
+        });
+    }
     {
         for (spec, read) in mine.iter().zip(pool_reads) {
             let short = spec.contract.get(..8).unwrap_or(&spec.contract);
@@ -303,7 +316,7 @@ pub fn measure_asset(
     }
     Ok(AssetReport {
         code: asset.code.clone(),
-        issuer: asset.issuer.clone(),
+        issuer: asset.identity().to_string(),
         reference,
         venue_mids: mids,
         depths,

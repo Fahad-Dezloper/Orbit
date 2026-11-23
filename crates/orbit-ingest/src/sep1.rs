@@ -23,6 +23,8 @@ struct Toml {
 struct Currency {
     code: Option<String>,
     issuer: Option<String>,
+    /// SEP-1 `contract` field, for tokens that exist only on Soroban.
+    contract: Option<String>,
 }
 
 /// Returns `Ok(())` only if the domain's stellar.toml lists exactly this code and issuer.
@@ -111,12 +113,18 @@ pub fn check_toml(asset: &Asset, body: &str) -> Result<(), String> {
     let currencies = currencies(body)?;
     let found = currencies.iter().any(|c| {
         c.code.as_deref() == Some(asset.code.as_str())
-            && c.issuer.as_deref() == Some(asset.issuer.as_str())
+            && match &asset.contract {
+                Some(id) => c.contract.as_deref() == Some(id.as_str()),
+                None => c.issuer.as_deref() == Some(asset.issuer.as_str()),
+            }
     });
     if found {
         Ok(())
     } else {
-        Err("code and issuer pair not listed in CURRENCIES".to_string())
+        Err(match asset.contract {
+            Some(_) => "code and contract pair not listed in CURRENCIES".to_string(),
+            None => "code and issuer pair not listed in CURRENCIES".to_string(),
+        })
     }
 }
 
@@ -130,6 +138,7 @@ mod tests {
             issuer: issuer.into(),
             home_domain: "example.com".into(),
             name: String::new(),
+            contract: None,
         }
     }
     const REAL: &str = "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC";
@@ -152,6 +161,23 @@ mod tests {
     #[test]
     fn rejects_impostor_issuer_with_same_code() {
         assert!(check_toml(&asset("USTRY", FAKE), BODY).is_err());
+    }
+
+    #[test]
+    fn contract_tokens_match_on_contract() {
+        let body = r#"
+            [[CURRENCIES]]
+            code = "deJAAA"
+            contract = "CC64WBDGS6QQP22QTTIACYIXT3WF7BBQEYOQPLTP7GTKYY7PZ74QYGSL"
+        "#;
+        let mut a = asset("deJAAA", "");
+        a.contract = Some("CC64WBDGS6QQP22QTTIACYIXT3WF7BBQEYOQPLTP7GTKYY7PZ74QYGSL".into());
+        assert!(check_toml(&a, body).is_ok());
+        // A different contract with the same code is an impostor.
+        a.contract = Some("CBI7UCH5KGSVQRO5H4SUCZUTZABCITZLRHQQZTWL2TK4RZ72TAR6IHRV".into());
+        assert!(check_toml(&a, body).is_err());
+        // A classic asset with the same code is not confirmed by a contract entry.
+        assert!(check_toml(&asset("deJAAA", REAL), body).is_err());
     }
 
     #[test]
