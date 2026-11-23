@@ -155,4 +155,4 @@ subphase, and [`docs/SECURITY.md`](docs/SECURITY.md) for the threat model.
 
 ## License
 
-Apache-2.0.
+Apache-2.0. See [LICENSE](LICENSE).
