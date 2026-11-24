@@ -8,22 +8,25 @@
 name: measure
 
 # GitHub runs free scheduled jobs only every few hours, which leaves gaps the 24h window does
-# not accept. So each run queues the next one itself after a random 25 to 35 minute wait. The
-# schedule only restarts the chain if it ever stops.
+# not accept. So each run queues the next one itself after a random 25 to 35 minute wait, in a
+# separate job so the wait never holds up a deploy. The schedule only restarts the chain if it
+# ever stops. A push that changes the docs or dashboard deploys straight away.
 on:
   schedule:
     - cron: "*/30 * * * *"
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "docs-site/**"
+      - "web/**"
+      - ".github/workflows/measure.yml"
 
 permissions:
   contents: write
   pages: write
   id-token: write
   actions: write
-
-concurrency:
-  group: measure
-  cancel-in-progress: false
 
 env:
   ORACLE: CCOI2QVXHQIX7ZADUT5LSJPDAQSKPEINUK6HCMCSCZTWLB5BK7W4CBUQ
@@ -33,7 +36,10 @@ env:
 jobs:
   measure:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 20
+    concurrency:
+      group: measure
+      cancel-in-progress: false
     env:
       HAS_PUBLISHER_KEY: ${{ secrets.ORBIT_TESTNET_PUBLISHER_SECRET != '' }}
     environment:
@@ -139,10 +145,22 @@ jobs:
       - id: deploy
         uses: actions/deploy-pages@v5
 
-      # Wait 25 to 35 minutes (random, so reading times cannot be predicted), then queue the
-      # next run unless another one is already queued or running.
+      - name: Fail if the measurement failed
+        if: steps.measure.outcome == 'failure'
+        run: exit 1
+
+  # Waits 25 to 35 minutes, then queues the next reading. Only one wait is ever pending: a newer
+  # run's wait cancels the older one, so pushes and manual runs never start a second chain.
+  next:
+    needs: measure
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    concurrency:
+      group: next-reading
+      cancel-in-progress: true
+    steps:
       - name: Queue the next reading
-        if: ${{ !cancelled() }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -155,7 +173,3 @@ jobs:
           else
             echo "another run is already queued or running; not chaining"
           fi
-
-      - name: Fail if the measurement failed
-        if: steps.measure.outcome == 'failure'
-        run: exit 1
