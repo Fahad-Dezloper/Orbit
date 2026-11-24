@@ -1,0 +1,30 @@
+---
+title: "History"
+api: "GET https://fahad-dezloper.github.io/Orbit/v1/assets/{code}/history.json"
+description: "Exit over time for one band."
+---
+
+<ParamField path="code" type="string" required>Token code.</ParamField>
+<ParamField query="band" type="number" default="1000">Band in basis points. Self-hosted API only; the static file uses 1000.</ParamField>
+<ParamField query="hours" type="number" default="24">How far back. Self-hosted API only.</ParamField>
+
+## Response
+
+<ResponseField name="code" type="string" />
+<ResponseField name="band" type="number" />
+<ResponseField name="hours" type="number" />
+<ResponseField name="points" type="object[]">`{ ts, exit_usd }`, oldest first. Incomplete readings are left out.</ResponseField>
+
+<ResponseExample>
+```json Response
+{
+  "code": "USTRY",
+  "band": 1000,
+  "hours": 24,
+  "points": [
+    { "ts": 1795380000, "exit_usd": "371204.0000000" },
+    { "ts": 1795381800, "exit_usd": "368511.0000000" }
+  ]
+}
+```
+</ResponseExample>

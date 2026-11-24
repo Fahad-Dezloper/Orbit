@@ -1,0 +1,24 @@
+---
+title: "Live market depth"
+description: "Orbit's latest reading for every Stellar RWA it tracks, refreshed every minute."
+mode: "wide"
+---
+
+import { LiveDepth } from "/snippets/live-depth.jsx";
+
+## RWA tokens
+
+<LiveDepth show="market" />
+
+## Other tokens lenders accept
+
+Not RWAs, but Stellar lending pools take these as collateral, so Orbit measures them the same
+way.
+
+<LiveDepth show="other" />
+
+<Note>
+  Data source: [`/v1/latest.json`](https://fahad-dezloper.github.io/Orbit/v1/latest.json),
+  updated every 30 minutes. The full dashboard is at
+  [fahad-dezloper.github.io/Orbit](https://fahad-dezloper.github.io/Orbit/).
+</Note>

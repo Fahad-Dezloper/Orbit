@@ -1,0 +1,37 @@
+---
+title: "Markets read"
+description: "Every place on Stellar where a token can be sold, and how Orbit reads it."
+---
+
+| Market | Type | How Orbit reads it |
+| --- | --- | --- |
+| SDEX | Stellar's built-in order book | Horizon order books against USDC and XLM |
+| Aquarius standard pools | Constant product | Reserves, solved exactly |
+| Aquarius concentrated and stable pools | Custom curves | The pool's own `estimate_swap` quotes |
+| Soroswap | Constant product | Reserves, solved exactly |
+| Sushi v3 | Concentrated liquidity | The pool's own `quote_exact_input` quotes |
+
+## Pools are pinned
+
+Orbit does not discover pools automatically. Each pool is listed in `assets.toml` and checked on
+every read:
+
+- its tokens must be exactly the measured token and the counter (USDC or XLM);
+- its type must match how it is listed;
+- what it reports must not exceed what the token contracts say it holds.
+
+A pool that fails any check is left out and noted. Leaving a market out can only make a figure
+lower, never higher.
+
+## Why pools matter
+
+For several tokens nearly all of the market is outside the order book:
+
+- **USDY**: about 98% of what can be sold sits in one Aquarius pool.
+- **deJAAA and deJTRSY**: the only markets are Sushi v3 pools, about $1.5M each sellable within
+  10%.
+- **USTRY**: about 30% of its market is in AMM pools.
+
+## Not read yet
+
+Curve (on Stellar since 29 Oct 2026), Comet and Stellar Broker.

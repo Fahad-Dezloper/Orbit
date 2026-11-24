@@ -1,0 +1,38 @@
+---
+title: "Safe limit (cap)"
+api: "GET https://fahad-dezloper.github.io/Orbit/v1/assets/{code}/cap.json"
+description: "Collateral that can be liquidated at a bonus, and the recommended cap."
+---
+
+<ParamField path="code" type="string" required>Token code.</ParamField>
+<ParamField query="bonus_bps" type="number" default="500">Liquidation bonus, 1 to 9999. Self-hosted API only.</ParamField>
+<ParamField query="safety_bps" type="number" default="5000">Safety margin taken off the 24h minimum, 0 to 9999. Self-hosted API only.</ParamField>
+
+## Response
+
+<ResponseField name="liquidatable_now_usd" type="string | null">
+  Dollars of collateral sellable now before the price falls by the bonus. `null` when the bonus is
+  below the smallest sampled band (0.5%).
+</ResponseField>
+<ResponseField name="window" type="object">
+  `{ status: "ok", min_usd, samples }` or `{ status: "insufficient", reason }`.
+</ResponseField>
+<ResponseField name="recommended_cap_usd" type="string | null">
+  `min_usd × (1 − safety_bps / 10000)`. `null` without a full window: treat as "accept no new
+  exposure".
+</ResponseField>
+<ResponseField name="meaning" type="string">The rule in words.</ResponseField>
+
+<ResponseExample>
+```json Response (example values)
+{
+  "code": "USTRY",
+  "bonus_bps": 500,
+  "safety_bps": 5000,
+  "measured_at": 1795423392,
+  "liquidatable_now_usd": "311028.9132800",
+  "window": { "status": "ok", "min_usd": "290112.0000000", "samples": 46 },
+  "recommended_cap_usd": "145056.0000000"
+}
+```
+</ResponseExample>

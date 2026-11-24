@@ -1,0 +1,37 @@
+---
+title: "FAQ"
+description: "Common questions and straight answers."
+---
+
+<AccordionGroup>
+  <Accordion title="The oracle gives the price. Isn't that enough?">
+    No. A price is for one token; risk is about selling all the collateral. At YieldBlox the
+    oracle reported a real market price and the pool still lost $10.97M, because almost nothing
+    could be sold at it.
+  </Accordion>
+  <Accordion title="How is this different from a price check like Oracle Shield?">
+    A price check asks whether a price is trustworthy. Orbit asks how much can be sold at it. A
+    real price on a tiny market is still dangerous. They work together.
+  </Accordion>
+  <Accordion title="The issuer will buy tokens back. Why does depth matter?">
+    Redemption takes time, needs approval and is not open to everyone. For Etherfuse tokens the
+    issuer fills redemptions from the on-chain market itself. In a liquidation, the on-chain
+    market is what counts.
+  </Accordion>
+  <Accordion title="Can someone fake liquidity?">
+    Quick fakes do not work: readings are random and Orbit keeps the day's worst figure. Patient
+    capital is possible today and is stated openly, with planned fixes.
+  </Accordion>
+  <Accordion title="Why are many tokens shown with no buyers?">
+    Some are open to anyone but nobody is buying them on Stellar. Others (Franklin Templeton,
+    WisdomTree, most Centrifuge funds) can only be held by approved accounts, so there is no open
+    market to sell into.
+  </Accordion>
+  <Accordion title="Does Orbit hold or move funds?">
+    No. Measurement is read-only. The only write is the publisher signing figures into Orbit's own
+    oracle contract.
+  </Accordion>
+  <Accordion title="Is it free?">
+    Yes. The data, the code (Apache-2.0) and the oracle reads are free.
+  </Accordion>
+</AccordionGroup>

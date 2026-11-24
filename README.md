@@ -14,7 +14,8 @@ by what the market can absorb.
 **Live:** [dashboard](https://fahad-dezloper.github.io/Orbit/) ·
 [static API](https://fahad-dezloper.github.io/Orbit/v1/latest.json) ·
 [testnet oracle](https://stellar.expert/explorer/testnet/contract/CCOI2QVXHQIX7ZADUT5LSJPDAQSKPEINUK6HCMCSCZTWLB5BK7W4CBUQ),
-measured every half hour ([how](docs/DEPLOY.md)).
+measured every half hour ([how](docs/DEPLOY.md)). Documentation (Mintlify) lives in
+[`docs-site/`](docs-site/); preview it with `cd docs-site && npx mint dev`.
 
 ## What it measures
 

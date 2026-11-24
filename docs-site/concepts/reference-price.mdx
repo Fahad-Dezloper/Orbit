@@ -1,0 +1,28 @@
+---
+title: "One fair price"
+description: "Why no single market sets the price."
+---
+
+Every market shows a slightly different price for the same token. If each market were measured
+from its own price, a pushed market (like the one at YieldBlox) would look perfectly healthy by
+its own standard.
+
+Orbit instead measures **every** market from one **reference price**:
+
+1. Find each market's own mid price and how much it holds near that price.
+2. Ignore markets with under $100 of depth, and markets with under 5% of the deepest market's
+   depth.
+3. Take the **upper median** of the remaining prices.
+
+If no market qualifies, the token has no reference and every figure is zero.
+
+<Check>
+  A thin market cannot move the reference, and no market vouches for its own price. To shift
+  the reference, an attacker would need real money in several markets at once.
+</Check>
+
+## Price gaps
+
+When a market's own price is far from the reference, the dashboard data notes it (for example
+"own price 14.88% below the reference"). A large gap is a sign that a market is thin or out of
+date.

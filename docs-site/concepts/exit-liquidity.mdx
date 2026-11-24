@@ -1,0 +1,55 @@
+---
+title: "Exit liquidity"
+description: "Dollars a seller could raise before the price falls too far."
+---
+
+**Exit liquidity at a band** is the number of US dollars a seller could raise, across every
+Stellar market, before the **average** sale price falls more than that band below the fair
+price.
+
+## Bands
+
+| Band | Meaning |
+| --- | --- |
+| `200` (2%) | A careful sale, small price impact |
+| `1000` (10%) | The headline figure on the dashboard |
+| `2500` (25%) | A forced sale |
+
+The published oracle bands are 2%, 10% and 25%. The **liquidation curve** samples twelve bands:
+0.5%, 1%, 2%, 3%, 5%, 7.5%, 10%, 15%, 20%, 25%, 35% and 50%.
+
+<Note>
+  Bands use the **average** price of the whole sale, not the last fill. That matches what a
+  liquidator actually receives.
+</Note>
+
+## How each market is measured
+
+<Tabs>
+  <Tab title="Order book (SDEX)">
+    Walk the bids from the best price down, filling each in turn, until the average price would
+    pass the band.
+  </Tab>
+  <Tab title="Constant-product pools">
+    Aquarius standard pools and Soroswap pairs follow `x · y = k`. The largest sale inside the
+    band is solved exactly from the reserves and the pool's fee.
+  </Tab>
+  <Tab title="Quoted pools">
+    Aquarius concentrated and stable pools, and Sushi v3 pools, use their own maths. Orbit asks
+    the pool for quotes at increasing sale sizes and takes the largest sample inside the band.
+    It never interpolates between samples, so it can only understate.
+  </Tab>
+</Tabs>
+
+Markets are summed in USD. XLM-paired markets are converted with the live XLM/USDC price.
+
+## Verdicts
+
+The dashboard labels each token by its exit at the 10% band:
+
+| Verdict | Exit at 10% |
+| --- | --- |
+| No buyers | under $100 |
+| Very thin | $100 to $10K |
+| Thin market | $10K to $100K |
+| Deep market | $100K or more |

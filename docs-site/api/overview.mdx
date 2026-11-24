@@ -1,0 +1,37 @@
+---
+title: "API overview"
+description: "Read Orbit's figures over HTTP."
+---
+
+Orbit serves the same data two ways.
+
+| | Public static API | Self-hosted API |
+| --- | --- | --- |
+| Base URL | `https://fahad-dezloper.github.io/Orbit/v1` | `http://127.0.0.1:8080/v1` (your `orbit-api`) |
+| Updated | Every 30 minutes | Every reading |
+| Query parameters | Defaults only (5% bonus, 50% margin, 10% band, 24h) | All supported |
+| Errors | A file may hold `{"error": "..."}` with HTTP 200 | Real HTTP status codes |
+
+The static files are written by `orbit-api` itself, so they match the live API exactly.
+
+## Endpoints
+
+| Static file | Live route | Returns |
+| --- | --- | --- |
+| `latest.json` | `GET /v1/latest` | The latest reading: every token, every market |
+| `assets/{code}.json` | `GET /v1/assets/{code}` | One token's reading and its 24h minimum per band |
+| `assets/{code}/history.json` | `GET /v1/assets/{code}/history` | Exit over time for one band |
+| `assets/{code}/cap.json` | `GET /v1/assets/{code}/cap` | Liquidatable collateral and the recommended cap |
+| `lenders.json` | `GET /v1/lenders` | Tokens held by Blend pools, beside what could be sold |
+| `../health.json` | `GET /health` | Service status |
+| `../index.json` | | When the static export ran, and each file's status |
+
+## Conventions
+
+- **Amounts** are decimal strings with 7 places, in US dollars unless stated
+  (`"271086.0000000"`). Parse them as decimals, not floats, if you need exact values.
+- **Bands** are in basis points: `200` = 2%, `1000` = 10%, `2500` = 25%.
+- **Times** are Unix seconds.
+- **Fail closed.** If the latest reading is older than 2 hours, `/v1/latest` returns 503 (or an
+  `error` body in the static file). Treat that as "no data".
+- **CORS** is open: any website may read the data.

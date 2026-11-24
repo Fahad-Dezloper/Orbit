@@ -1,0 +1,23 @@
+---
+title: "Known limits"
+description: "What Orbit does not do yet."
+---
+
+<Warning>
+  Read these before relying on Orbit's figures. Each one makes a figure lower than reality, or is
+  stated openly here.
+</Warning>
+
+- **Not audited.** The contracts and publisher have had an internal security review, not an
+  external audit. Mainnet comes after one.
+- **Markets not read yet:** Curve, Comet and Stellar Broker. Leaving a market out only lowers a
+  figure.
+- **Pinned pools only.** New pools are not counted until they are added.
+- **Quoted pools are sampled.** Exit between samples is not credited. Sushi quotes are sampled up
+  to 80% of the pool's USDC.
+- **Stellar markets only.** Selling on other chains or redeeming with the issuer is not counted.
+- **XLM and USDC themselves** are not measured yet; they are the price units.
+- **Order books come from one provider** (Horizon), which is nearing end-of-life.
+- **Patient capital** can raise a figure today; see [Threat model](/security/threat-model).
+- **Tokens whose issuer file cannot be fetched** are left out on purpose (for example Matrixdock's
+  XAUM).

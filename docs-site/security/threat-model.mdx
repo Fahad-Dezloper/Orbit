@@ -1,0 +1,64 @@
+---
+title: "Threat model"
+description: "What it takes to make Orbit wrong."
+---
+
+There are two very different ways to attack a depth figure.
+
+| | Make Orbit lie | Change the market |
+| --- | --- | --- |
+| What the attacker does | Gets Orbit to report buyers that are not there | Adds real buyers, lets Orbit measure them, removes them when it matters |
+| Kind of defence | Layered checks: several must fail at once | Economic: make it cost real money |
+| Today | Hard | Slow, not yet expensive |
+
+## Making Orbit lie: six things at once
+
+<CardGroup cols={2}>
+  <Card title="AMM pool balances" icon="scale-balanced">
+    Every pool's claims are checked against what the token contracts say it holds.
+  </Card>
+  <Card title="SDEX and AMM prices" icon="chart-line">
+    The price comes from many markets, never just one.
+  </Card>
+  <Card title="Three data providers" icon="server">
+    Pool data rotates across sorobanrpc.com, Gateway.fm and Lightsail.
+  </Card>
+  <Card title="Token IDs" icon="fingerprint">
+    Token addresses are worked out locally; copycats are rejected.
+  </Card>
+  <Card title="Issuer's website" icon="globe">
+    Only tokens the issuer lists itself are counted.
+  </Card>
+  <Card title="A full day of buyers" icon="clock">
+    Random reading times and the day's lowest figure.
+  </Card>
+</CardGroup>
+
+The oracle contract also bounds what can be published (no values over $1T, no timestamps more
+than 60 seconds in the future or 6 hours old, no replays), and changing its admin needs two
+signatures.
+
+## Changing the market
+
+**Timed spoofing** (adding buyers just before a reading): fixed by random reading times.
+
+**Patient capital** (keeping real buyers for a day, then pulling them in the same ledger as a
+borrow): open. $1M parked for 48 hours costs about $250 to $300 in interest. Planned fixes:
+
+- **Slow up, fast down**: a figure may rise only after 7 days of steady depth and falls on the
+  first low reading.
+- **Owner limits**: count only a share of depth from any single account or LP position.
+- **Age filter**: count only order-book offers resting for hours.
+
+**Liquidity leaving under stress** (as on 10 October 2025): any trailing figure describes the
+past. Orbit is best for sizing new exposure, not predicting the next hour.
+
+## Past incidents
+
+| Incident | Would a depth cap have helped? |
+| --- | --- |
+| YieldBlox, Feb 2026 | Yes: depth about $0, so cap about $0 |
+| Mango Markets, Oct 2022 | Yes |
+| Curve founder's CRV loans, Jul 2023 | Yes: caps block concentration |
+| Aave CRV short, Nov 2022 | No: the shortfall was on the debt side |
+| 10 Oct 2025 crash | No: depth vanished faster than any window |

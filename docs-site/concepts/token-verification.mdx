@@ -1,0 +1,33 @@
+---
+title: "Real tokens only"
+description: "How Orbit avoids measuring impostor tokens."
+---
+
+Anyone can create a token on Stellar called "USTRY" or "BENJI". Horizon's asset list is full of
+impostors with the same codes as real tokens.
+
+The only authority on which token is real is the **issuer's own website**. Every issuer
+publishes `https://<domain>/.well-known/stellar.toml` (SEP-1), listing its official tokens.
+
+Orbit measures a token only if that file lists:
+
+- the same code **and** the same issuer account, for a classic Stellar asset, or
+- the same code **and** the same contract address, for a token that exists only as a Soroban
+  contract (such as Centrifuge's deJAAA).
+
+## Token addresses are derived locally
+
+For classic assets, Orbit works out the token's contract address (its Stellar Asset Contract)
+itself, from the code, issuer and network. A pool holding a look-alike token has a different
+address and is rejected.
+
+## Broken issuer files
+
+Some issuers publish a `stellar.toml` with a syntax error in an unrelated section. When the
+whole file does not parse, Orbit reads each `[[CURRENCIES]]` entry on its own and still requires
+an exact match.
+
+## Tokens measured
+
+46 tokens from Etherfuse, Ondo, Franklin Templeton, WisdomTree, Centrifuge, Circle, Paxos, Glo,
+FxDAO, OrbitCDP, Aquarius and Solv. See the [full list](/live/tokens).

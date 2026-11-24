@@ -1,0 +1,72 @@
+---
+title: "Latest reading"
+api: "GET https://fahad-dezloper.github.io/Orbit/v1/latest.json"
+description: "Every token, every market, from the most recent reading."
+---
+
+## Response
+
+<ResponseField name="measured_at" type="number">Unix seconds when the reading ended.</ResponseField>
+<ResponseField name="xlm_usd" type="string">USD per XLM, from the XLM/USDC order book.</ResponseField>
+<ResponseField name="venues" type="string">Which markets were read, in words.</ResponseField>
+<ResponseField name="reports" type="AssetReport[]">
+  One entry per token.
+  <Expandable title="AssetReport">
+    <ResponseField name="code" type="string">Token code, e.g. `USTRY`.</ResponseField>
+    <ResponseField name="issuer" type="string">Issuer account (`G...`), or contract (`C...`) for contract tokens.</ResponseField>
+    <ResponseField name="reference" type="object | null">
+      `{ price_usd, qualifying }`: the fair price and which markets set it. `null` when no market
+      holds real depth; then every figure is zero.
+    </ResponseField>
+    <ResponseField name="venue_mids" type="object[]">Each market's own price and depth, before the reference was applied.</ResponseField>
+    <ResponseField name="depths" type="AssetDepth[]">
+      Exit at 2%, 10% and 25%.
+      <Expandable title="AssetDepth">
+        <ResponseField name="band" type="number">Band in basis points.</ResponseField>
+        <ResponseField name="total_usd" type="string">Dollars sellable across all markets.</ResponseField>
+        <ResponseField name="verdict" type="string">`healthy`, `shallow`, `critical` or `dead`.</ResponseField>
+        <ResponseField name="venues" type="object[]">
+          Per market: `venue` (`{kind: "sdex", counter}` or `{kind: "amm", protocol, pool, counter}`) and `usd`.
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+    <ResponseField name="curve" type="object[]">`{ band, exit_usd }` at 12 bands from 0.5% to 50%.</ResponseField>
+    <ResponseField name="notes" type="string[]">Facts to read alongside the figure, e.g. a market left out.</ResponseField>
+    <ResponseField name="venues_read" type="number">Markets actually read.</ResponseField>
+    <ResponseField name="complete" type="boolean">False if any pinned market could not be read. Incomplete readings never count toward the 24h minimum.</ResponseField>
+  </Expandable>
+</ResponseField>
+<ResponseField name="skipped" type="object[]">Tokens that could not be measured this time, with the reason.</ResponseField>
+<ResponseField name="lenders" type="object[]">Raw lending-pool holdings; see [Lenders](/api/lenders).</ResponseField>
+<ResponseField name="stats" type="object">`duration_ms`, `assets`, `venues`, `sep1_domains`.</ResponseField>
+
+<RequestExample>
+```bash curl
+curl https://fahad-dezloper.github.io/Orbit/v1/latest.json
+```
+```js JavaScript
+const run = await fetch("https://fahad-dezloper.github.io/Orbit/v1/latest.json").then(r => r.json());
+const ustry = run.reports.find(r => r.code === "USTRY");
+const at10 = ustry.depths.find(d => d.band === 1000).total_usd;
+```
+</RequestExample>
+
+<ResponseExample>
+```json Response (trimmed)
+{
+  "measured_at": 1795423392,
+  "xlm_usd": "0.1290000",
+  "reports": [
+    {
+      "code": "USTRY",
+      "reference": { "price_usd": "1.0813019", "qualifying": ["SDEX/USDC", "aquarius/USDC CCX2TYR4"] },
+      "depths": [
+        { "band": 1000, "total_usd": "368511.0139842", "verdict": "healthy",
+          "venues": [ { "venue": { "kind": "sdex", "counter": "USDC" }, "band": 1000, "usd": "259009.8112968" } ] }
+      ],
+      "complete": true
+    }
+  ]
+}
+```
+</ResponseExample>

@@ -1,0 +1,52 @@
+---
+title: "The problem"
+description: "A price can be right and a lender can still lose money."
+---
+
+## How on-chain lending works
+
+1. A borrower deposits something valuable: the **collateral**.
+2. They borrow less than it is worth, for example 80% (the **collateral factor**).
+3. If prices move and the loan becomes risky, anyone may repay part of it and take some
+   collateral at a discount, the **liquidation bonus** (often 5%).
+4. That liquidator sells the collateral on the market to get their money back.
+
+Lenders learn the price from an **oracle** such as Reflector, RedStone, Chainlink or Pyth.
+
+## The hidden assumption
+
+Step 4 only works if the market can absorb the sale. If selling the collateral pushes the price
+down by more than the bonus, no liquidator will do it. The bad loan stays on the books, and the
+lender takes the loss.
+
+<Warning>
+  A price is about **one** token. A lender's risk is about **all** the collateral at once. Those
+  are different questions, and today only the first is answered on Stellar.
+</Warning>
+
+## What happened at YieldBlox
+
+| Step | What happened |
+| --- | --- |
+| Thin market | USTRY's USDC order book traded under $1 an hour |
+| One order | A single buy offer pushed USTRY from about $1.05 to $106.7 |
+| Price reported | The pool's oracle read that price and passed it on, as designed |
+| Money out | About $10.97M was borrowed against about $160K of USTRY |
+
+Sources: BlockSec, Halborn, QuillAudits and Blockaid write-ups of the 22 Feb 2026 incident.
+
+## What Stellar fixed, and what it didn't
+
+After the hack, Reflector added AMM pools as price sources, Oracle Shield (Sun Zu Lab) added
+price checks and circuit breakers, and Blend's v3 draft adds borrow limits. All three make the
+**price** harder to fake. None measures how much can be **sold**.
+
+The next loss does not need a fake price. A correctly priced token on a thin market is still
+dangerous when a lender holds more of it than buyers would take.
+
+## Why it matters most for RWAs
+
+- Many tokenized bonds (Etherfuse's USTRY, CETES, TESOURO) trade on no outside exchange. Stellar's
+  own markets are the only exit.
+- Of about $3.56B of RWAs on Stellar, roughly 0.1% is used as collateral (RedStone, Oct 2026).
+  Lenders cannot safely accept more without knowing how much can be sold.

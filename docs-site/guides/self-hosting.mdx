@@ -1,0 +1,59 @@
+---
+title: "Self-hosting"
+description: "Run Orbit's measurements, API and publisher yourself."
+---
+
+Orbit is a Rust workspace. Everything except the publisher is read-only against Stellar.
+
+## Measure once
+
+```bash
+cargo run -p orbit-cli -- measure                 # every token, as a table
+cargo run -p orbit-cli -- measure --asset USTRY   # one token
+cargo run -p orbit-cli -- measure --json          # machine-readable
+cargo run -p orbit-cli -- measure --no-amm        # order books only
+```
+
+## Run the API
+
+```bash
+cargo run --release -p orbit-api -- --bind 127.0.0.1:8080 --data-dir data/snapshots
+```
+
+| Flag | Default | Meaning |
+| --- | --- | --- |
+| `--interval-secs` | 1800 | Average time between readings (±25% random), minimum 300 |
+| `--registry` | `assets.toml` | Tokens and pinned pools |
+| `--horizon` | `https://horizon.stellar.org` | Order book source |
+| `--rpc` | three public providers | Soroban RPC, comma-separated; reads rotate across them |
+| `--once` | | One reading into the store, then exit |
+| `--serve-only` | | Serve the store, measure nothing |
+| `--export-dir` | | With `--once`: write static JSON copies of every endpoint |
+
+Every reading is appended to `snapshots-YYYY-MM-DD.jsonl`. Nothing is ever rewritten.
+
+## Publish on-chain
+
+```bash
+cargo run --release -p orbit-publisher --bin orbit-publish -- \
+  --network testnet --oracle <ORACLE_ID> --source <stellar-cli-identity> \
+  --data-dir data/snapshots --every-secs 1800
+```
+
+- The key never passes through Orbit: `--source` names an identity in the `stellar` CLI keystore.
+- Mainnet requires `--mainnet-unaudited` and the full 12-reading window.
+- `--dry-run` prints the batch and submits nothing.
+
+## Add a token
+
+1. Confirm the code and issuer (or contract) in the issuer's own `stellar.toml`.
+2. Add an `[[asset]]` entry to `assets.toml`.
+3. Pin its pools as `[[pool]]` entries (`protocol` = `aquarius`, `soroswap` or `sushi`; add
+   `kind = "quoted"` for concentrated, stable and Sushi pools).
+4. Run `orbit measure --asset CODE` and check nothing is "left out".
+
+## Hosting
+
+The public deployment runs from a GitHub Actions workflow: it measures every 30 minutes, keeps
+history on a `data` branch, publishes to the testnet oracle and deploys the dashboard and static
+API to GitHub Pages.

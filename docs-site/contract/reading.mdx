@@ -1,0 +1,50 @@
+---
+title: "Reading the oracle"
+description: "Check Orbit's figure inside a Soroban contract, or from the CLI."
+---
+
+## From the Stellar CLI
+
+Any account can read; nothing is signed.
+
+```bash
+stellar contract invoke --id CCOI2QVXHQIX7ZADUT5LSJPDAQSKPEINUK6HCMCSCZTWLB5BK7W4CBUQ \
+  --source <any-identity> --network testnet --send=no \
+  -- depth --asset '{"Stellar":"CBLV4ATSIWU67CFSQU2NVRKINQIKUZ2ODSZBUJTJ43VJVRSBTZYOPNUR"}' --band_bps 1000
+```
+
+`CBLV4ATS...OPNUR` is USTRY's mainnet asset contract.
+
+## From a Soroban contract
+
+```rust
+use soroban_sdk::{contractclient, contracttype, Address, Env, Symbol};
+
+#[contracttype]
+pub enum Asset { Stellar(Address), Other(Symbol) }
+
+#[contracttype]
+pub struct DepthRecord { pub exit_usd: i128, pub timestamp: u64, pub samples: u32 }
+
+#[contractclient(name = "OrbitClient")]
+pub trait Orbit {
+    fn fresh_depth(env: Env, asset: Asset, band_bps: u32, max_age_secs: u64) -> Option<DepthRecord>;
+}
+
+/// Refuse new collateral above half of what the market could absorb at a 10% drop.
+pub fn check_collateral(env: &Env, oracle: &Address, token: Address, new_total_usd: i128) {
+    let orbit = OrbitClient::new(env, oracle);
+    let Some(rec) = orbit.fresh_depth(&Asset::Stellar(token), &1000, &3600) else {
+        panic!("no fresh depth: accept no new exposure");
+    };
+    if rec.samples < 12 || new_total_usd > rec.exit_usd / 2 {
+        panic!("collateral above what the market can absorb");
+    }
+}
+```
+
+<Tip>
+  Pick the band closest to your liquidation bonus without going over it, and keep your own
+  safety margin. A demo lending contract that does exactly this is in the repository at
+  `contracts/demo-lender`.
+</Tip>

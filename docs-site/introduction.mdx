@@ -1,0 +1,69 @@
+---
+title: "Orbit"
+sidebarTitle: "Introduction"
+description: "Live market depth for Stellar RWAs, so lenders know what's safe to accept as collateral."
+---
+
+import { LiveDepth } from "/snippets/live-depth.jsx";
+
+A price tells a lender what one token is worth. It does not tell the lender whether anyone will
+buy it. Orbit measures how many dollars of each token could really be sold on Stellar right now,
+and turns that into a safe limit a lending app can enforce.
+
+## Live right now
+
+This is Orbit's latest reading, straight from its public data. It refreshes every minute.
+
+<LiveDepth />
+
+## Why it exists
+
+When a loan goes bad, the lender has to sell the borrower's collateral to get its money back.
+If the market for that token is thin, the sale fails and the lender takes the loss. On
+22 February 2026 this cost the YieldBlox pool on Blend about $10.97M: one order on a market that
+traded under $1 an hour moved USTRY from $1.05 to $106.7, and the pool lent against that price.
+
+After the hack, Stellar made prices harder to fake. Nothing measured how much could actually be
+sold. Orbit fills that gap.
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="bolt" href="/quickstart">
+    Read Orbit's numbers in two minutes, from JSON or from a Soroban contract.
+  </Card>
+  <Card title="How it works" icon="gears" href="/how-it-works">
+    From every market on Stellar to one safe limit, step by step.
+  </Card>
+  <Card title="For lenders" icon="building-columns" href="/guides/lenders">
+    Cap collateral by what the market can absorb.
+  </Card>
+  <Card title="API reference" icon="code" href="/api/overview">
+    Every endpoint and field, with examples.
+  </Card>
+</CardGroup>
+
+## What Orbit gives you
+
+<AccordionGroup>
+  <Accordion title="A dollar figure, not a score">
+    For each token: how many US dollars a seller could raise before the average sale price falls
+    2%, 10% or 25%, and a full curve from 0.5% to 50%.
+  </Accordion>
+  <Accordion title="Every market on Stellar">
+    The SDEX order book plus AMM pools on Aquarius, Soroswap and Sushi. For some tokens, such as
+    USDY or deJAAA, nearly all of the market is in pools that order-book tools never see.
+  </Accordion>
+  <Accordion title="Numbers that are hard to fake">
+    Real tokens only, every pool checked against what it really holds, one fair price from many
+    markets, random reading times and the worst figure of the day.
+  </Accordion>
+  <Accordion title="On-chain">
+    The figures are published to a Soroban contract, so a lending contract can check them before
+    every loan. Testnet today.
+  </Accordion>
+</AccordionGroup>
+
+<Note>
+  Orbit is open source (Apache-2.0) at
+  [github.com/Fahad-Dezloper/Orbit](https://github.com/Fahad-Dezloper/Orbit). Every number on
+  these pages can be recomputed from the public data.
+</Note>

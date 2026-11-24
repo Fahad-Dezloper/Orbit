@@ -1,0 +1,61 @@
+---
+title: "Tokens Orbit measures"
+description: "All 46 tokens, who issues them and which markets Orbit reads for each."
+---
+
+Every token below is confirmed in its issuer's own `stellar.toml`. "Markets read" lists where Orbit
+looks for buyers; a token with no buyers in any of them shows as "No buyers".
+
+| Token | Name | Group | Issuer domain | Markets read |
+| --- | --- | --- | --- | --- |
+| USTRY | Etherfuse US Treasury bond | RWA | `etherfuse.com` | SDEX, Aquarius, Soroswap |
+| CETES | Etherfuse Mexican government bill | RWA | `etherfuse.com` | SDEX, Aquarius, Soroswap |
+| TESOURO | Etherfuse Brazilian government bond | RWA | `etherfuse.com` | SDEX, Aquarius |
+| MEX | Etherfuse bond token | RWA | `etherfuse.com` | SDEX |
+| CETESZ | Etherfuse bond token | RWA | `etherfuse.com` | SDEX |
+| EUROB | Etherfuse euro government bond | RWA | `etherfuse.com` | SDEX |
+| GILTS | Etherfuse UK government bond | RWA | `etherfuse.com` | SDEX |
+| KTB | Etherfuse Korean government bond | RWA | `etherfuse.com` | SDEX |
+| MEXe | Etherfuse bond token | RWA | `etherfuse.com` | SDEX |
+| USDY | Ondo US Dollar Yield | RWA | `ondo.finance` | SDEX, Aquarius, Soroswap |
+| BENJI | Franklin OnChain US Government Money Fund | RWA, approved holders only | `www.franklintempleton.com` | SDEX |
+| gBENJI | Franklin OnChain US Government Money Fund | RWA, approved holders only | `www.franklintempleton.com` | SDEX |
+| grBENJI | Franklin OnChain US Government Money Fund (AB) | RWA, approved holders only | `www.franklintempleton.com` | SDEX |
+| sgBENJI | Franklin OnChain US Dollar Short-Term Money Market Fund | RWA, approved holders only | `www.franklintempleton.com` | SDEX |
+| WTGX | WisdomTree Government Money Market Digital Fund | RWA, approved holders only | `stellar.wisdomtree.com` | SDEX |
+| WTSY | WisdomTree Short-Term Treasury Digital Fund | RWA, approved holders only | `stellar.wisdomtree.com` | SDEX |
+| WTTS | WisdomTree 3-7 Year Treasury Digital Fund | RWA, approved holders only | `stellar.wisdomtree.com` | SDEX |
+| WTST | WisdomTree 7-10 Year Treasury Digital Fund | RWA, approved holders only | `stellar.wisdomtree.com` | SDEX |
+| FLTT | WisdomTree Floating Rate Treasury Digital Fund | RWA, approved holders only | `stellar.wisdomtree.com` | SDEX |
+| WTLG | WisdomTree Long Term Treasury Digital Fund | RWA, approved holders only | `stellar.wisdomtree.com` | SDEX |
+| WTSI | WisdomTree Short-Duration Income Digital Fund | RWA, approved holders only | `stellar.wisdomtree.com` | SDEX |
+| TIPS | WisdomTree TIPS Digital Fund | RWA, approved holders only | `stellar.wisdomtree.com` | SDEX |
+| GOLD | WisdomTree Gold Token | RWA, approved holders only | `stellar.wisdomtree.com` | SDEX |
+| CRDT | WisdomTree Private Credit and Alternative Income Digital Fund | RWA, approved holders only | `stellar.wisdomtree.com` | SDEX |
+| SPXU | WisdomTree 500 Digital Fund | RWA, approved holders only | `stellar.wisdomtree.com` | SDEX |
+| TECH | WisdomTree Technology & Innovation 100 Digital Fund | RWA, approved holders only | `stellar.wisdomtree.com` | SDEX |
+| EQTY | WisdomTree Siegel Global Equity Digital Fund | RWA, approved holders only | `stellar.wisdomtree.com` | SDEX |
+| LNGV | WisdomTree Siegel Longevity Digital Fund | RWA, approved holders only | `stellar.wisdomtree.com` | SDEX |
+| MODR | WisdomTree Siegel Moderate Digital Fund | RWA, approved holders only | `stellar.wisdomtree.com` | SDEX |
+| deJAAA | Centrifuge deJAAA (Janus Henderson AAA CLO fund) | RWA | `centrifuge.io` | Sushi |
+| deJTRSY | Centrifuge deJTRSY (Janus Henderson Treasury fund) | RWA | `centrifuge.io` | Sushi |
+| deHYB | Centrifuge deHYB (NYLIM US high-yield bond fund) | RWA | `centrifuge.io` | - |
+| JAAA | Janus Henderson Anemoy AAA CLO fund | RWA, approved holders only | `centrifuge.io` | - |
+| JTRSY | Janus Henderson Anemoy Treasury fund | RWA, approved holders only | `centrifuge.io` | - |
+| HYB | NYLIM US high-yield bond fund | RWA, approved holders only | `centrifuge.io` | - |
+| JQQQ | Janus Henderson NASDAQ-100 index fund | RWA, approved holders only | `centrifuge.io` | - |
+| EURC | Circle euro stablecoin | Other collateral | `circle.com` | SDEX, Aquarius, Soroswap |
+| PYUSD | PayPal USD | Other collateral | `token-metadata.paxos.com` | SDEX, Aquarius |
+| USDGLO | Glo Dollar | Other collateral | `app.glodollar.org` | SDEX, Aquarius, Soroswap |
+| USDx | FxDAO US dollar | Other collateral | `assets.fxdao.io` | SDEX, Aquarius, Soroswap |
+| EURx | FxDAO euro | Other collateral | `assets.fxdao.io` | SDEX, Aquarius |
+| GBPx | FxDAO pound | Other collateral | `assets.fxdao.io` | SDEX, Aquarius |
+| oUSD | OrbitCDP US dollar | Other collateral | `assets.orbitcdp.finance` | SDEX, Aquarius, Soroswap |
+| AQUA | Aquarius governance token | Other collateral | `aqua.network` | SDEX, Aquarius, Soroswap |
+| SolvBTC | Solv Bitcoin | Other collateral | `solv.finance` | Aquarius |
+| xSolvBTC | Solv staked Bitcoin | Other collateral | `solv.finance` | - |
+
+<Note>
+  XLM and USDC are not in this list: Orbit uses them as its price units. Measuring them directly
+  is planned.
+</Note>

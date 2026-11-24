@@ -1,0 +1,52 @@
+---
+title: "Depth oracle"
+description: "Orbit's figures on-chain, readable by any Soroban contract."
+---
+
+The depth oracle is a Soroban contract that stores Orbit's windowed figures. A lending contract
+can read it in the same transaction as a deposit or borrow.
+
+| | |
+| --- | --- |
+| Network | Stellar testnet (mainnet after an external review) |
+| Contract | `CCOI2QVXHQIX7ZADUT5LSJPDAQSKPEINUK6HCMCSCZTWLB5BK7W4CBUQ` |
+| Explorer | [stellar.expert](https://stellar.expert/explorer/testnet/contract/CCOI2QVXHQIX7ZADUT5LSJPDAQSKPEINUK6HCMCSCZTWLB5BK7W4CBUQ) |
+| Figures | Live **mainnet** measurements, published to testnet |
+| Bands | 2%, 10% and 25% (`200`, `1000`, `2500`) |
+| Decimals | 7 (`exit_usd` is USD × 10^7) |
+
+## Read functions
+
+| Function | Returns |
+| --- | --- |
+| `depth(asset, band_bps)` | The latest `DepthRecord`, or none |
+| `fresh_depth(asset, band_bps, max_age_secs)` | The latest record if no older than `max_age_secs`, else none |
+| `depths(asset, band_bps, records)` | Up to `records` past values, newest first (48 kept) |
+| `last_timestamp()` | Time of the newest published figure |
+| `assets()` | Every asset with figures |
+| `decimals()` | `7` |
+| `admin()`, `publisher()` | Current keys |
+
+```rust
+pub enum Asset { Stellar(Address), Other(Symbol) }
+
+pub struct DepthRecord {
+    pub exit_usd: i128,  // USD × 10^7, the 24h minimum
+    pub timestamp: u64,  // end of the measurement window
+    pub samples: u32,    // readings the minimum was taken over
+}
+```
+
+<Note>
+  Assets are keyed by their **mainnet** contract address (`Asset::Stellar(sac)`), even on
+  testnet, so integrators can build against real numbers.
+</Note>
+
+## Write rules
+
+- Only the publisher key may `publish`, in batches of at most 64 updates.
+- A figure is rejected if it is over $1T, its timestamp is more than 60 seconds in the future or
+  more than 6 hours old, or it is not newer than the stored one (no replays).
+- At most 200 assets.
+- The admin rotates the publisher with `set_publisher`. Handing over the admin role with
+  `set_admin` needs both the current and the new admin's signatures.

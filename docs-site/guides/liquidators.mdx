@@ -1,0 +1,27 @@
+---
+title: "For liquidators and keepers"
+description: "Bid only what the market can take back."
+---
+
+A liquidation bot that wins an auction still has to sell what it seized. Orbit's curve tells the
+bot how much it can sell, and at what discount, before it bids.
+
+## Sizing a bid
+
+1. Read the token's curve from [`/v1/latest`](/api/latest) (`reports[].curve`), or the bands from
+   the oracle.
+2. Find the largest band your expected profit can cover. The curve value at that band is how much
+   you can sell.
+3. Bid only for collateral up to that amount. Skip auctions the market cannot absorb.
+
+```js
+const run = await fetch("https://fahad-dezloper.github.io/Orbit/v1/latest.json").then(r => r.json());
+const ustry = run.reports.find(r => r.code === "USTRY");
+// Dollars sellable before the average price falls 5%:
+const at5 = ustry.curve.filter(p => p.band <= 500).pop()?.exit_usd;
+```
+
+## Which markets to sell into
+
+`reports[].depths[].venues` lists each market's share. For deJAAA the only market is a Sushi v3
+pool; for CETES most of it is the SDEX order book.

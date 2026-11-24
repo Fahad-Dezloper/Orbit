@@ -1,0 +1,79 @@
+---
+title: "Quickstart"
+description: "Read Orbit's numbers in two minutes."
+---
+
+There are three ways to use Orbit. Pick the one that matches where your code runs.
+
+<Tabs>
+  <Tab title="JSON (any app)">
+    Orbit publishes its latest reading as static JSON every 30 minutes. No key, no sign-up.
+
+    ```bash
+    curl https://fahad-dezloper.github.io/Orbit/v1/latest.json
+    ```
+
+    The safe limit for one token, at a 5% liquidation bonus (example response; live values
+    differ):
+
+    ```bash
+    curl https://fahad-dezloper.github.io/Orbit/v1/assets/USTRY/cap.json
+    ```
+
+    ```json
+    {
+      "code": "USTRY",
+      "bonus_bps": 500,
+      "safety_bps": 5000,
+      "liquidatable_now_usd": "311028.9132800",
+      "window": { "status": "ok", "min_usd": "290112.0000000", "samples": 46 },
+      "recommended_cap_usd": "145056.0000000"
+    }
+    ```
+
+    <Warning>
+      A static file cannot carry an HTTP error code. Always check `measured_at`, and treat a body
+      with an `error` field as "no data".
+    </Warning>
+  </Tab>
+  <Tab title="Soroban contract">
+    A lending contract can read the depth oracle in the same transaction as a borrow.
+
+    ```rust
+    // Exit at the 10% band, no older than one hour, or None.
+    let rec = oracle.fresh_depth(&Asset::Stellar(ustry_sac), &1000, &3600);
+    let Some(r) = rec else {
+        panic!("no fresh depth: refuse the loan");
+    };
+    // Accept at most half of what the market could absorb (both in USD, 7 decimals).
+    if collateral_usd > r.exit_usd / 2 {
+        panic!("collateral above what the market can absorb");
+    }
+    ```
+
+    Testnet oracle: `CCOI2QVXHQIX7ZADUT5LSJPDAQSKPEINUK6HCMCSCZTWLB5BK7W4CBUQ`. See
+    [Reading the oracle](/contract/reading).
+  </Tab>
+  <Tab title="Run it yourself">
+    ```bash
+    git clone https://github.com/Fahad-Dezloper/Orbit && cd Orbit
+    cargo run -p orbit-cli -- measure          # one live reading, as a table
+    cargo run -p orbit-cli -- measure --json   # the same, as JSON
+    ```
+
+    Orbit only reads from Stellar. It never signs anything unless you run the publisher. See
+    [Self-hosting](/guides/self-hosting).
+  </Tab>
+</Tabs>
+
+## What the main number means
+
+`exit_usd` at band `1000` (10%) is the number of US dollars a seller could raise across every
+Stellar market before the **average** sale price is 10% below the fair price. If a lender holds
+more of the token than that as collateral, a liquidation of all of it could not be done on
+Stellar at a 10% discount.
+
+<CardGroup cols={2}>
+  <Card title="Exit liquidity" href="/concepts/exit-liquidity">What a band is, in detail.</Card>
+  <Card title="Safe limit" href="/concepts/safe-limit">How the cap is set.</Card>
+</CardGroup>

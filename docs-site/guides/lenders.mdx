@@ -1,0 +1,51 @@
+---
+title: "For lenders"
+description: "Cap collateral by what the market can absorb."
+---
+
+If your protocol accepts a token as collateral, Orbit tells you how much of it you could sell if
+loans go bad, and what a safe total exposure is.
+
+## The rule
+
+<Info>
+  Never hold more of a token as collateral, across all loans, than Orbit's recommended cap. If
+  Orbit has no fresh figure, accept no new exposure to that token.
+</Info>
+
+## Integrating
+
+<Steps>
+  <Step title="Pick your liquidation bonus">
+    The discount you give liquidators, for example 5% (`bonus_bps = 500`).
+  </Step>
+  <Step title="Read the cap">
+    Off-chain: [`/v1/assets/{code}/cap?bonus_bps=500`](/api/cap) returns
+    `recommended_cap_usd`. On-chain: read [`fresh_depth`](/contract/reading) for the nearest
+    published band and apply your own margin.
+  </Step>
+  <Step title="Enforce it">
+    Before a deposit or borrow, check that total collateral of that token, in USD, stays at or
+    below the cap. Refuse when there is no fresh figure.
+  </Step>
+  <Step title="Show it">
+    Display the cap and how much is used to your users and risk team, using
+    [`/v1/lenders`](/api/lenders) as a reference.
+  </Step>
+</Steps>
+
+## Blend pools
+
+Blend v2 pools cannot change their oracle after creation, and reserve settings change through a
+7-day timelock. Two practical paths:
+
+- **New pools** can use a depth-aware oracle wrapper that returns no price (or a capped one)
+  when the collateral posted exceeds Orbit's figure.
+- **Existing pools** can set supply caps from Orbit's figure through governance.
+
+Blend v3 is being designed now; depth-aware caps are a natural fit for it.
+
+## What Orbit sees today
+
+Orbit already reads the RWA holdings of pinned Blend v2 pools and compares them with what could
+be sold. See [`/v1/lenders`](/api/lenders) and the "What lenders hold" section of the dashboard.

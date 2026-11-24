@@ -1,0 +1,27 @@
+---
+title: "Lenders"
+api: "GET https://fahad-dezloper.github.io/Orbit/v1/lenders.json"
+description: "What Blend pools hold of each measured token, beside what could be sold."
+---
+
+<ParamField query="bonus_bps" type="number" default="500">Liquidation bonus. Self-hosted API only.</ParamField>
+
+Orbit reads pinned Blend v2 pools. A pool is used only if the Blend v2 factory confirms it
+deployed it, and each reserve's cash is checked against the pool's real token balance.
+
+## Response
+
+<ResponseField name="exposures" type="object[]">
+  <Expandable title="Exposure">
+    <ResponseField name="lender" type="string">Pool name, e.g. `Etherfuse`.</ResponseField>
+    <ResponseField name="contract" type="string">Pool contract.</ResponseField>
+    <ResponseField name="status" type="string">Blend status: `active`, `on_ice`, `admin_frozen`, ...</ResponseField>
+    <ResponseField name="code" type="string">Token.</ResponseField>
+    <ResponseField name="supplied_usd" type="string">Everything supplied to the reserve (collateral and lending), at the reference price.</ResponseField>
+    <ResponseField name="borrowable_usd" type="string">`supplied_usd × collateral factor`.</ResponseField>
+    <ResponseField name="exit_usd_at_bonus" type="string | null">What the market could absorb at the bonus.</ResponseField>
+    <ResponseField name="exceeds_exit" type="boolean">True when the pool holds more than could be sold.</ResponseField>
+  </Expandable>
+</ResponseField>
+<ResponseField name="exceeding_exit" type="number">How many reserves exceed their exit.</ResponseField>
+<ResponseField name="skipped" type="object[]">Pools that could not be read or verified.</ResponseField>

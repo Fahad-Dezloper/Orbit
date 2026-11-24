@@ -1,0 +1,32 @@
+---
+title: "One token"
+api: "GET https://fahad-dezloper.github.io/Orbit/v1/assets/{code}.json"
+description: "One token's latest reading and its 24-hour minimum at each band."
+---
+
+<ParamField path="code" type="string" required>Token code, e.g. `USTRY`, `deJAAA`.</ParamField>
+
+## Response
+
+<ResponseField name="measured_at" type="number">Time of the latest reading.</ResponseField>
+<ResponseField name="report" type="AssetReport">The token's entry from [Latest reading](/api/latest).</ResponseField>
+<ResponseField name="window_secs" type="number">Length of the window: 86400.</ResponseField>
+<ResponseField name="windowed" type="object[]">
+  One per band (2%, 10%, 25%). Either
+  `{ status: "ok", band, min_exit_usd, verdict, samples, from_ts, to_ts }` or
+  `{ status: "insufficient", band, reason }` when there are fewer than 12 readings or a gap over
+  2 hours.
+</ResponseField>
+
+<ResponseExample>
+```json Response (trimmed)
+{
+  "measured_at": 1795423392,
+  "window_secs": 86400,
+  "windowed": [
+    { "status": "ok", "band": 1000, "min_exit_usd": "352896.0000000", "verdict": "healthy", "samples": 46 },
+    { "status": "insufficient", "band": 2500, "reason": "not enough fresh samples in the window: have 3, need 12" }
+  ]
+}
+```
+</ResponseExample>

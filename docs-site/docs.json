@@ -1,0 +1,114 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Orbit",
+  "description": "Live market depth for Stellar RWAs, so lenders know what's safe to accept as collateral.",
+  "colors": {
+    "primary": "#2F5BD8",
+    "light": "#7A9BFF",
+    "dark": "#2F5BD8"
+  },
+  "favicon": "/favicon.svg",
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "fonts": {
+    "heading": {
+      "family": "Space Grotesk",
+      "weight": 600
+    },
+    "body": {
+      "family": "Inter"
+    }
+  },
+  "background": {
+    "color": {
+      "light": "#F6F5F1",
+      "dark": "#111114"
+    }
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Dashboard",
+        "href": "https://fahad-dezloper.github.io/Orbit/"
+      }
+    ],
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/Fahad-Dezloper/Orbit"
+    }
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get started",
+            "pages": ["introduction", "quickstart", "how-it-works"]
+          },
+          {
+            "group": "Concepts",
+            "pages": [
+              "concepts/the-problem",
+              "concepts/exit-liquidity",
+              "concepts/reference-price",
+              "concepts/worst-of-the-day",
+              "concepts/safe-limit",
+              "concepts/venues",
+              "concepts/token-verification"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": ["guides/lenders", "guides/liquidators", "guides/self-hosting"]
+          },
+          {
+            "group": "Trust and limits",
+            "pages": ["security/threat-model", "security/limits"]
+          },
+          {
+            "group": "Resources",
+            "pages": ["resources/faq", "resources/glossary"]
+          }
+        ]
+      },
+      {
+        "tab": "Live data",
+        "groups": [
+          {
+            "group": "Live data",
+            "pages": ["live/overview", "live/tokens"]
+          }
+        ]
+      },
+      {
+        "tab": "API reference",
+        "groups": [
+          {
+            "group": "HTTP API",
+            "pages": [
+              "api/overview",
+              "api/latest",
+              "api/asset",
+              "api/history",
+              "api/cap",
+              "api/lenders"
+            ]
+          },
+          {
+            "group": "On-chain oracle",
+            "pages": ["contract/overview", "contract/reading"]
+          }
+        ]
+      }
+    ]
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/Fahad-Dezloper/Orbit"
+    }
+  }
+}

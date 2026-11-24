@@ -1,0 +1,29 @@
+---
+title: "Worst of the day"
+description: "Why Orbit publishes the lowest reading, not the latest."
+---
+
+Liquidity can be placed for a moment and pulled. If Orbit published its latest reading, someone
+could add buyers just before a reading and remove them just after.
+
+So the figure Orbit publishes is the **minimum over the last 24 hours**, with three rules:
+
+| Rule | Value |
+| --- | --- |
+| Window | 24 hours |
+| Readings needed | at least 12 |
+| Largest allowed gap between readings | 2 hours |
+
+If any rule fails, there is **no published figure** for that token and band. Orbit never fills a
+gap with an old number.
+
+## Random reading times
+
+Readings run about every 30 minutes, at times randomized by ±25%. Nobody can know exactly when
+the next reading will happen, so timing fake liquidity to it does not work.
+
+## What this does not stop
+
+Someone with a lot of capital could keep real buy orders in place for a whole day. Today that
+is slow but cheap (the cost is mostly the interest on the parked money). The planned fixes are
+in [Threat model](/security/threat-model).
