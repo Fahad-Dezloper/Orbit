@@ -1,4 +1,4 @@
-# Measures every half hour, keeps the history on the `data` branch, publishes the windowed
+# Measures about every half hour, keeps the history on the `data` branch, publishes the windowed
 # figures to the testnet oracle, and deploys the dashboard and static API to GitHub Pages.
 #
 # Read-only against mainnet (Horizon GETs and Soroban simulations). The only write is to the
@@ -7,6 +7,9 @@
 
 name: measure
 
+# GitHub runs free scheduled jobs only every few hours, which leaves gaps the 24h window does
+# not accept. So each run queues the next one itself after a random 25 to 35 minute wait. The
+# schedule only restarts the chain if it ever stops.
 on:
   schedule:
     - cron: "*/30 * * * *"
@@ -16,6 +19,7 @@ permissions:
   contents: write
   pages: write
   id-token: write
+  actions: write
 
 concurrency:
   group: measure
@@ -29,7 +33,7 @@ env:
 jobs:
   measure:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     env:
       HAS_PUBLISHER_KEY: ${{ secrets.ORBIT_TESTNET_PUBLISHER_SECRET != '' }}
     environment:
@@ -124,6 +128,23 @@ jobs:
           path: site
       - id: deploy
         uses: actions/deploy-pages@v5
+
+      # Wait 25 to 35 minutes (random, so reading times cannot be predicted), then queue the
+      # next run unless another one is already queued or running.
+      - name: Queue the next reading
+        if: ${{ !cancelled() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sleep $(( 1500 + RANDOM % 600 ))
+          others=$(gh run list -R "$GITHUB_REPOSITORY" -w measure.yml --limit 20 \
+            --json databaseId,status \
+            --jq "[.[] | select(.databaseId != ${GITHUB_RUN_ID}) | select(.status == \"queued\" or .status == \"in_progress\" or .status == \"waiting\" or .status == \"pending\")] | length")
+          if [ "$others" = "0" ]; then
+            gh workflow run measure.yml -R "$GITHUB_REPOSITORY" --ref main
+          else
+            echo "another run is already queued or running; not chaining"
+          fi
 
       - name: Fail if the measurement failed
         if: steps.measure.outcome == 'failure'
