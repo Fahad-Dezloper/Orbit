@@ -11,7 +11,8 @@ by what the market can absorb.
 > market depth validation afterwards. Today's checks read the SDEX order book only, and
 > on Stellar much of the RWA market is not there.
 
-**Live:** [dashboard](https://fahad-dezloper.github.io/Orbit/) ·
+**Live:** [docs](https://fahad-dezloper.github.io/Orbit/) ·
+[dashboard](https://fahad-dezloper.github.io/Orbit/dashboard/) ·
 [static API](https://fahad-dezloper.github.io/Orbit/v1/latest.json) ·
 [testnet oracle](https://stellar.expert/explorer/testnet/contract/CCOI2QVXHQIX7ZADUT5LSJPDAQSKPEINUK6HCMCSCZTWLB5BK7W4CBUQ),
 measured every half hour ([how](docs/DEPLOY.md)). Documentation (Mintlify) lives in

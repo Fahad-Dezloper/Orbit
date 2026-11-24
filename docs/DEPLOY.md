@@ -19,8 +19,9 @@ The live instance runs from `.github/workflows/measure.yml`, with no server:
 - The windowed figures go to the **testnet** oracle. The key is the repository secret
   `ORBIT_TESTNET_PUBLISHER_SECRET`: testnet only, written to a temporary keystore file and
   deleted after use. A mainnet key never reaches CI.
-- The dashboard is built statically from the exported files and deployed with the static
-  API to https://fahad-dezloper.github.io/Orbit/.
+- The docs (Mintlify static export) are served at https://fahad-dezloper.github.io/Orbit/, the
+  dashboard (built statically from the exported files) at `/Orbit/dashboard/`, and the static
+  API at `/Orbit/v1/`.
 
 Static API: `https://fahad-dezloper.github.io/Orbit/v1/latest.json`, `v1/lenders.json`,
 `v1/assets/{code}.json`, `v1/assets/{code}/history.json` (10% band, 24h) and

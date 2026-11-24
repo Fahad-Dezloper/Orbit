@@ -116,11 +116,21 @@ jobs:
         working-directory: web
         env:
           ORBIT_STATIC_DIR: ${{ github.workspace }}/site
-          NEXT_BASE_PATH: /${{ github.event.repository.name }}
+          NEXT_BASE_PATH: /${{ github.event.repository.name }}/dashboard
         run: |
           npm ci
           npm run build
-          cp -R .next-static/. ../site/
+          mkdir -p ../site/dashboard
+          cp -R .next-static/. ../site/dashboard/
+
+      - name: Build docs
+        working-directory: docs-site
+        run: |
+          npx --yes mint export --base-path /${{ github.event.repository.name }} --output "$RUNNER_TEMP/docs.zip"
+          unzip -q "$RUNNER_TEMP/docs.zip" -d "$RUNNER_TEMP/docs"
+          rm -f "$RUNNER_TEMP/docs/serve.js" "$RUNNER_TEMP/docs/README.md" "$RUNNER_TEMP/docs/Start Docs."*
+          cp -R "$RUNNER_TEMP/docs/." ../site/
+          test -f ../site/index.html && test -f ../site/v1/latest.json && test -f ../site/dashboard/index.html
 
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5

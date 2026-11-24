@@ -278,6 +278,7 @@ function Top({ measured }: { measured?: number }) {
           Dashboard
         </Link>
         <Link href="/methodology">How it works</Link>
+        <a href="https://fahad-dezloper.github.io/Orbit/">Docs</a>
         <a href="https://github.com/Fahad-Dezloper/Orbit">GitHub</a>
       </nav>
       {measured && (
@@ -445,7 +446,7 @@ export default async function Page() {
       <footer className="foot">
         <p>
           Markets read: SDEX order books and AMM pools on Aquarius, Soroswap and Sushi. Every number can be
-          checked: <a href="v1/latest.json">raw data</a> · <Link href="/methodology">how it works</Link>.
+          checked: <a href="../v1/latest.json">raw data</a> · <Link href="/methodology">how it works</Link>.
         </p>
       </footer>
     </main>

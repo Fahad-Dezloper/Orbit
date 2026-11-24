@@ -104,6 +104,7 @@ export default function Methodology() {
           <Link href="/methodology" className="on">
             How it works
           </Link>
+          <a href="https://fahad-dezloper.github.io/Orbit/">Docs</a>
           <a href="https://github.com/Fahad-Dezloper/Orbit">GitHub</a>
         </nav>
       </header>
