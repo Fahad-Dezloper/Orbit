@@ -231,6 +231,69 @@ contract = "CAQYPRTX2E6H6BM57QRBYZWP667FPDYDUHMOQXGXM2HA64KO6AISRFEK"
 home_domain = "centrifuge.io"
 name = "Janus Henderson NASDAQ-100 index fund"
 
+# Other tokens Stellar lenders accept as collateral (Blend reserves, Nov 2026): stablecoins
+# and crypto. Issuer domains from each issuer account's home_domain; confirmed by SEP-1.
+
+[[asset]]
+code = "EURC"
+issuer = "GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2"
+home_domain = "circle.com"
+name = "Circle euro stablecoin"
+
+[[asset]]
+code = "PYUSD"
+issuer = "GDQE7IXJ4HUHV6RQHIUPRJSEZE4DRS5WY577O2FY6YQ5LVWZ7JZTU2V5"
+home_domain = "token-metadata.paxos.com"
+name = "PayPal USD"
+
+[[asset]]
+code = "USDGLO"
+issuer = "GBBS25EGYQPGEZCGCFBKG4OAGFXU6DSOQBGTHELLJT3HZXZJ34HWS6XV"
+home_domain = "app.glodollar.org"
+name = "Glo Dollar"
+
+[[asset]]
+code = "USDx"
+issuer = "GAVH5ZWACAY2PHPUG4FL3LHHJIYIHOFPSIUGM2KHK25CJWXHAV6QKDMN"
+home_domain = "assets.fxdao.io"
+name = "FxDAO US dollar"
+
+[[asset]]
+code = "EURx"
+issuer = "GAVH5ZWACAY2PHPUG4FL3LHHJIYIHOFPSIUGM2KHK25CJWXHAV6QKDMN"
+home_domain = "assets.fxdao.io"
+name = "FxDAO euro"
+
+[[asset]]
+code = "GBPx"
+issuer = "GAVH5ZWACAY2PHPUG4FL3LHHJIYIHOFPSIUGM2KHK25CJWXHAV6QKDMN"
+home_domain = "assets.fxdao.io"
+name = "FxDAO pound"
+
+[[asset]]
+code = "oUSD"
+issuer = "GBIWJGAOSFC4KUPHXM573TKTWHMI7VW7D4GCHYZYH243Q6HVBV7ORBIT"
+home_domain = "assets.orbitcdp.finance"
+name = "OrbitCDP US dollar"
+
+[[asset]]
+code = "AQUA"
+issuer = "GBNZILSTVQZ4R7IKQDGHYGY2QXL5QOFJYQMXPKWRRM5PAV7Y4M67AQUA"
+home_domain = "aqua.network"
+name = "Aquarius governance token"
+
+[[asset]]
+code = "SolvBTC"
+contract = "CBIJBDNZNF4X35BJ4FFZWCDBSCKOP5NB4PLG4SNENRMLAPYG4P5FM6VN"
+home_domain = "solv.finance"
+name = "Solv Bitcoin"
+
+[[asset]]
+code = "xSolvBTC"
+contract = "CAUP7NFABXE5TJRL3FKTPMWRLC7IAXYDCTHQRFSCLR5TMGKHOOQO772J"
+home_domain = "solv.finance"
+name = "Solv staked Bitcoin"
+
 # Counter assets used for USD conversion.
 [usdc]
 code = "USDC"
@@ -342,3 +405,183 @@ counter = "USDC"
 protocol = "sushi"
 kind = "quoted"
 contract = "CDMJRRH5MAJLB7T5SQAWQOOL7UJ3BABGTURSVKIE6AEDSXESDDJIBVCT"
+
+# Pools for the lender collateral tokens (Aquarius pool list and Soroswap factory, Nov 2026).
+
+[[pool]]
+asset = "EURC"
+counter = "USDC"
+protocol = "aquarius"
+kind = "quoted"
+contract = "CDTSE6RLRI7ZO25JSER6E4SQR4PHJJNONEGS5HDJ3Y6LAKECRZKYN5CA"
+
+[[pool]]
+asset = "EURC"
+counter = "USDC"
+protocol = "aquarius"
+contract = "CB37QM6EHVBDDNK7MAVQESV7WPLKV6G36TR7MHAOYWPZXLPQUWSDOK4E"
+
+[[pool]]
+asset = "EURC"
+counter = "XLM"
+protocol = "aquarius"
+kind = "quoted"
+contract = "CBDDA5YNDGQA4RB5WCAZLUA6FCZA2RPCOYXIRKP6TBCQCE5SQDXQJQ2D"
+
+[[pool]]
+asset = "EURC"
+counter = "XLM"
+protocol = "aquarius"
+contract = "CBJRHI2C2JASOEUWI4PSWXWDCABMCBYU4OYM7RANW3AF4J3ULXRE7FOJ"
+
+[[pool]]
+asset = "EURC"
+counter = "USDC"
+protocol = "soroswap"
+contract = "CC7CDFY2VGDODJ7WPO3JIK2MXLOAXL4LRQCC43UJDBAIJ4SVFO3HNPOC"
+
+[[pool]]
+asset = "EURC"
+counter = "XLM"
+protocol = "soroswap"
+contract = "CATUJXDUO7SSSTAKSUV5YU6RSTB4B5AVIHQDV26QTCXOB46T6SLMWNMY"
+
+[[pool]]
+asset = "PYUSD"
+counter = "USDC"
+protocol = "aquarius"
+kind = "quoted"
+contract = "CDMH535JSD224YXPET3B4SJOLXTQQ24GRSCWACGYBKSH2DKFJYWI7SUW"
+
+[[pool]]
+asset = "PYUSD"
+counter = "USDC"
+protocol = "aquarius"
+kind = "quoted"
+contract = "CAPIOQNULTKVYOJT6X2W2XKGNIVUWZDY72Y42YG6HQKJ7DU7YTHIDQYX"
+
+[[pool]]
+asset = "PYUSD"
+counter = "XLM"
+protocol = "aquarius"
+contract = "CDJPROL4CVOGTIJ4VBJST67D6SJDPUICASDQFBYD3DB74AR3SE3MAR4V"
+
+[[pool]]
+asset = "USDGLO"
+counter = "USDC"
+protocol = "aquarius"
+kind = "quoted"
+contract = "CAC56QNJ2CX456TPC5S4MSOU3DBULG4TGN7AZ2SAYGBLD3GICFMZBIT2"
+
+[[pool]]
+asset = "USDGLO"
+counter = "USDC"
+protocol = "soroswap"
+contract = "CCYPLDHUEYWJEOIZJTXUH56NLIQLKYGR5H2BEFQMBYG5IC3G52QF4WVD"
+
+[[pool]]
+asset = "USDx"
+counter = "USDC"
+protocol = "aquarius"
+kind = "quoted"
+contract = "CCLZQDL5LY2DBPNNFBRKPSROGFGTT7Y7AI2SM6QUI3SUTTKA672X4PDF"
+
+[[pool]]
+asset = "USDx"
+counter = "XLM"
+protocol = "aquarius"
+contract = "CADN2Y2HDRGBRSZKY4GVRT2XD34QVYIMNVLSNQKSYS3T4RUX7LBIDIYE"
+
+[[pool]]
+asset = "USDx"
+counter = "USDC"
+protocol = "soroswap"
+contract = "CB63RYTOXPVHXJAM7BGN7AUKFGHUCT5KVCK4H2BV4CHPEWIV4J3WDY3W"
+
+[[pool]]
+asset = "USDx"
+counter = "XLM"
+protocol = "soroswap"
+contract = "CDJDRGUCHANJDXALZVJ5IZVB76HX4MWCON5SHF4DE5HB64CBBR7W2ZCD"
+
+[[pool]]
+asset = "EURx"
+counter = "XLM"
+protocol = "aquarius"
+contract = "CD3KLMNUKIFGB544YA4WM4MZYZ52TQR6EOH6DBX7PTSENIVL5GR24YJS"
+
+[[pool]]
+asset = "GBPx"
+counter = "XLM"
+protocol = "aquarius"
+contract = "CATTIXSGLPAJQAWTNRRE2QZGT2NQKFVJWBMNFPFCDHVONXWAAQTS7T5O"
+
+[[pool]]
+asset = "oUSD"
+counter = "USDC"
+protocol = "aquarius"
+kind = "quoted"
+contract = "CBG2QNHFV3DJTKHGABZ3ZRCDWXE6JB2FXTNVXPSOGZUDHTTH3TQ7CGRM"
+
+[[pool]]
+asset = "oUSD"
+counter = "USDC"
+protocol = "soroswap"
+contract = "CBOGW2GXIAHKYLQEX6DSM7325BNGBZ7W5G6ME4ACADZPWTSIJGU3XOSA"
+
+[[pool]]
+asset = "AQUA"
+counter = "XLM"
+protocol = "aquarius"
+contract = "CCY2PXGMKNQHO7WNYXEWX76L2C5BH3JUW3RCATGUYKY7QQTRILBZIFWV"
+
+[[pool]]
+asset = "AQUA"
+counter = "XLM"
+protocol = "aquarius"
+kind = "quoted"
+contract = "CA4HTZNY2RBZWEQE5GBMNREZMFRPAZSVJ6OGPC7T3VM7NHRJYFAVID2S"
+
+[[pool]]
+asset = "AQUA"
+counter = "USDC"
+protocol = "aquarius"
+contract = "CA6GAFOJCW4MGQQBUCQUSA3CLIH25G4SNKB2JHYKZCVWZTNW5VXMSC4O"
+
+[[pool]]
+asset = "AQUA"
+counter = "USDC"
+protocol = "aquarius"
+kind = "quoted"
+contract = "CBRUQ7I6C6OGHMDYWD6XQUZFB6KJ3LLPNE34EPKSPFZ2YMBJ2GIWYYZ7"
+
+[[pool]]
+asset = "AQUA"
+counter = "USDC"
+protocol = "soroswap"
+contract = "CB3CBFWCLES4VUFXDYKH3KW6SO2XJEH3SJSPX36FHLV4I544M2CI4L63"
+
+[[pool]]
+asset = "AQUA"
+counter = "XLM"
+protocol = "soroswap"
+contract = "CDRS7NJPAX2HLYNENMUH3USUV6LP6KYSLZZ4ULY27RQLKIVC5DGLEVKI"
+
+[[pool]]
+asset = "SolvBTC"
+counter = "XLM"
+protocol = "aquarius"
+contract = "CD2O2B6PWKXDVFXMHXHQMF25C4TWOSQAENA7DNFR5G27F5CHJ7AJP5F6"
+
+[[pool]]
+asset = "SolvBTC"
+counter = "XLM"
+protocol = "aquarius"
+kind = "quoted"
+contract = "CDL5H2BZTIPBPIKJ2NOILZQYZRZE553H3SZX47DDBYEBXSWXIHZLGA2C"
+
+[[pool]]
+asset = "SolvBTC"
+counter = "XLM"
+protocol = "aquarius"
+contract = "CCD3P3RNXORFN64OH46ES6EADO7NUDWXUXWCBU42NN7V4SUPXPFJWED2"

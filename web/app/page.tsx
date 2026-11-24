@@ -48,7 +48,22 @@ const NAMES: Record<string, string> = {
   JTRSY: "Janus Henderson Treasury fund",
   HYB: "NYLIM high-yield bond fund",
   JQQQ: "Janus Henderson NASDAQ-100 fund",
+  EURC: "Circle euro stablecoin",
+  PYUSD: "PayPal USD",
+  USDGLO: "Glo Dollar",
+  USDx: "FxDAO US dollar",
+  EURx: "FxDAO euro",
+  GBPx: "FxDAO pound",
+  oUSD: "OrbitCDP US dollar",
+  AQUA: "Aquarius token",
+  SolvBTC: "Solv Bitcoin",
+  xSolvBTC: "Solv staked Bitcoin",
 };
+
+/** Not RWAs: other tokens Stellar lenders accept as collateral (stablecoins and crypto). */
+const OTHER_COLLATERAL = new Set([
+  "EURC", "PYUSD", "USDGLO", "USDx", "EURx", "GBPx", "oUSD", "AQUA", "SolvBTC", "xSolvBTC",
+]);
 
 /** Funds whose issuers only let approved holders own them, so no open market can exist. */
 const RESTRICTED = new Set([
@@ -291,10 +306,14 @@ export default async function Page() {
   const lenders: Result<Lenders> = await getLenders(BONUS_BPS);
 
   const verdict = (r: AssetReport) => exitAt(r, 1000)?.verdict ?? "dead";
-  const withMarket = run.reports
+  const byDepth = (a: AssetReport, b: AssetReport) =>
+    Number(exitAt(b, 1000)?.total_usd ?? 0) - Number(exitAt(a, 1000)?.total_usd ?? 0);
+  const others = run.reports.filter((r) => OTHER_COLLATERAL.has(r.code)).sort(byDepth);
+  const rwas = { ...run, reports: run.reports.filter((r) => !OTHER_COLLATERAL.has(r.code)) };
+  const withMarket = rwas.reports
     .filter((r) => verdict(r) !== "dead")
     .sort((a, b) => Number(exitAt(b, 1000)?.total_usd ?? 0) - Number(exitAt(a, 1000)?.total_usd ?? 0));
-  const noMarket = run.reports.filter((r) => verdict(r) === "dead");
+  const noMarket = rwas.reports.filter((r) => verdict(r) === "dead");
   const restricted = noMarket.filter((r) => RESTRICTED.has(r.code));
   const openEmpty = noMarket.filter((r) => !RESTRICTED.has(r.code));
   const total = withMarket.reduce((s, r) => s + Number(exitAt(r, 1000)?.total_usd ?? 0), 0);
@@ -345,6 +364,44 @@ export default async function Page() {
           ))}
         </div>
       </section>
+
+      {others.length > 0 && (
+        <section className="section">
+          <h2>Other tokens lenders accept</h2>
+          <p className="section-sub">
+            Not RWAs, but Stellar lending pools take these as collateral too, so Orbit measures
+            them the same way.
+          </p>
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Token</th>
+                  <th className="r">Can be sold before a 10% drop</th>
+                  <th>Market</th>
+                </tr>
+              </thead>
+              <tbody>
+                {others.map((r) => {
+                  const st = STATUS[verdict(r)];
+                  return (
+                    <tr key={r.code}>
+                      <td>
+                        <b>{r.code}</b>
+                        <span className="muted"> · {NAMES[r.code] ?? ""}</span>
+                      </td>
+                      <td className="r">{money(exitAt(r, 1000)?.total_usd)}</td>
+                      <td>
+                        <span className={`badge ${st.tone}`}>{st.label}</span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
 
       {openEmpty.length > 0 && (
         <section className="section">

@@ -39,6 +39,9 @@ with passing checks. Nothing in this plan writes to mainnet.
 - [x] 2.12 Soroban-only RWA tokens (Centrifuge deJAAA, deJTRSY, JAAA, JTRSY, deHYB, HYB, JQQQ)
   identified by contract and confirmed in centrifuge.io's stellar.toml; Sushi v3 pools read from
   their own quotes, with 18-decimal tokens converted (36 tokens in all)
+- [x] 2.13 Every other token Stellar lenders accept (Blend reserves): EURC, PYUSD, USDGLO,
+  USDx, EURx, GBPx, oUSD, AQUA, SolvBTC, xSolvBTC; 8-decimal tokens converted in every pool
+  reader (46 tokens). XLM and USDC, the price units, are still to come
 
 ## Phase 3: On-chain oracle (`contracts/depth-oracle`)
 - [x] 3.1 Storage layout, admin and publisher roles, TTL extension

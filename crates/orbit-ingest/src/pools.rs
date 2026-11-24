@@ -137,6 +137,20 @@ impl PoolSpec {
     }
 }
 
+/// How many of the asset's smallest units make one [`Fx`] raw unit: 1 for classic assets
+/// (7 decimals), `10^(decimals - 7)` for contract tokens with more decimals.
+fn asset_scale(rpc: &SorobanRpc, asset: &Asset, token: &str) -> Result<i128, IngestError> {
+    if !asset.is_contract() {
+        return Ok(1);
+    }
+    unit_scale(soroban::as_u32(&rpc.read(token, "decimals", vec![])?)?)
+}
+
+/// Converts an amount in the asset's own units to [`Fx`], rounding down.
+fn scale_down(v: Fx, scale: i128) -> Result<Fx, IngestError> {
+    Fx::from_raw(v.raw() / scale).map_err(IngestError::from)
+}
+
 /// Reads one pool's reserves from the side of a seller of `asset`, after checking that the
 /// pool really holds `asset` and its counter.
 pub fn read_pool(
@@ -165,7 +179,8 @@ pub fn read_pool(
         return Err(reject(spec, format!("fee of {fee_bps} bps")));
     }
     let reserves = soroban::amounts(&rpc.read(c, "get_reserves", vec![])?)?;
-    let pool = pool_from(
+    let scale = asset_scale(rpc, asset, &want_asset)?;
+    let mut pool = pool_from(
         spec,
         &tokens,
         &reserves,
@@ -173,7 +188,8 @@ pub fn read_pool(
         &want_asset,
         &want_counter,
     )?;
-    let held_asset = held_balance(rpc, &want_asset, c)?;
+    pool.reserve_asset = scale_down(pool.reserve_asset, scale)?;
+    let held_asset = scale_down(held_balance(rpc, &want_asset, c)?, scale)?;
     let held_counter = held_balance(rpc, &want_counter, c)?;
     let pool = check_held(spec, pool, held_asset, held_counter)?;
     // Only metadata that passed verification is cached.
@@ -335,14 +351,19 @@ fn quote(
     in_idx: u32,
     out_idx: u32,
     base_in: Fx,
+    scale: i128,
 ) -> Result<Fx, IngestError> {
+    let amount_in = base_in
+        .raw()
+        .checked_mul(scale)
+        .ok_or_else(|| IngestError::Registry("sale size overflows".into()))?;
     let v = rpc.read(
         c,
         "estimate_swap",
         vec![
             stellar_xdr::ScVal::U32(in_idx),
             stellar_xdr::ScVal::U32(out_idx),
-            u128_val(base_in.raw())?,
+            u128_val(amount_in)?,
         ],
     )?;
     let wrapped = stellar_xdr::ScVal::Vec(Some(
@@ -410,8 +431,9 @@ pub fn read_quoted_pool(
 
     // Probe with one unit of the asset to learn the pool's price, then size the samples as
     // fractions of the counter reserve converted at that price.
+    let scale = asset_scale(rpc, asset, &want_asset)?;
     let one = Fx::ONE;
-    let probe_out = quote(rpc, c, in_idx, out_idx, one)?;
+    let probe_out = quote(rpc, c, in_idx, out_idx, one, scale)?;
     if probe_out.is_zero() {
         return QuotedPool::new(vec![]).map_err(IngestError::from);
     }
@@ -422,7 +444,7 @@ pub fn read_quoted_pool(
     let outs: Vec<Result<Fx, IngestError>> = std::thread::scope(|s| {
         let handles: Vec<_> = sizes
             .iter()
-            .map(|&size| s.spawn(move || quote(rpc, c, in_idx, out_idx, size)))
+            .map(|&size| s.spawn(move || quote(rpc, c, in_idx, out_idx, size, scale)))
             .collect();
         handles
             .into_iter()
