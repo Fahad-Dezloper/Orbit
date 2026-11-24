@@ -22,11 +22,17 @@ export const LiveDepth = ({ show = "market", refreshSeconds = 60 }) => {
     "EURC", "PYUSD", "USDGLO", "USDx", "EURx", "GBPx", "oUSD", "AQUA", "SolvBTC", "xSolvBTC",
   ]);
   const STATUS = {
-    healthy: { label: "Deep market", cls: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300" },
-    shallow: { label: "Thin market", cls: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300" },
-    critical: { label: "Very thin", cls: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300" },
-    dead: { label: "No buyers", cls: "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400" },
+    healthy: { label: "Deep", dot: "#0F9D58" },
+    shallow: { label: "Thin", dot: "#E0A100" },
+    critical: { label: "Very thin", dot: "#E5484D" },
+    dead: { label: "No buyers", dot: "#9A9A9A" },
   };
+  const CARD =
+    "rounded-2xl bg-white dark:bg-[#1a1b1a] border border-black/5 dark:border-white/10 shadow-[0_1px_2px_rgba(18,19,18,0.04),0_8px_24px_rgba(18,19,18,0.04)]";
+  const LABEL = "text-[11px] uppercase tracking-[0.08em] text-black/40 dark:text-white/40";
+  const BIG = "font-light tracking-[-0.03em] text-[#121312] dark:text-[#F5F5F5] tabular-nums";
+  const MINT = "#7FFAB7";
+  const INK = "#121312";
 
   const [run, setRun] = useState(null);
   const [error, setError] = useState(null);
@@ -71,14 +77,14 @@ export const LiveDepth = ({ show = "market", refreshSeconds = 60 }) => {
 
   if (error) {
     return (
-      <div className="not-prose rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 text-sm text-zinc-500">
+      <div className={`not-prose ${CARD} p-6 text-sm text-black/50 dark:text-white/50`}>
         No fresh reading right now ({error}). Orbit measures every 30 minutes; try again shortly.
       </div>
     );
   }
   if (!run) {
     return (
-      <div className="not-prose rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 text-sm text-zinc-500">
+      <div className={`not-prose ${CARD} p-6 text-sm text-black/50 dark:text-white/50`}>
         Loading live data from Orbit…
       </div>
     );
@@ -99,57 +105,69 @@ export const LiveDepth = ({ show = "market", refreshSeconds = 60 }) => {
     .sort((a, b) => b.total - a.total);
   const live = rows.filter((x) => x.verdict !== "dead");
   const total = live.reduce((s, x) => s + x.total, 0);
+  const stats = [
+    [money(total), "Sellable before a 10% drop"],
+    [`${live.length}`, "Tokens with buyers"],
+    [`${rows.length - live.length}`, "Tokens nobody is buying"],
+  ];
 
   return (
-    <div className="not-prose my-6">
-      <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
-        <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-          </span>
-          Live · measured {ago(run.measured_at)}
-        </div>
-        <div className="text-sm text-zinc-500 dark:text-zinc-400">
-          <b className="text-zinc-900 dark:text-zinc-100">{money(total)}</b> sellable before a 10% drop ·{" "}
-          <b className="text-zinc-900 dark:text-zinc-100">{live.length}</b> of {rows.length} tokens have buyers
-        </div>
+    <div className="not-prose my-8">
+      <div className="flex items-center gap-2 mb-4 text-xs text-black/50 dark:text-white/50">
+        <span className="relative flex h-2 w-2">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-70" style={{ background: MINT }}></span>
+          <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: "#0F9D58" }}></span>
+        </span>
+        <span className={LABEL} style={{ color: "inherit" }}>Live</span>
+        <span>measured {ago(run.measured_at)}</span>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        {live.map(({ r, d, book, pools, total: t, verdict }) => {
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-3 mb-3">
+        {stats.map(([v, l]) => (
+          <div key={l} className={`${CARD} p-5 flex flex-col justify-between min-h-[132px]`}>
+            <div className={`${BIG} text-[44px] leading-none`}>{v}</div>
+            <div className={LABEL}>{l}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        {live.map(({ r, book, pools, total: t, verdict }) => {
           const bookPct = t > 0 ? Math.round((book / t) * 100) : 0;
           const st = STATUS[verdict];
           return (
-            <div key={r.code} className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
+            <div key={r.code} className={`${CARD} p-5 transition-transform duration-200 hover:-translate-y-0.5`}>
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{r.code}</div>
-                  <div className="text-xs text-zinc-500">{NAMES[r.code] || ""}</div>
+                  <div className="text-base font-medium text-[#121312] dark:text-[#F5F5F5]">{r.code}</div>
+                  <div className="text-xs text-black/45 dark:text-white/45">{NAMES[r.code] || ""}</div>
                 </div>
-                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${st.cls}`}>{st.label}</span>
-              </div>
-              <div className="mt-4 text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">{money(t)}</div>
-              <div className="text-xs text-zinc-500 mt-1">can be sold before the price falls 10%</div>
-              <div className="mt-4 flex h-2.5 rounded-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
-                <div style={{ width: `${bookPct}%`, background: "#2F5BD8" }}></div>
-                <div style={{ width: `${100 - bookPct}%`, background: "#18A2A8" }}></div>
-              </div>
-              <div className="mt-2 flex gap-4 text-xs text-zinc-500">
-                <span>
-                  <span className="inline-block w-2 h-2 rounded-full mr-1.5" style={{ background: "#2F5BD8" }}></span>
-                  Order book <b className="text-zinc-800 dark:text-zinc-200">{money(book)}</b>
-                </span>
-                <span>
-                  <span className="inline-block w-2 h-2 rounded-full mr-1.5" style={{ background: "#18A2A8" }}></span>
-                  AMM pools <b className="text-zinc-800 dark:text-zinc-200">{money(pools)}</b>
+                <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.08em] text-black/50 dark:text-white/50">
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: st.dot }}></span>
+                  {st.label}
                 </span>
               </div>
-              <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+              <div className={`${BIG} mt-5 text-[40px] leading-none`}>{money(t)}</div>
+              <div className="text-xs text-black/45 dark:text-white/45 mt-2">sellable before the price falls 10%</div>
+              <div className="mt-5 flex h-1.5 rounded-full overflow-hidden bg-black/5 dark:bg-white/10">
+                <div className="bg-[#121312] dark:bg-[#F5F5F5]" style={{ width: `${bookPct}%` }}></div>
+                <div style={{ width: `${100 - bookPct}%`, background: MINT }}></div>
+              </div>
+              <div className="mt-2 flex justify-between text-xs text-black/45 dark:text-white/45 tabular-nums">
+                <span>
+                  <span className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 align-middle bg-[#121312] dark:bg-[#F5F5F5]"></span>
+                  Order book {money(book)}
+                </span>
+                <span>
+                  <span className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 align-middle" style={{ background: MINT }}></span>
+                  AMM pools {money(pools)}
+                </span>
+              </div>
+              <div className="mt-5 grid grid-cols-3 border-t border-black/5 dark:border-white/10 pt-4">
                 {[200, 1000, 2500].map((b) => (
-                  <div key={b} className="rounded-lg bg-zinc-50 dark:bg-zinc-800/60 py-2">
-                    <div className="text-[11px] text-zinc-500">falls {b / 100}%</div>
-                    <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                  <div key={b}>
+                    <div className={LABEL}>falls {b / 100}%</div>
+                    <div className="mt-1 text-lg font-light tracking-tight tabular-nums text-[#121312] dark:text-[#F5F5F5]">
                       {money(at(r, b) && at(r, b).total_usd)}
                     </div>
                   </div>
@@ -161,13 +179,17 @@ export const LiveDepth = ({ show = "market", refreshSeconds = 60 }) => {
       </div>
 
       {rows.length > live.length && (
-        <div className="mt-4 text-xs text-zinc-500">
-          No buyers on Stellar today:{" "}
-          {rows
-            .filter((x) => x.verdict === "dead")
-            .map((x) => x.r.code)
-            .join(", ")}
-          .
+        <div className={`${CARD} mt-3 p-5`}>
+          <div className={LABEL}>No buyers on Stellar today</div>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {rows
+              .filter((x) => x.verdict === "dead")
+              .map((x) => (
+                <span key={x.r.code} className="text-xs px-2 py-1 rounded-md bg-black/[0.04] dark:bg-white/[0.06] text-black/60 dark:text-white/60">
+                  {x.r.code}
+                </span>
+              ))}
+          </div>
         </div>
       )}
     </div>

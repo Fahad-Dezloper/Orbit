@@ -4,9 +4,9 @@
   "name": "Orbit",
   "description": "Live market depth for Stellar RWAs, so lenders know what's safe to accept as collateral.",
   "colors": {
-    "primary": "#2F5BD8",
-    "light": "#7A9BFF",
-    "dark": "#2F5BD8"
+    "primary": "#0F9D58",
+    "light": "#7FFAB7",
+    "dark": "#121312"
   },
   "favicon": "/favicon.svg",
   "logo": {
@@ -15,17 +15,17 @@
   },
   "fonts": {
     "heading": {
-      "family": "Space Grotesk",
-      "weight": 600
+      "family": "Inter Tight",
+      "weight": 300
     },
     "body": {
-      "family": "Inter"
+      "family": "DM Sans"
     }
   },
   "background": {
     "color": {
-      "light": "#F6F5F1",
-      "dark": "#111114"
+      "light": "#F5F5F5",
+      "dark": "#121312"
     }
   },
   "navbar": {
@@ -47,7 +47,11 @@
         "groups": [
           {
             "group": "Get started",
-            "pages": ["introduction", "quickstart", "how-it-works"]
+            "pages": [
+              "introduction",
+              "quickstart",
+              "how-it-works"
+            ]
           },
           {
             "group": "Concepts",
@@ -63,15 +67,25 @@
           },
           {
             "group": "Guides",
-            "pages": ["guides/lenders", "guides/liquidators", "guides/self-hosting"]
+            "pages": [
+              "guides/lenders",
+              "guides/liquidators",
+              "guides/self-hosting"
+            ]
           },
           {
             "group": "Trust and limits",
-            "pages": ["security/threat-model", "security/limits"]
+            "pages": [
+              "security/threat-model",
+              "security/limits"
+            ]
           },
           {
             "group": "Resources",
-            "pages": ["resources/faq", "resources/glossary"]
+            "pages": [
+              "resources/faq",
+              "resources/glossary"
+            ]
           }
         ]
       },
@@ -80,7 +94,10 @@
         "groups": [
           {
             "group": "Live data",
-            "pages": ["live/overview", "live/tokens"]
+            "pages": [
+              "live/overview",
+              "live/tokens"
+            ]
           }
         ]
       },
@@ -100,7 +117,10 @@
           },
           {
             "group": "On-chain oracle",
-            "pages": ["contract/overview", "contract/reading"]
+            "pages": [
+              "contract/overview",
+              "contract/reading"
+            ]
           }
         ]
       }
@@ -110,5 +130,8 @@
     "socials": {
       "github": "https://github.com/Fahad-Dezloper/Orbit"
     }
+  },
+  "appearance": {
+    "default": "light"
   }
 }
