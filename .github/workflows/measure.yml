@@ -10,7 +10,7 @@ name: measure
 # GitHub runs free scheduled jobs only every few hours, which leaves gaps the 24h window does
 # not accept. So each run queues the next one itself after a random 25 to 35 minute wait, in a
 # separate job so the wait never holds up a deploy. The schedule only restarts the chain if it
-# ever stops. A push that changes the docs or dashboard deploys straight away.
+# ever stops. A push that changes the docs, dashboard, code or token list runs straight away.
 on:
   schedule:
     - cron: "*/30 * * * *"
@@ -20,6 +20,8 @@ on:
     paths:
       - "docs-site/**"
       - "web/**"
+      - "crates/**"
+      - "assets.toml"
       - ".github/workflows/measure.yml"
 
 permissions:

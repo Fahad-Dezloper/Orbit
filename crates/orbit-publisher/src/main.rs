@@ -20,7 +20,7 @@ use clap::Parser;
 use orbit_api::http::now;
 use orbit_api::store::Store;
 use orbit_core::{Band, WindowPolicy};
-use orbit_ingest::soroban::{sac_address, SorobanRpc, Token, MAINNET_PASSPHRASE};
+use orbit_ingest::soroban::{SorobanRpc, MAINNET_PASSPHRASE};
 use orbit_ingest::Registry;
 use orbit_publisher::chain::{onchain_ts, submit, Network};
 use orbit_publisher::{plan, to_cli_json, OracleAsset};
@@ -131,14 +131,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .into());
     }
     let reg = Registry::from_toml(&std::fs::read_to_string(&args.registry)?)?;
-    // Assets are named by their mainnet SAC address, whatever network the oracle is on.
+    // Assets are named by their mainnet token contract (the SAC, or the token's own contract for
+    // contract-only tokens), whatever network the oracle is on.
     let assets = reg
         .assets
         .iter()
         .map(|a| {
             Ok(OracleAsset {
                 code: a.code.clone(),
-                sac: sac_address(Token::Credit(a), MAINNET_PASSPHRASE)?,
+                sac: a.token_address(MAINNET_PASSPHRASE)?,
             })
         })
         .collect::<Result<Vec<_>, orbit_ingest::IngestError>>()?;
