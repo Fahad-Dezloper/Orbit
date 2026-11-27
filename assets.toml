@@ -389,6 +389,30 @@ contract = "CAE7QVOMBLZ53CDRGK3UNRRHG5EZ5NQA7HHTFASEMYBWHG6MDFZTYHXC"
 name = "New Fixed"
 contract = "CAIYBZSBI6XXI3W7EDXDRWLUBK3RCAPHTK4DNX74DZGWE53KYWBHE236"
 
+# Templar lending markets (NEAR) holding measured tokens through NEAR Intents. Read from
+# Templar's API (api.templarfi.org/v1/markets) and labelled "reported": not verifiable on
+# Stellar. Matched by these pinned token ids only (from Templar's market list, Nov 2026).
+
+[[templar_token]]
+asset = "deJAAA"
+token_id = "nep245:v2_1.omni.hot.tg:1100_111bzQBB66Lr9d7WU1sDna78SqG5x1ZraFjkpPdiYXjHFRnZJUhuV"
+
+[[templar_token]]
+asset = "deJTRSY"
+token_id = "nep245:v2_1.omni.hot.tg:1100_111bzQBB5y5yhcUCbDKaCx4zNjEHQbwLAdvwucCecVzC5Ub7uNKEb"
+
+[[templar_token]]
+asset = "USTRY"
+token_id = "nep245:v2_1.omni.hot.tg:1100_111bzQBB5yT2A5maKJqJQsuNg7BA6VG4S4ZATpqmKYLwYBsfEfh6e"
+
+[[templar_token]]
+asset = "CETES"
+token_id = "nep245:v2_1.omni.hot.tg:1100_111bzQBB5uBD3Wrr7pthp8XhJsreEcwTVnmjQ1wpbzkvHLEQf3ygS"
+
+[[templar_token]]
+asset = "SolvBTC"
+token_id = "nep245:v2_1.omni.hot.tg:1100_111bzQBB5xzU1EsXby4ckez2qjWFTBiPoqHzZpPkq1Gr9gB7FQpeZ"
+
 # Sushi v3 pools (concentrated liquidity), read from the pool's own quote_exact_input.
 # Found through Sushi's pool lens; the only on-chain markets for these tokens (Nov 2026).
 

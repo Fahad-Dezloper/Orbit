@@ -101,6 +101,9 @@ pub struct Registry {
     /// The Blend v2 pool factory. Required when lenders are listed.
     #[serde(default)]
     pub blend_factory: Option<String>,
+    /// Templar (NEAR) collateral tokens pinned to measured assets.
+    #[serde(default, rename = "templar_token")]
+    pub templar_tokens: Vec<crate::templar::TemplarToken>,
 }
 
 impl Registry {
@@ -127,6 +130,14 @@ impl Registry {
         }
         for l in &r.lenders {
             crate::soroban::parse_contract(&l.contract)?;
+        }
+        for t in &r.templar_tokens {
+            if !r.assets.iter().any(|a| a.code == t.asset) || t.token_id.is_empty() {
+                return Err(IngestError::Registry(format!(
+                    "templar token {:?} must name a registered asset and a token id",
+                    t.asset
+                )));
+            }
         }
         Ok(r)
     }

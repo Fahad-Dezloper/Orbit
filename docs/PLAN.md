@@ -57,7 +57,9 @@ with passing checks. Nothing in this plan writes to mainnet.
   history chart and methodology page
 - [x] 4.4 Collateral view: liquidatable at a bonus and recommended cap; RWA holdings of
   pinned Blend v2 pools (factory-verified) beside the exit (`/v1/lenders`, CLI, dashboard)
-- [ ] 4.4b Templar markets (where most Stellar RWA borrowing sits)
+- [x] 4.4b Templar markets: collateral in Templar (NEAR) markets for pinned Stellar tokens, from
+  Templar's API and labelled "reported" (deJAAA: about $4.2M held vs $1.6M exit at 10%, Nov 2026)
+- [ ] 4.4c Blend v2.1 pool factory (`CACUXRNB...`): accept its pools once one holds a measured asset
 - [x] 4.5 `orbit-publisher`: windowed minimum to oracle batches; no replays, fails closed,
   mainnet refused; end-to-end local demo (`scripts/local-publish-demo.sh`)
 - [x] 4.6 Container image and deployment guide (`Dockerfile`, `docs/DEPLOY.md`)

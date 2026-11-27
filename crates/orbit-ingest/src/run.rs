@@ -159,13 +159,30 @@ pub fn measure_all(
             Err(reason) => skipped.push(Skipped { code, reason }),
         }
     }
-    let (lenders, lenders_skipped) = match (rpc, reg.blend_factory.as_deref()) {
+    let (mut lenders, mut lenders_skipped) = match (rpc, reg.blend_factory.as_deref()) {
         (Some(rpc), Some(factory)) if !reg.lenders.is_empty() => {
             let assets: Vec<Asset> = selected.iter().map(|&a| a.clone()).collect();
             read_lenders(rpc, factory, reg, &assets)
         }
         _ => (Vec::new(), Vec::new()),
     };
+    if rpc.is_some() && !reg.templar_tokens.is_empty() {
+        let wanted: Vec<_> = reg
+            .templar_tokens
+            .iter()
+            .filter(|t| selected.iter().any(|a| a.code == t.asset))
+            .cloned()
+            .collect();
+        if !wanted.is_empty() {
+            match crate::templar::read_templar(crate::templar::DEFAULT_API, &wanted) {
+                Ok(mut v) => lenders.append(&mut v),
+                Err(e) => lenders_skipped.push(Skipped {
+                    code: "Templar".into(),
+                    reason: e.to_string(),
+                }),
+            }
+        }
+    }
     let measured_at = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map(|d| d.as_secs())

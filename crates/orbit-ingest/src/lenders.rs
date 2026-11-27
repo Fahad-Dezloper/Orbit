@@ -1,7 +1,8 @@
 //! How much of each measured asset sits in lending pools, read on-chain.
 //!
 //! This is the other half of a cap: depth says how much could be sold, this says how much a
-//! lender holds that might have to be. Only Blend v2 pools are read today.
+//! lender holds that might have to be. Blend v2 pools are read here, on-chain; Templar
+//! markets (on NEAR) are read from Templar's API in `templar.rs`.
 //!
 //! As with AMM pools, nothing is taken on trust. A pinned Blend pool is used only if the
 //! pinned Blend pool factory confirms it deployed it (`is_pool`), so the pool runs Blend's

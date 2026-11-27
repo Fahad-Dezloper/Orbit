@@ -47,5 +47,10 @@ Blend v3 is being designed now; depth-aware caps are a natural fit for it.
 
 ## What Orbit sees today
 
-Orbit already reads the RWA holdings of pinned Blend v2 pools and compares them with what could
-be sold. See [`/v1/lenders`](/api/lenders) and the "What lenders hold" section of the dashboard.
+Orbit reads the RWA holdings of pinned Blend v2 pools (on-chain) and of Templar's markets
+(reported by Templar's API), and compares them with what could be sold. See
+[`/v1/lenders`](/api/lenders) and the "What lenders hold" section of the dashboard.
+
+In November 2026 Templar's two deJAAA markets held about $4.2M of deJAAA as collateral, with a
+2.5% liquidation spread. Everything on Stellar could absorb about $1.6M of deJAAA before the
+price fell 10%.

@@ -9,6 +9,10 @@ description: "What Blend pools hold of each measured token, beside what could be
 Orbit reads pinned Blend v2 pools. A pool is used only if the Blend v2 factory confirms it
 deployed it, and each reserve's cash is checked against the pool's real token balance.
 
+It also reads Templar's lending markets, which run on NEAR and hold Stellar tokens through NEAR
+Intents. Those come from Templar's own API, are matched to tokens by pinned token ids, and are
+labelled `Templar (reported)`: Orbit cannot verify them on Stellar.
+
 ## Response
 
 <ResponseField name="exposures" type="object[]">

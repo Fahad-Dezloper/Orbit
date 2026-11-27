@@ -19,6 +19,7 @@ pub mod registry;
 pub mod run;
 pub mod sep1;
 pub mod soroban;
+pub mod templar;
 
 pub use error::IngestError;
 pub use horizon::{Horizon, Side};
