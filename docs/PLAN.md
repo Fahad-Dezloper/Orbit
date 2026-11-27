@@ -74,7 +74,7 @@ with passing checks. Nothing in this plan writes to mainnet.
 - [x] 5.2 Local-network demo: a lending pool reads the depth oracle and refuses collateral
   the market cannot absorb (`contracts/demo-lender`, `scripts/blocked-borrow-demo.sh`)
 - [x] 5.3 Methodology document a protocol risk team can audit (`docs/METHODOLOGY.md`)
-- [ ] 5.4 Release notes and SCF application material
+- [~] 5.4 Release notes (`CHANGELOG.md`, v0.1.0) done; SCF application material to do
 - [x] 5.5 Slow up, fast down: a published figure may rise only on depth sustained for 7 days,
   and falls on the first low sample (`docs/THREATS.md` §2)
 - [x] 5.6 Concentration haircut: count at most a set share of SDEX bid depth from any one

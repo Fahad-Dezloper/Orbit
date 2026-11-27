@@ -178,6 +178,12 @@ subphase, and [`docs/SECURITY.md`](docs/SECURITY.md) for the threat model.
 - Conservative: every rounding understates depth.
 - Reproducible: any figure can be recomputed from its stored snapshot.
 
+## Contributing
+
+Issues and pull requests are welcome, especially new tokens and pools. Read
+[CONTRIBUTING.md](CONTRIBUTING.md) first; report security issues privately as described in
+[SECURITY.md](SECURITY.md). Changes are listed in [CHANGELOG.md](CHANGELOG.md).
+
 ## License
 
 Apache-2.0. See [LICENSE](LICENSE).

@@ -1,0 +1,31 @@
+name: Wrong figure
+description: Orbit shows a depth, cap or holding that does not match the market
+labels: ["figure"]
+body:
+  - type: input
+    id: token
+    attributes:
+      label: Token
+      placeholder: USTRY
+    validations:
+      required: true
+  - type: input
+    id: where
+    attributes:
+      label: Where you saw it
+      description: Dashboard, docs widget, API path, or the on-chain oracle
+      placeholder: /v1/assets/USTRY/cap.json
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What Orbit says and what you expected
+      description: Include the band (2%, 10%, 25%) and the time you looked.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: How you checked
+      description: A venue quote, a transaction, a book snapshot, a pool address Orbit misses.

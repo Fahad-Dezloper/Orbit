@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Report a security issue
+    url: https://github.com/Fahad-Dezloper/Orbit/security/advisories/new
+    about: Please report vulnerabilities privately, not as a public issue.
+  - name: Documentation
+    url: https://fahad-dezloper.github.io/Orbit/
+    about: How Orbit measures, self-hosting, and the API.

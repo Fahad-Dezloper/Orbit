@@ -1,0 +1,29 @@
+name: Add a token or pool
+description: Ask Orbit to measure a token, or to read a pool it misses
+labels: ["coverage"]
+body:
+  - type: input
+    id: token
+    attributes:
+      label: Token code
+      placeholder: CETES
+    validations:
+      required: true
+  - type: input
+    id: issuer
+    attributes:
+      label: Issuer account or token contract
+    validations:
+      required: true
+  - type: input
+    id: domain
+    attributes:
+      label: Issuer's home domain (where its stellar.toml lists the token)
+      placeholder: etherfuse.com
+    validations:
+      required: true
+  - type: textarea
+    id: pools
+    attributes:
+      label: Pools or lenders holding it
+      description: Contract addresses, protocol (Aquarius, Soroswap, Sushi, Blend, ...), and where you found them.
