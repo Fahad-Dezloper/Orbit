@@ -1,0 +1,67 @@
+# Self-hosted Orbit.
+#
+#   cp .env.example .env
+#   docker compose up -d                       # API on :8080, dashboard on :3100
+#   docker compose --profile publisher up -d   # also publish to your own depth oracle
+#
+# The API measures mainnet read-only every ~30 minutes into the orbit-data volume. The 24h
+# window needs 12 readings, so a fresh install shows windowed figures after about 6 hours.
+# Ports bind to localhost; put a reverse proxy with TLS in front to expose them.
+
+services:
+  api:
+    build:
+      context: .
+      target: api
+    image: orbit-api
+    restart: unless-stopped
+    command:
+      - --interval-secs
+      - "${ORBIT_INTERVAL_SECS:-1800}"
+      - --horizon
+      - "${ORBIT_HORIZON:-https://horizon.stellar.org}"
+    volumes:
+      - orbit-data:/data
+    ports:
+      - "127.0.0.1:${ORBIT_API_PORT:-8080}:8080"
+
+  dashboard:
+    build: web
+    image: orbit-dashboard
+    restart: unless-stopped
+    environment:
+      ORBIT_API_URL: http://api:8080
+    depends_on:
+      - api
+    ports:
+      - "127.0.0.1:${ORBIT_DASHBOARD_PORT:-3100}:3100"
+
+  publisher:
+    profiles: ["publisher"]
+    build:
+      context: .
+      target: publisher
+    image: orbit-publisher
+    restart: unless-stopped
+    environment:
+      ORBIT_NETWORK: ${ORBIT_NETWORK:-testnet}
+      ORBIT_ORACLE: ${ORBIT_ORACLE:-}
+      ORBIT_PUBLISHER_ADDRESS: ${ORBIT_PUBLISHER_ADDRESS:-}
+      ORBIT_PUBLISH_EVERY_SECS: ${ORBIT_PUBLISH_EVERY_SECS:-1800}
+      ORBIT_RPC: ${ORBIT_RPC:-}
+      ORBIT_MIN_SAMPLES: ${ORBIT_MIN_SAMPLES:-}
+      ORBIT_MAINNET_UNAUDITED: ${ORBIT_MAINNET_UNAUDITED:-}
+    # Read-only: anyone who can write the store could make the publisher sign false figures.
+    volumes:
+      - orbit-data:/data:ro
+    secrets:
+      - orbit_publisher_key
+    depends_on:
+      - api
+
+volumes:
+  orbit-data:
+
+secrets:
+  orbit_publisher_key:
+    file: ${ORBIT_PUBLISHER_KEY_FILE:-./secrets/publisher.key}

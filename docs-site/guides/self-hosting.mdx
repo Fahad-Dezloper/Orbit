@@ -1,48 +1,141 @@
 ---
 title: "Self-hosting"
-description: "Run Orbit's measurements, API and publisher yourself."
+description: "Run your own Orbit: measurements, API, dashboard and on-chain oracle."
 ---
 
-Orbit is a Rust workspace. Everything except the publisher is read-only against Stellar.
+Everything Orbit runs in public, you can run yourself. You need no account, key or permission
+from anyone: measurements read Stellar mainnet read-only, and the oracle is your own contract.
 
-## Measure once
+| Piece | What it does | Holds a key |
+| --- | --- | --- |
+| API | Measures every ~30 minutes, keeps history, serves JSON | No |
+| Dashboard | Renders the API as web pages | No |
+| Publisher | Writes windowed figures to your depth oracle | Yes, the publisher key only |
+
+## Quick start (Docker)
+
+<Steps>
+  <Step title="Get the code">
+    ```bash
+    git clone https://github.com/Fahad-Dezloper/Orbit.git && cd Orbit
+    cp .env.example .env
+    ```
+  </Step>
+  <Step title="Start the API and dashboard">
+    ```bash
+    docker compose up -d
+    ```
+    The API is on `http://127.0.0.1:8080` and the dashboard on `http://127.0.0.1:3100`. The first
+    reading lands within a minute. Windowed figures need 12 readings in 24 hours, so a fresh
+    install shows them after about 6 hours.
+  </Step>
+  <Step title="Check it">
+    ```bash
+    curl -s http://127.0.0.1:8080/health
+    curl -s http://127.0.0.1:8080/v1/latest | head -c 400
+    ```
+  </Step>
+</Steps>
+
+History lives in the `orbit-data` Docker volume. Keep it: deleting it restarts the window.
+
+## Your own on-chain oracle
+
+<Steps>
+  <Step title="Deploy the oracle">
+    Needs the [stellar CLI](https://developers.stellar.org/docs/tools/cli) and Rust.
+    ```bash
+    scripts/deploy-oracle.sh --network testnet
+    ```
+    It creates (and on testnet funds) an admin and a publisher identity in your stellar CLI
+    keystore, deploys the contract, checks it, and prints the lines for `.env`. Mainnet is
+    refused until the contract has had an external review.
+  </Step>
+  <Step title="Give Docker the publisher key">
+    ```bash
+    mkdir -p secrets
+    stellar keys show orbit-publisher > secrets/publisher.key && chmod 600 secrets/publisher.key
+    ```
+    `secrets/` is git-ignored. The key is mounted as a Docker secret, copied into a keystore
+    inside the container only, and checked against `ORBIT_PUBLISHER_ADDRESS` before anything is
+    signed. It never appears in arguments, logs or environment variables.
+  </Step>
+  <Step title="Start the publisher">
+    ```bash
+    docker compose --profile publisher up -d
+    docker compose logs -f publisher
+    ```
+    It publishes each token and band whose window is complete, never replays a figure the
+    oracle already holds, and publishes nothing if it cannot read the oracle first.
+  </Step>
+</Steps>
+
+## Settings
+
+All in `.env`:
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `ORBIT_API_PORT` / `ORBIT_DASHBOARD_PORT` | `8080` / `3100` | Ports on 127.0.0.1 |
+| `ORBIT_INTERVAL_SECS` | `1800` | Average time between readings (±25% random), minimum 300 |
+| `ORBIT_HORIZON` | `https://horizon.stellar.org` | Order book source |
+| `ORBIT_NETWORK` | `testnet` | `local`, `testnet` or `mainnet` for the oracle |
+| `ORBIT_ORACLE` | | Your oracle contract |
+| `ORBIT_PUBLISHER_ADDRESS` | | Expected publisher public key (refuses to start on a mismatch) |
+| `ORBIT_PUBLISHER_KEY_FILE` | `./secrets/publisher.key` | Secret key file, mounted as a Docker secret |
+| `ORBIT_PUBLISH_EVERY_SECS` | `1800` | How often to publish |
+| `ORBIT_RPC` | network default | Soroban RPC for the oracle |
+| `ORBIT_MIN_SAMPLES` | `12` | Test networks only: publish earlier while history builds |
+| `ORBIT_MAINNET_UNAUDITED` | | `yes` to allow mainnet before the external review |
+
+## Going public
+
+Ports bind to localhost. To expose the API, put a reverse proxy with TLS and rate limits in
+front of it (Caddy, nginx or your host's load balancer). The API is GET-only and has no rate
+limiting of its own.
+
+```text
+# Caddyfile
+orbit.example.com {
+  reverse_proxy /v1/* 127.0.0.1:8080
+  reverse_proxy /health 127.0.0.1:8080
+  reverse_proxy 127.0.0.1:3100
+}
+```
+
+Run the publisher as its own user, with read-only access to the history: anyone who can write
+the history could make it sign false figures. The compose file already mounts it read-only.
+
+## Without Docker
+
+```bash
+cargo run --release -p orbit-api -- --bind 127.0.0.1:8080 --data-dir data/snapshots
+(cd web && npm ci && npm run build && ORBIT_API_URL=http://127.0.0.1:8080 npm start)
+cargo run --release -p orbit-publisher --bin orbit-publish -- \
+  --network testnet --oracle <ORACLE_ID> --source orbit-publisher \
+  --data-dir data/snapshots --every-secs 1800
+```
+
+`--source` names an identity in the stellar CLI keystore; the key never passes through Orbit.
+`--dry-run` prints the batch and submits nothing.
+
+| `orbit-api` flag | Default | Meaning |
+| --- | --- | --- |
+| `--interval-secs` | 1800 | Average time between readings, minimum 300 |
+| `--registry` | `assets.toml` | Tokens and pinned pools |
+| `--horizon` | `https://horizon.stellar.org` | Order book source |
+| `--rpc` | three public providers | Soroban RPC, comma-separated; reads rotate |
+| `--once` | | One reading into the store, then exit |
+| `--serve-only` | | Serve the store, measure nothing |
+| `--export-dir` | | With `--once`: write static JSON copies of every endpoint |
+
+## Measure once from the command line
 
 ```bash
 cargo run -p orbit-cli -- measure                 # every token, as a table
 cargo run -p orbit-cli -- measure --asset USTRY   # one token
 cargo run -p orbit-cli -- measure --json          # machine-readable
-cargo run -p orbit-cli -- measure --no-amm        # order books only
 ```
-
-## Run the API
-
-```bash
-cargo run --release -p orbit-api -- --bind 127.0.0.1:8080 --data-dir data/snapshots
-```
-
-| Flag | Default | Meaning |
-| --- | --- | --- |
-| `--interval-secs` | 1800 | Average time between readings (±25% random), minimum 300 |
-| `--registry` | `assets.toml` | Tokens and pinned pools |
-| `--horizon` | `https://horizon.stellar.org` | Order book source |
-| `--rpc` | three public providers | Soroban RPC, comma-separated; reads rotate across them |
-| `--once` | | One reading into the store, then exit |
-| `--serve-only` | | Serve the store, measure nothing |
-| `--export-dir` | | With `--once`: write static JSON copies of every endpoint |
-
-Every reading is appended to `snapshots-YYYY-MM-DD.jsonl`. Nothing is ever rewritten.
-
-## Publish on-chain
-
-```bash
-cargo run --release -p orbit-publisher --bin orbit-publish -- \
-  --network testnet --oracle <ORACLE_ID> --source <stellar-cli-identity> \
-  --data-dir data/snapshots --every-secs 1800
-```
-
-- The key never passes through Orbit: `--source` names an identity in the `stellar` CLI keystore.
-- Mainnet requires `--mainnet-unaudited` and the full 12-reading window.
-- `--dry-run` prints the batch and submits nothing.
 
 ## Add a token
 
@@ -51,9 +144,12 @@ cargo run --release -p orbit-publisher --bin orbit-publish -- \
 3. Pin its pools as `[[pool]]` entries (`protocol` = `aquarius`, `soroswap` or `sushi`; add
    `kind = "quoted"` for concentrated, stable and Sushi pools).
 4. Run `orbit measure --asset CODE` and check nothing is "left out".
+5. Rebuild the images (`docker compose build`): the token list is baked into them.
 
-## Hosting
+## Static hosting with GitHub Actions
 
-The public deployment runs from a GitHub Actions workflow: it measures every 30 minutes, keeps
-history on a `data` branch, publishes to the testnet oracle and deploys the dashboard and static
-API to GitHub Pages.
+The public deployment needs no server: `.github/workflows/measure.yml` measures about every 30
+minutes, keeps history on a `data` branch, publishes to a testnet oracle, and deploys these docs,
+the dashboard and a static API to GitHub Pages. Fork the repository, enable Pages (source:
+GitHub Actions) and set the `ORBIT_TESTNET_PUBLISHER_SECRET` secret (and the `ORACLE` and
+`PUBLISHER` values in the workflow) to run your own copy.

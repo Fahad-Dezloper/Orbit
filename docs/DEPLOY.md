@@ -38,6 +38,26 @@ To set the publisher secret from your local keystore (the value is never printed
 stellar keys show orbit-testnet-publisher | gh secret set ORBIT_TESTNET_PUBLISHER_SECRET -R Fahad-Dezloper/Orbit
 ```
 
+## Self-hosting with Docker Compose
+
+```bash
+cp .env.example .env
+docker compose up -d                          # API on 127.0.0.1:8080, dashboard on :3100
+scripts/deploy-oracle.sh --network testnet    # your own oracle; prints the .env lines
+mkdir -p secrets && stellar keys show orbit-publisher > secrets/publisher.key && chmod 600 secrets/publisher.key
+docker compose --profile publisher up -d      # publish to it
+```
+
+- One `Dockerfile`, two targets: `api` (default) and `publisher` (adds the stellar CLI).
+  `web/Dockerfile` builds the dashboard as a standalone Next.js server.
+- The publisher key is a Docker secret file, copied into a keystore inside the container only and
+  checked against `ORBIT_PUBLISHER_ADDRESS` before anything is signed.
+- The publisher mounts the history read-only.
+- Tested end to end on a local network: API and dashboard in containers, an oracle deployed by
+  `deploy-oracle.sh`, every token published by the container and read back by another account.
+
+The sections below run each piece by hand.
+
 ## 1. API (measurement + history)
 
 ```bash

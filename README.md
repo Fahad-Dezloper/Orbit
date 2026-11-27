@@ -88,6 +88,18 @@ liquidation curve takes 22 µs.
 | `web/` | Dashboard over the API | TypeScript / Next.js |
 | `docs/` | Idea, architecture, plan, security model | |
 
+## Run your own
+
+```bash
+git clone https://github.com/Fahad-Dezloper/Orbit.git && cd Orbit
+cp .env.example .env
+docker compose up -d        # API on 127.0.0.1:8080, dashboard on 127.0.0.1:3100
+```
+
+Add your own on-chain oracle with `scripts/deploy-oracle.sh --network testnet` and
+`docker compose --profile publisher up -d`. Full guide:
+[self-hosting](https://fahad-dezloper.github.io/Orbit/guides/self-hosting/).
+
 ## Build and test
 
 ```bash

@@ -6,3 +6,5 @@ data
 .git
 .env
 .env.*
+secrets
+docs-site/node_modules

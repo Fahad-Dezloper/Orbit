@@ -6,6 +6,8 @@ const isStatic = Boolean(process.env.ORBIT_STATIC_DIR);
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // The Docker image ships only the traced server files (web/Dockerfile).
+  ...(!isStatic && process.env.NEXT_STANDALONE === "1" && { output: "standalone" }),
   ...(isStatic && {
     output: "export",
     // Separate from the dev server's .next, so a static build never breaks `npm run dev`.
