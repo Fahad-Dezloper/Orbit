@@ -55,10 +55,11 @@ pub async fn export(state: &Shared, dir: &Path, codes: &[String]) -> Result<usiz
         let req = Request::get(uri.as_str())
             .body(Body::empty())
             .map_err(|e| e.to_string())?;
-        let resp = router(state.clone())
-            .oneshot(req)
-            .await
-            .map_err(|e| e.to_string())?;
+        // The router cannot fail: its error type is `Infallible`.
+        let resp = match router(state.clone()).oneshot(req).await {
+            Ok(r) => r,
+            Err(never) => match never {},
+        };
         let status = resp.status().as_u16();
         let bytes = resp
             .into_body()
