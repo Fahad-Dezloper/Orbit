@@ -20,6 +20,10 @@ services:
       - "${ORBIT_INTERVAL_SECS:-1800}"
       - --horizon
       - "${ORBIT_HORIZON:-https://horizon.stellar.org}"
+      - --min-offer-age-secs
+      - "${ORBIT_MIN_OFFER_AGE_SECS:-0}"
+      - --max-seller-share-bps
+      - "${ORBIT_MAX_SELLER_SHARE_BPS:-10000}"
     volumes:
       - orbit-data:/data
     ports:

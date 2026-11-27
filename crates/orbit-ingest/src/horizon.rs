@@ -1,9 +1,9 @@
-//! Horizon `/order_book` client.
+//! Horizon client: `/order_book`, and `/offers` for per-offer filters.
 
 use std::thread::sleep;
 use std::time::Duration;
 
-use orbit_core::{Ask, Bid, Fx, OrderBook};
+use orbit_core::{Ask, Bid, BidOffer, Fx, OrderBook};
 use serde::Deserialize;
 
 use crate::error::IngestError;
@@ -43,6 +43,44 @@ fn ratio(r: &RawRatio, round_up: bool) -> Result<Fx, orbit_core::CoreError> {
     } else {
         n.div_down(d)
     }
+}
+
+/// Seconds per ledger used to turn a ledger count into an age. Ledgers close every ~5-6s;
+/// using the fast end gives a lower bound on age, so a filter errs towards excluding offers.
+const SECS_PER_LEDGER: u64 = 5;
+/// Pages of 200 offers read per book. A book with more is cut off and marked truncated.
+const OFFER_PAGES: usize = 5;
+
+#[derive(Deserialize)]
+struct RawOffer {
+    seller: String,
+    amount: String,
+    price_r: RawRatio,
+    last_modified_ledger: u64,
+    paging_token: String,
+}
+
+#[derive(Deserialize)]
+struct RawOffers {
+    #[serde(rename = "_embedded")]
+    embedded: RawRecords,
+}
+
+#[derive(Deserialize)]
+struct RawRecords {
+    records: Vec<RawOffer>,
+}
+
+#[derive(Deserialize)]
+struct RawRoot {
+    history_latest_ledger: u64,
+}
+
+/// Every resting buy offer for an asset in one counter, with its age.
+pub struct BidOffers {
+    pub offers: Vec<BidOffer>,
+    /// True if the book had more offers than were read (the rest are left out).
+    pub truncated: bool,
 }
 
 #[derive(Deserialize)]
@@ -118,6 +156,86 @@ impl Horizon {
         }
         book.validate()?;
         Ok(book)
+    }
+
+    /// The latest closed ledger Horizon has ingested.
+    pub fn latest_ledger(&self) -> Result<u64, IngestError> {
+        let url = format!("{}/", self.base);
+        let root: RawRoot = self.get_json(&url, &[])?;
+        Ok(root.history_latest_ledger)
+    }
+
+    /// Every offer buying `asset` with `counter` (the bids of `order_book(asset, counter)`),
+    /// with its seller and age, so per-offer filters can be applied.
+    pub fn bid_offers(
+        &self,
+        asset: &Asset,
+        counter: &Side<'_>,
+        latest_ledger: u64,
+    ) -> Result<BidOffers, IngestError> {
+        let url = format!("{}/offers", self.base);
+        let mut base: Vec<(&str, String)> = vec![
+            ("buying_asset_type", asset.horizon_type().to_string()),
+            ("buying_asset_code", asset.code.clone()),
+            ("buying_asset_issuer", asset.issuer.clone()),
+            ("limit", "200".to_string()),
+            ("order", "asc".to_string()),
+        ];
+        match counter {
+            Side::Native => base.push(("selling_asset_type", "native".to_string())),
+            Side::Credit(a) => {
+                base.push(("selling_asset_type", a.horizon_type().to_string()));
+                base.push(("selling_asset_code", a.code.clone()));
+                base.push(("selling_asset_issuer", a.issuer.clone()));
+            }
+        }
+        let bad = |reason: String| IngestError::BadResponse {
+            url: url.clone(),
+            reason,
+        };
+        let mut out = Vec::new();
+        let mut cursor: Option<String> = None;
+        for _ in 0..OFFER_PAGES {
+            let mut q = base.clone();
+            if let Some(c) = &cursor {
+                q.push(("cursor", c.clone()));
+            }
+            let page: RawOffers = self.get_json(&url, &q)?;
+            let n = page.embedded.records.len();
+            for o in page.embedded.records {
+                cursor = Some(o.paging_token.clone());
+                // The offer sells COUNTER for BASE at price_r = BASE per COUNTER; a bid is
+                // COUNTER per BASE, the inverse, rounded down.
+                let inverse = RawRatio {
+                    n: o.price_r.d,
+                    d: o.price_r.n,
+                };
+                if inverse.d == 0 {
+                    continue;
+                }
+                let price = ratio(&inverse, false)?;
+                if price.is_zero() {
+                    continue;
+                }
+                out.push(BidOffer {
+                    seller: o.seller,
+                    price,
+                    amount_counter: o.amount.parse::<Fx>().map_err(|e| bad(e.to_string()))?,
+                    age_secs: latest_ledger.saturating_sub(o.last_modified_ledger)
+                        * SECS_PER_LEDGER,
+                });
+            }
+            if n < 200 {
+                return Ok(BidOffers {
+                    offers: out,
+                    truncated: false,
+                });
+            }
+        }
+        Ok(BidOffers {
+            offers: out,
+            truncated: true,
+        })
     }
 
     fn get_json<T: serde::de::DeserializeOwned>(

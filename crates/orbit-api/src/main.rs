@@ -21,7 +21,7 @@ use orbit_api::export::export;
 use orbit_api::http::{now, router, AppState, Shared, Status};
 use orbit_api::schedule::{jittered, seed};
 use orbit_api::store::Store;
-use orbit_core::{Thresholds, WindowPolicy};
+use orbit_core::{OfferFilter, Thresholds, WindowPolicy};
 use orbit_ingest::run::{measure_all, RunOptions};
 use orbit_ingest::soroban::{SorobanRpc, DEFAULT_MAINNET_RPC};
 use orbit_ingest::{Horizon, MeasureConfig, Registry};
@@ -57,6 +57,14 @@ struct Args {
     /// 12 the 24h window requires, and never a gap near the 2h limit.
     #[arg(long, default_value_t = 1800)]
     interval_secs: u64,
+    /// Count an SDEX bid only once it has rested this many seconds (0 = every bid).
+    /// Repricing resets an offer's age, so this also discards active market makers.
+    #[arg(long, default_value_t = 0)]
+    min_offer_age_secs: u64,
+    /// Count at most this share of SDEX bid depth from one account, in basis points
+    /// (10000 = no limit).
+    #[arg(long, default_value_t = 10_000)]
+    max_seller_share_bps: u32,
     /// Run one measurement into the store and exit.
     #[arg(long)]
     once: bool,
@@ -82,7 +90,13 @@ fn measure_once(args: &Args, reg: &Registry) -> Result<orbit_ingest::run::Run, S
         &h,
         rpc.as_ref(),
         reg,
-        &MeasureConfig::default(),
+        &MeasureConfig {
+            offer_filter: OfferFilter {
+                min_age_secs: args.min_offer_age_secs,
+                max_seller_share_bps: args.max_seller_share_bps,
+            },
+            ..MeasureConfig::default()
+        },
         &RunOptions::default(),
     )
     .map_err(|e| e.to_string())
@@ -116,6 +130,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     if args.interval_secs < MIN_INTERVAL_SECS {
         return Err(format!("--interval-secs must be at least {MIN_INTERVAL_SECS}").into());
     }
+    OfferFilter {
+        min_age_secs: args.min_offer_age_secs,
+        max_seller_share_bps: args.max_seller_share_bps,
+    }
+    .validate()?;
     let reg = Arc::new(Registry::from_toml(&std::fs::read_to_string(
         &args.registry,
     )?)?);

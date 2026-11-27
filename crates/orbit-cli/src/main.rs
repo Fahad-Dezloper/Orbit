@@ -15,6 +15,7 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 
 use clap::{Parser, Subcommand};
+use orbit_core::OfferFilter;
 use orbit_core::{Band, Fx};
 use orbit_ingest::lenders::exposure;
 use orbit_ingest::run::{measure_all, Run, RunOptions};
@@ -57,6 +58,14 @@ enum Cmd {
         /// Skip the SEP-1 issuer check (offline testing only).
         #[arg(long)]
         skip_sep1: bool,
+        /// Count an SDEX bid only once it has rested this many seconds (0 = every bid).
+        /// Repricing resets an offer's age, so this also discards active market makers.
+        #[arg(long, default_value_t = 0)]
+        min_offer_age_secs: u64,
+        /// Count at most this share of SDEX bid depth from one account, in basis points
+        /// (10000 = no limit).
+        #[arg(long, default_value_t = 10_000)]
+        max_seller_share_bps: u32,
     },
 }
 
@@ -80,6 +89,8 @@ fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
         asset,
         json,
         skip_sep1,
+        min_offer_age_secs,
+        max_seller_share_bps,
     } = cli.cmd;
     let reg = Registry::from_toml(&std::fs::read_to_string(&registry)?)?;
     let h = Horizon::new(horizon);
@@ -94,7 +105,15 @@ fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
         only: asset,
         skip_sep1,
     };
-    let out = measure_all(&h, soroban.as_ref(), &reg, &MeasureConfig::default(), &opts)?;
+    let cfg = MeasureConfig {
+        offer_filter: OfferFilter {
+            min_age_secs: min_offer_age_secs,
+            max_seller_share_bps,
+        },
+        ..MeasureConfig::default()
+    };
+    cfg.offer_filter.validate()?;
+    let out = measure_all(&h, soroban.as_ref(), &reg, &cfg, &opts)?;
     if json {
         println!("{}", serde_json::to_string_pretty(&out)?);
     } else {

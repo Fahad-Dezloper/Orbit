@@ -69,8 +69,8 @@ exposure and blind to the next hour.
 | Fail closed on gaps, stale data, incomplete runs | No cap without continuous, complete history | Built |
 | Randomized sampling | No timed spoofing | Built |
 | **Slow up, fast down**: rise only on depth sustained for 7 days, fall on the first low sample | Capital parked for a week, and any dip resets it | Built (5.5) |
-| **Owner concentration haircut**: count at most a share of depth per SDEX account or LP position; exclude the borrower's own | One whale cannot set the cap; must be many funded accounts | Planned (5.6), needs per-offer data (Horizon `/offers` or own ingestion) |
-| **Offer age filter**: count only offers resting for N hours | Defeats place-then-pull even with luck on timing | Planned (5.7) |
+| **Owner concentration haircut**: count at most a share of depth per SDEX account or LP position; exclude the borrower's own | One whale cannot set the cap; must be many funded accounts | Built, off by default (5.6): SDEX accounts only, LP positions not yet; halves most single-market-maker RWA books (`METHODOLOGY.md` §7.1) |
+| **Offer age filter**: count only offers resting for N hours | Defeats place-then-pull even with luck on timing | Built, off by default (5.7): removes active market makers, who reprice constantly (`METHODOLOGY.md` §7.1) |
 | Rate-limited cap growth, cap on *borrowed* amount | Exposure grows gradually and is bounded by what can be taken | Lender side (Blend v3 draft adds a 5-hour borrow limiter) |
 
 The honest claim after 5.5–5.7: **not "cannot be gamed", but gaming it costs real, spread

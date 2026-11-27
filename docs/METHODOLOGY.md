@@ -103,6 +103,32 @@ the figure.
 reading for 7 days has been at least that high, so depth has to stay in place, in public, for a
 week before any cap built on it can grow.
 
+## 7.1 Offer filters (optional, off by default)
+
+Two per-offer filters can be applied to SDEX bids before the exit walk
+(`--min-offer-age-secs`, `--max-seller-share-bps`; `orbit-core::offers`). With either on, bids
+come from Horizon `/offers` (seller and last-modified ledger per offer) instead of `/order_book`.
+
+- **Offer age:** an offer counts only after it has rested `N` seconds. Age is the ledger count
+  since its last change × 5 s, a lower bound.
+- **Seller concentration:** at most `s` of the counted bid depth from one account, best prices
+  first.
+
+They are off in the public figures because, measured on mainnet on 27 Nov 2026 (exit at 10%,
+SDEX only):
+
+| Setting | USTRY | CETES | TESOURO | EURC | AQUA | All SDEX |
+| --- | --- | --- | --- | --- | --- | --- |
+| No filter | $256K | $274K | $59K | $221K | $214K | $1.11M |
+| Offers rested ≥ 1h | $256K | $0 | $54K | $167K | $7K | $0.56M |
+| ≤ 50% per account | $128K | $138K | $30K | $164K | $18K | $0.56M |
+| Both | $128K | $0 | $27K | $119K | $6K | $0.36M |
+
+Active market makers reprice constantly, and repricing resets an offer's age: CETES/USDC is
+one account whose every offer is under an hour old. Most RWA books are one market maker, so a
+concentration cap halves them. Both filters trade real depth for resistance to patient
+spoofing; an operator who wants that trade can turn them on.
+
 ## 8. Liquidation curve and collateral cap
 
 A liquidator paid a bonus `b` acts only if it can sell the seized collateral at an average

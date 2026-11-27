@@ -75,9 +75,12 @@ with passing checks. Nothing in this plan writes to mainnet.
 - [ ] 5.4 Release notes and SCF application material
 - [x] 5.5 Slow up, fast down: a published figure may rise only on depth sustained for 7 days,
   and falls on the first low sample (`docs/THREATS.md` §2)
-- [ ] 5.6 Concentration haircut: count at most a set share of depth from any single SDEX
-  offer account or LP position
-- [ ] 5.7 Offer age filter: count only SDEX offers resting for at least N hours
+- [x] 5.6 Concentration haircut: count at most a set share of SDEX bid depth from any one
+  account (`--max-seller-share-bps`, off by default; impact measured in `METHODOLOGY.md` §7.1).
+  LP positions not yet
+- [x] 5.7 Offer age filter: count only SDEX offers resting for at least N seconds
+  (`--min-offer-age-secs`, off by default: repricing resets age, so it removes active market
+  makers)
 - [x] 5.8 Randomized sample times; relative reference threshold; RPC rotation across three
   providers; incomplete runs excluded from the window
 - [ ] 5.9 Depth-aware SEP-40 wrapper oracle for new Blend v2 pools; depth-aware caps proposal

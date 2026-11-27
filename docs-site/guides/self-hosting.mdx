@@ -79,6 +79,8 @@ All in `.env`:
 | `ORBIT_API_PORT` / `ORBIT_DASHBOARD_PORT` | `8080` / `3100` | Ports on 127.0.0.1 |
 | `ORBIT_INTERVAL_SECS` | `1800` | Average time between readings (±25% random), minimum 300 |
 | `ORBIT_HORIZON` | `https://horizon.stellar.org` | Order book source |
+| `ORBIT_MIN_OFFER_AGE_SECS` | `0` | Count an SDEX bid only after it has rested this long |
+| `ORBIT_MAX_SELLER_SHARE_BPS` | `10000` | Most of the SDEX bid depth one account may supply |
 | `ORBIT_NETWORK` | `testnet` | `local`, `testnet` or `mainnet` for the oracle |
 | `ORBIT_ORACLE` | | Your oracle contract |
 | `ORBIT_PUBLISHER_ADDRESS` | | Expected publisher public key (refuses to start on a mismatch) |

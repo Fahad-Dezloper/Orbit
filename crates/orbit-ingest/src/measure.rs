@@ -8,8 +8,9 @@
 //! 4. Measure every venue's exit from that reference, at every band, and sum them.
 
 use orbit_core::{
-    consensus_reference, curve_bands, deviation_bps, AssetDepth, Band, CpPool, CurvePoint,
-    ExitQuote, Fx, OrderBook, QuotedPool, Reference, Thresholds, Venue, VenueExit, VenueMid,
+    consensus_reference, curve_bands, deviation_bps, filter_bids, AssetDepth, Band, CpPool,
+    CurvePoint, ExitQuote, Fx, OfferFilter, OrderBook, QuotedPool, Reference, Thresholds, Venue,
+    VenueExit, VenueMid,
 };
 use serde::{Deserialize, Serialize};
 
@@ -26,6 +27,8 @@ pub const DEVIATION_NOTE_BPS: i64 = 200;
 pub struct MeasureConfig {
     pub bands: Vec<Band>,
     pub thresholds: Thresholds,
+    /// Per-offer filters on SDEX bids. Off by default.
+    pub offer_filter: OfferFilter,
 }
 
 impl Default for MeasureConfig {
@@ -33,8 +36,44 @@ impl Default for MeasureConfig {
         MeasureConfig {
             bands: Band::STANDARD.to_vec(),
             thresholds: Thresholds::default(),
+            offer_filter: OfferFilter::default(),
         }
     }
+}
+
+/// Replaces a book's bids with the offers that pass `filter`; returns notes on what was
+/// removed.
+fn filter_book(
+    h: &Horizon,
+    asset: &Asset,
+    counter: &Side<'_>,
+    latest_ledger: u64,
+    book: &mut OrderBook,
+    filter: &OfferFilter,
+    label: &str,
+) -> Result<Vec<String>, IngestError> {
+    let mut notes = Vec::new();
+    let read = h.bid_offers(asset, counter, latest_ledger)?;
+    let (bids, stats) = filter_bids(read.offers, filter)?;
+    book.bids = bids;
+    if stats.too_young > 0 {
+        notes.push(format!(
+            "{label}: {} of {} bid offers younger than {}s not counted ({} in the counter asset)",
+            stats.too_young, stats.offers, filter.min_age_secs, stats.dropped_young_counter
+        ));
+    }
+    if !stats.capped_counter.is_zero() {
+        notes.push(format!(
+            "{label}: {} in the counter asset above the {}bps per-account share not counted",
+            stats.capped_counter, filter.max_seller_share_bps
+        ));
+    }
+    if read.truncated {
+        notes.push(format!(
+            "{label}: more bid offers than were read; the rest are not counted"
+        ));
+    }
+    Ok(notes)
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -157,8 +196,36 @@ pub fn measure_asset(
                 .collect::<Vec<_>>(),
         )
     });
+    let mut usdc_book = usdc_book?;
+    let mut xlm_book = xlm_book?;
+    if cfg.offer_filter.is_active() && (usdc_book.is_some() || xlm_book.is_some()) {
+        let latest = h.latest_ledger()?;
+        if let Some(book) = usdc_book.as_mut() {
+            let side = Side::Credit(usdc);
+            notes.extend(filter_book(
+                h,
+                asset,
+                &side,
+                latest,
+                book,
+                &cfg.offer_filter,
+                "SDEX/USDC",
+            )?);
+        }
+        if let Some(book) = xlm_book.as_mut() {
+            notes.extend(filter_book(
+                h,
+                asset,
+                &Side::Native,
+                latest,
+                book,
+                &cfg.offer_filter,
+                "SDEX/XLM",
+            )?);
+        }
+    }
     let mut legs = Vec::new();
-    if let Some(book) = usdc_book? {
+    if let Some(book) = usdc_book {
         legs.push(Leg {
             venue: Venue::Sdex {
                 counter: "USDC".into(),
@@ -168,7 +235,7 @@ pub fn measure_asset(
             source: Source::Book(book),
         });
     }
-    if let Some(book) = xlm_book? {
+    if let Some(book) = xlm_book {
         legs.push(Leg {
             venue: Venue::Sdex {
                 counter: "XLM".into(),
