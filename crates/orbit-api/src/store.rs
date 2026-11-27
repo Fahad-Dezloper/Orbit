@@ -5,9 +5,11 @@
 //! published figure stays inspectable. A line that cannot be parsed (for example a write cut
 //! short by a crash) is skipped and counted, never guessed at.
 
+use std::collections::HashMap;
 use std::fs::{self, File, OpenOptions};
 use std::io::{BufRead, BufReader, Read, Seek, SeekFrom, Write};
 use std::path::{Path, PathBuf};
+use std::sync::{Arc, Mutex};
 
 use orbit_core::{Band, Sample};
 use orbit_ingest::run::Run;
@@ -60,15 +62,39 @@ pub struct Loaded {
     pub skipped_lines: usize,
 }
 
+/// A day file's length when it was read, and its slimmed runs.
+type CachedDay = (u64, Arc<Vec<Run>>);
+
 pub struct Store {
     dir: PathBuf,
+    /// Parsed, slimmed runs per day file, keyed by the file's length when read. Past days
+    /// never change; today's file is re-read only after it grows.
+    days: Mutex<HashMap<u64, CachedDay>>,
+}
+
+/// Keeps only what windowed figures need (totals per band, the curve, completeness), so a
+/// week of history stays small in memory.
+fn slim(mut run: Run) -> Run {
+    run.skipped.clear();
+    run.lenders.clear();
+    for r in &mut run.reports {
+        r.venue_mids.clear();
+        r.notes.clear();
+        for d in &mut r.depths {
+            d.venues.clear();
+        }
+    }
+    run
 }
 
 impl Store {
     pub fn open(dir: impl Into<PathBuf>) -> Result<Store, StoreError> {
         let dir = dir.into();
         fs::create_dir_all(&dir).map_err(|e| io(&dir, e))?;
-        Ok(Store { dir })
+        Ok(Store {
+            dir,
+            days: Mutex::new(HashMap::new()),
+        })
     }
 
     /// Appends one run as one line and flushes it to disk.
@@ -122,6 +148,39 @@ impl Store {
             }
         }
         out.runs.sort_by_key(|r| r.measured_at);
+        Ok(out)
+    }
+
+    /// Runs in `[from, to]`, oldest first, slimmed for windowed figures (no venue detail),
+    /// served from a per-day cache. Use this for windows and history; use `load` when the
+    /// full detail of each run is needed.
+    pub fn window_runs(&self, from: u64, to: u64) -> Result<Vec<Run>, StoreError> {
+        let mut out = Vec::new();
+        let mut cache = self.days.lock().unwrap_or_else(|e| e.into_inner());
+        cache.retain(|day, _| *day + 1 >= from / DAY);
+        for day in from / DAY..=to / DAY {
+            let path = self.dir.join(file_name(day * DAY));
+            let len = match fs::metadata(&path) {
+                Ok(m) => m.len(),
+                Err(e) if e.kind() == std::io::ErrorKind::NotFound => continue,
+                Err(e) => return Err(io(&path, e)),
+            };
+            let runs = match cache.get(&day) {
+                Some((l, runs)) if *l == len => runs.clone(),
+                _ => {
+                    let start = day * DAY;
+                    let loaded = self.load(start, start + DAY - 1)?;
+                    let runs = Arc::new(loaded.runs.into_iter().map(slim).collect::<Vec<_>>());
+                    cache.insert(day, (len, runs.clone()));
+                    runs
+                }
+            };
+            out.extend(
+                runs.iter()
+                    .filter(|r| r.measured_at >= from && r.measured_at <= to)
+                    .cloned(),
+            );
+        }
         Ok(out)
     }
 
@@ -218,6 +277,30 @@ mod tests {
         let latest = s.latest(t0 + 15 * 3600, 6 * 3600).unwrap().unwrap();
         assert_eq!(latest.measured_at, t0 + 14 * 3600);
         let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn window_cache_sees_new_runs_and_matches_a_full_load() {
+        let dir = temp_dir("cache");
+        let s = Store::open(&dir).unwrap();
+        let t0 = 1_795_262_400;
+        s.append(&run(t0, "100")).unwrap();
+        s.append(&run(t0 + 13 * 3600, "90")).unwrap();
+        assert_eq!(s.window_runs(t0, t0 + DAY).unwrap().len(), 2);
+        // Appending to today's file must invalidate that day's cache entry.
+        s.append(&run(t0 + 14 * 3600, "80")).unwrap();
+        let cached = s.window_runs(t0, t0 + DAY).unwrap();
+        assert_eq!(cached.len(), 3);
+        let full = s.load(t0, t0 + DAY).unwrap();
+        assert_eq!(
+            samples(&cached, "USTRY", Band::TEN_PCT),
+            samples(&full.runs, "USTRY", Band::TEN_PCT)
+        );
+        // The bounds still apply within a cached day.
+        assert_eq!(
+            s.window_runs(t0 + 13 * 3600, t0 + 13 * 3600).unwrap().len(),
+            1
+        );
     }
 
     #[test]

@@ -33,7 +33,7 @@ description: "Every token, every market, from the most recent reading."
     <ResponseField name="curve" type="object[]">`{ band, exit_usd }` at 12 bands from 0.5% to 50%.</ResponseField>
     <ResponseField name="notes" type="string[]">Facts to read alongside the figure, e.g. a market left out.</ResponseField>
     <ResponseField name="venues_read" type="number">Markets actually read.</ResponseField>
-    <ResponseField name="complete" type="boolean">False if any pinned market could not be read. Incomplete readings never count toward the 24h minimum.</ResponseField>
+    <ResponseField name="complete" type="boolean">False if any pinned market could not be read. Incomplete readings never count toward the windowed minimum.</ResponseField>
   </Expandable>
 </ResponseField>
 <ResponseField name="skipped" type="object[]">Tokens that could not be measured this time, with the reason.</ResponseField>

@@ -160,18 +160,22 @@ async fn asset(State(s): State<Shared>, Path(code): Path<String>) -> Response {
         return error(StatusCode::NOT_FOUND, format!("{code} is not measured"));
     };
     let at = now();
-    let loaded = match s.store.load(at.saturating_sub(s.policy.window_secs), at) {
-        Ok(l) => l,
+    let runs = match s
+        .store
+        .window_runs(at.saturating_sub(s.policy.lookback_secs()), at)
+    {
+        Ok(r) => r,
         Err(e) => return internal(e),
     };
     let windows: Vec<Windowed> = Band::STANDARD
         .iter()
-        .map(|&b| windowed(&samples(&loaded.runs, &code, b), b, at, &s))
+        .map(|&b| windowed(&samples(&runs, &code, b), b, at, &s))
         .collect();
     Json(json!({
         "measured_at": run.measured_at,
         "report": report,
         "window_secs": s.policy.window_secs,
+        "sustain_secs": s.policy.lookback_secs(),
         "windowed": windows,
     }))
     .into_response()
@@ -197,7 +201,7 @@ async fn history(
     };
     let hours = q.hours.unwrap_or(24).clamp(1, MAX_HISTORY_HOURS);
     let at = now();
-    let loaded = match s.store.load(at.saturating_sub(hours * 3600), at) {
+    let runs = match s.store.window_runs(at.saturating_sub(hours * 3600), at) {
         Ok(l) => l,
         Err(e) => return internal(e),
     };
@@ -205,7 +209,7 @@ async fn history(
         "code": code,
         "band": band,
         "hours": hours,
-        "points": samples(&loaded.runs, &code, band),
+        "points": samples(&runs, &code, band),
     }))
     .into_response()
 }
@@ -470,12 +474,14 @@ async fn cap(
     };
     let now_usd = liquidatable_at(&report.curve, bonus);
     let at = now();
-    let loaded = match s.store.load(at.saturating_sub(s.policy.window_secs), at) {
-        Ok(l) => l,
+    let runs = match s
+        .store
+        .window_runs(at.saturating_sub(s.policy.lookback_secs()), at)
+    {
+        Ok(r) => r,
         Err(e) => return internal(e),
     };
-    let points: Vec<Sample> = loaded
-        .runs
+    let points: Vec<Sample> = runs
         .iter()
         .filter_map(|r| {
             let rep = r.reports.iter().find(|x| x.code == code && x.complete)?;

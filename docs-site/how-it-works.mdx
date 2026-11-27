@@ -12,7 +12,7 @@ flowchart LR
   C --> D[Check pools against balances]
   D --> E[One fair price]
   E --> F[Dollars sellable per band]
-  F --> G[Worst of the last 24 hours]
+  F --> G[Worst of the last 7 days]
   G --> H[Safe limit]
   H --> I[JSON API and on-chain oracle]
 ```
@@ -39,9 +39,9 @@ flowchart LR
     For each market, how much it would pay before the average sale price falls a given band
     below that price, summed in USD. [More](/concepts/exit-liquidity)
   </Step>
-  <Step title="Keep the worst of the day">
-    The published figure is the lowest reading in the last 24 hours, and only if there are at
-    least 12 readings with no gap over 2 hours. [More](/concepts/worst-of-the-day)
+  <Step title="Keep the worst of the week">
+    The published figure is the lowest reading in the last 7 days, and only if the last 24 hours
+    hold at least 12 readings with no gap over 2 hours. [More](/concepts/worst-of-the-day)
   </Step>
   <Step title="Turn it into a limit">
     At a lender's liquidation bonus, how much collateral could be cleared, halved as a safety

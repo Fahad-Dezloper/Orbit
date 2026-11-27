@@ -94,10 +94,14 @@ A measurement runs on average every 30 minutes, at a randomized time (±25%) so 
 place liquidity just before a sample and pull it just after. Soroban reads rotate across
 independent RPC providers. A run that could not read every pinned venue is kept but marked
 incomplete and is never used as a sample: missing data is a gap, not low depth. The published figure for an asset and band is the
-**minimum over the last 24 hours**, and only if the window has at least 12 samples with no
-gap longer than 2 hours (including the gap from the last sample to now). Otherwise nothing is
-published. Liquidity placed just before one measurement and pulled after it can only lower
+**minimum over the last 7 days**, and only if the last 24 hours hold at least 12 samples with
+no gap longer than 2 hours (including the gap from the last sample to now). Otherwise nothing
+is published. Liquidity placed just before one measurement and pulled after it can only lower
 the figure.
+
+**Slow up, fast down.** A low reading lowers the figure at once. A rise counts only once every
+reading for 7 days has been at least that high, so depth has to stay in place, in public, for a
+week before any cap built on it can grow.
 
 ## 8. Liquidation curve and collateral cap
 
@@ -106,8 +110,8 @@ price at most `b` below the reference. So the exit at band `b` is the most colla
 can be liquidated on Stellar at that bonus. The curve samples that exit at 12 bands.
 
 - Liquidatable at bonus `b`: the curve value at the largest sampled band not above `b`.
-- Recommended cap: the 24h minimum of that value × (1 − safety margin), default margin 50%.
-  No recommendation without a full window.
+- Recommended cap: the windowed minimum (7 days, with 24h coverage rules) of that value ×
+  (1 − safety margin), default margin 50%. No recommendation without a full window.
 
 ### 8.1 What lenders hold
 
@@ -151,7 +155,7 @@ first).
 - Depth on other chains, and redemption with the issuer, are not exit on Stellar and are not
   counted.
 - The reference comes from Stellar venues only. If every Stellar venue is moved together the
-  reference moves with them; the 24h minimum limits how long that can inflate depth, but it
+  reference moves with them; the windowed minimum limits how long that can inflate depth, but it
   cannot detect a market that is wrong everywhere at once.
 - The contract and publisher have not had an external audit.
 - Tokens whose issuer file cannot be fetched (such as Matrixdock's XAUM) are left out on

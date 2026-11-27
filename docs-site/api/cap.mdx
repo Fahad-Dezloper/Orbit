@@ -6,7 +6,7 @@ description: "Collateral that can be liquidated at a bonus, and the recommended 
 
 <ParamField path="code" type="string" required>Token code.</ParamField>
 <ParamField query="bonus_bps" type="number" default="500">Liquidation bonus, 1 to 9999. Self-hosted API only.</ParamField>
-<ParamField query="safety_bps" type="number" default="5000">Safety margin taken off the 24h minimum, 0 to 9999. Self-hosted API only.</ParamField>
+<ParamField query="safety_bps" type="number" default="5000">Safety margin taken off the windowed minimum, 0 to 9999. Self-hosted API only.</ParamField>
 
 ## Response
 

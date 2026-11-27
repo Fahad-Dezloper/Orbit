@@ -74,7 +74,7 @@ fn round(args: &Args, network: Network, assets: &[OracleAsset]) -> Result<(), St
     let at = now();
     let store = Store::open(&args.data_dir).map_err(|e| e.to_string())?;
     let loaded = store
-        .load(at.saturating_sub(policy.window_secs), at)
+        .load(at.saturating_sub(policy.lookback_secs()), at)
         .map_err(|e| e.to_string())?;
 
     // Read what the oracle already holds. If that read fails, publish nothing: a blind

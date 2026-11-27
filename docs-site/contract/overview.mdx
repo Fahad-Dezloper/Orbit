@@ -31,7 +31,7 @@ can read it in the same transaction as a deposit or borrow.
 pub enum Asset { Stellar(Address), Other(Symbol) }
 
 pub struct DepthRecord {
-    pub exit_usd: i128,  // USD × 10^7, the 24h minimum
+    pub exit_usd: i128,  // USD × 10^7, the windowed minimum (7 days)
     pub timestamp: u64,  // end of the measurement window
     pub samples: u32,    // readings the minimum was taken over
 }

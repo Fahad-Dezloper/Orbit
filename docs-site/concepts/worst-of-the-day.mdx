@@ -1,21 +1,32 @@
 ---
-title: "Worst of the day"
-description: "Why Orbit publishes the lowest reading, not the latest."
+title: "Worst of the week"
+description: "Why Orbit publishes the lowest reading, not the latest, and why it rises slowly."
 ---
 
 Liquidity can be placed for a moment and pulled. If Orbit published its latest reading, someone
 could add buyers just before a reading and remove them just after.
 
-So the figure Orbit publishes is the **minimum over the last 24 hours**, with three rules:
+So the figure Orbit publishes is the **lowest reading of the last 7 days**, with coverage rules
+on the last 24 hours:
 
 | Rule | Value |
 | --- | --- |
-| Window | 24 hours |
-| Readings needed | at least 12 |
+| Figure | lowest reading in the last 7 days |
+| Readings needed in the last 24 hours | at least 12 |
 | Largest allowed gap between readings | 2 hours |
 
-If any rule fails, there is **no published figure** for that token and band. Orbit never fills a
-gap with an old number.
+If a coverage rule fails, there is **no published figure** for that token and band. Orbit never
+fills a gap with an old number.
+
+## Slow up, fast down
+
+- **Down at once.** One low reading lowers the figure immediately.
+- **Up only after a week.** A higher figure counts only once every reading for 7 days has been
+  at least that high.
+
+Someone who wants a lender to accept more of a token has to keep real buy orders in place, in
+public, for a full week, where anyone can sell into them. Pulling them for a single reading
+resets the clock.
 
 ## Random reading times
 
@@ -24,6 +35,6 @@ the next reading will happen, so timing fake liquidity to it does not work.
 
 ## What this does not stop
 
-Someone with a lot of capital could keep real buy orders in place for a whole day. Today that
-is slow but cheap (the cost is mostly the interest on the parked money). The planned fixes are
+Someone with a lot of capital could still keep real buy orders in place for a week. That now
+costs a week of parked money, in the open, but it is not impossible. The remaining defences are
 in [Threat model](/security/threat-model).

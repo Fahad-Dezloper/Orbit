@@ -37,7 +37,7 @@ on-chain at that bonus.** Orbit computes that curve for every asset, from 0.5% t
 
 - USTRY at a 5% bonus: **$314,464** can be liquidated right now. Above that, a pool is
   holding bad debt it cannot clear.
-- `GET /v1/assets/USTRY/cap?bonus_bps=500&safety_bps=5000` turns the 24h minimum of that
+- `GET /v1/assets/USTRY/cap?bonus_bps=500&safety_bps=5000` turns the windowed minimum of that
   figure into a recommended collateral cap.
 
 ## 4. A lender that checks depth, live
@@ -90,7 +90,7 @@ The scan is network-bound: the maths is four orders of magnitude faster than the
 - **No venue is its own reference.** Every venue is measured from the median price of the
   venues that hold real depth; a thin venue cannot move it, and pushing one venue can only
   make the others look thinner.
-- **Manipulation can only lower the figure.** Published depth is the 24h minimum, so
+- **Manipulation can only lower the figure.** Published depth is the 7-day minimum, so
   liquidity parked for one measurement cannot raise it.
 - **Fails closed.** Stale data, thin windows or an unreadable oracle publish nothing.
 - **Every rounding understates depth.** Fixed-point, no floats.

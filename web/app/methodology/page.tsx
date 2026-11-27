@@ -54,12 +54,13 @@ const STEPS: { title: string; body: React.ReactNode }[] = [
     ),
   },
   {
-    title: "The worst of the day",
+    title: "The worst of the week",
     body: (
       <>
         Orbit measures about every 30 minutes, at random times. The number it publishes is the
-        lowest one from the last 24 hours. Buyers who appear for a moment and then leave can’t
-        make a token look safer than it is.
+        lowest one from the last 7 days. One low reading pulls it down at once; it only goes up
+        after buyers have stayed for a whole week. Buyers who appear for a moment and then leave
+        can’t make a token look safer than it is.
       </>
     ),
   },

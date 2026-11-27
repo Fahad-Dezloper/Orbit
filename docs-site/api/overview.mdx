@@ -19,7 +19,7 @@ The static files are written by `orbit-api` itself, so they match the live API e
 | Static file | Live route | Returns |
 | --- | --- | --- |
 | `latest.json` | `GET /v1/latest` | The latest reading: every token, every market |
-| `assets/{code}.json` | `GET /v1/assets/{code}` | One token's reading and its 24h minimum per band |
+| `assets/{code}.json` | `GET /v1/assets/{code}` | One token's reading and its windowed minimum per band |
 | `assets/{code}/history.json` | `GET /v1/assets/{code}/history` | Exit over time for one band |
 | `assets/{code}/cap.json` | `GET /v1/assets/{code}/cap` | Liquidatable collateral and the recommended cap |
 | `lenders.json` | `GET /v1/lenders` | Tokens held by Blend pools, beside what could be sold |

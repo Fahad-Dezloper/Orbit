@@ -20,7 +20,7 @@ number can cost someone real money, so correctness is a security property here.
 
 | Threat | Mitigation |
 | --- | --- |
-| Depth spoofing (orders placed then pulled) | Published figure is the 24h minimum with at least 12 samples and no gap over 2h, so parked liquidity can only lower it. (A separate persistence filter was planned and is not built; the minimum already covers placed-then-pulled depth.) |
+| Depth spoofing (orders placed then pulled) | Published figure is the 7-day minimum, with at least 12 samples in the last 24h and no gap over 2h, so parked liquidity can only lower it and a rise needs a week of sustained depth. |
 | Wash liquidity (self-trading pools) | AMM exit uses reserves, not volume; volume is never an input |
 | Impostor assets with the same code | Issuer pinned by SEP-1; asset id = code + issuer |
 | Impostor or swapped AMM pools | Pool tokens must equal SAC ids derived locally from the network id and asset; pool type must match how it is pinned |

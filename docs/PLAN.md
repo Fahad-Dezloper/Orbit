@@ -61,6 +61,8 @@ with passing checks. Nothing in this plan writes to mainnet.
 - [x] 4.5 `orbit-publisher`: windowed minimum to oracle batches; no replays, fails closed,
   mainnet refused; end-to-end local demo (`scripts/local-publish-demo.sh`)
 - [x] 4.6 Container image and deployment guide (`Dockerfile`, `docs/DEPLOY.md`)
+- [x] 4.6b Self-hosting in one command: `docker compose` for API, dashboard and publisher
+  (key as a Docker secret), `scripts/deploy-oracle.sh` for your own oracle
 - [ ] 4.7 Hosted API with a public URL, measuring around the clock
 
 ## Phase 5: Hardening and proof
@@ -71,7 +73,7 @@ with passing checks. Nothing in this plan writes to mainnet.
   the market cannot absorb (`contracts/demo-lender`, `scripts/blocked-borrow-demo.sh`)
 - [x] 5.3 Methodology document a protocol risk team can audit (`docs/METHODOLOGY.md`)
 - [ ] 5.4 Release notes and SCF application material
-- [ ] 5.5 Slow up, fast down: a published figure may rise only on depth sustained for 7 days,
+- [x] 5.5 Slow up, fast down: a published figure may rise only on depth sustained for 7 days,
   and falls on the first low sample (`docs/THREATS.md` §2)
 - [ ] 5.6 Concentration haircut: count at most a set share of depth from any single SDEX
   offer account or LP position
